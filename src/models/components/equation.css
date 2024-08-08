@@ -1,0 +1,16 @@
+math-field::part(virtual-keyboard-toggle) {
+    display: none;
+}
+
+math-field::part(menu-toggle) {
+    display: none;
+}
+
+math-field {
+    display: block;
+    place-items: center;
+    font-size: 1.6em;
+    min-height: 7vh;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
