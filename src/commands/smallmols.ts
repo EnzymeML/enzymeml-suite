@@ -9,7 +9,7 @@ export async function createSmallMolecule() {
     }
 }
 
-export async function listSmallMolecules(): Promise<string[]> {
+export async function listSmallMolecules(): Promise<[string, string][]> {
     try {
         return await invoke('list_small_mols', {});
     } catch (error) {
@@ -27,9 +27,9 @@ export async function getSmallMolecule(id: string): Promise<SmallMolecule | unde
     }
 }
 
-export async function updateSmallMolecule(id: string, small_mol: SmallMolecule) {
+export async function updateSmallMolecule(id: string, data: SmallMolecule) {
     try {
-        await invoke('update_small_mol', {id, data: small_mol});
+        await invoke('update_small_mol', {id: id, data: data});
     } catch (error) {
         console.error('Error invoking command:', error);
     }
