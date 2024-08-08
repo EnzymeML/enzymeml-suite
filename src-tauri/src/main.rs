@@ -4,8 +4,9 @@
 use std::sync::Arc;
 
 use tauri::async_runtime::spawn;
+use tauri::Manager;
 
-use crate::actions::smallmols;
+use crate::actions::{equations, smallmols, vessels};
 use crate::api::create_rocket;
 use crate::states::EnzymeMLState;
 
@@ -23,7 +24,9 @@ pub mod actions {
     pub mod macros;
     pub mod enzmldoc;
     pub mod smallmols;
+    pub mod vessels;
     pub mod utils;
+    pub mod equations;
 }
 
 #[tokio::main]
@@ -35,12 +38,12 @@ async fn main() {
 
     tauri::Builder::default()
         .setup(|app| {
-            // #[cfg(debug_assertions)] // only include this code on debug builds
-            // {
-            //     let window = app.get_window("main").unwrap();
-            //     window.open_devtools();
-            //     window.close_devtools();
-            // }
+            #[cfg(debug_assertions)] // only include this code on debug builds
+            {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+                window.close_devtools();
+            }
 
             // Initialize the database.
             db::init();
@@ -69,6 +72,13 @@ async fn main() {
             smallmols::update_small_mol,
             smallmols::delete_small_mol,
             smallmols::list_small_mols,
+            vessels::create_vessel,
+            vessels::get_vessel,
+            vessels::update_vessel,
+            vessels::delete_vessel,
+            vessels::list_vessels,
+            equations::update_equation,
+            equations::get_equation,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
