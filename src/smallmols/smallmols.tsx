@@ -1,20 +1,30 @@
 import 'react-json-view-lite/dist/index.css';
-import {createSmallMolecule, listSmallMolecules} from "../commands/smallmols.ts";
+import {
+    createSmallMolecule,
+    deleteSmallMolecule,
+    getSmallMolecule,
+    listSmallMolecules,
+    updateSmallMolecule
+} from "../commands/smallmols.ts";
 import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import SmallMoleculeEntry from "./components/smallmol.tsx";
+import DataHandle from "../components/datafetch.tsx";
+import SmallMoleculeDetail from "./components/smallmoldetail.tsx";
+import {ChildProps} from "../types.ts";
+import {SmallMolecule} from "../../../enzymeml-ts/src";
+import {Button} from "antd";
 
 export default function SmallMolecules() {
 
     // States
-    const [smallMoleculeIDs, setSmallMoleculeIDs] = useState<string[] | null>(null);
+    const [smallMolecules, setSmallMolecules] = useState<[string, string][] | null>(null);
 
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
         listSmallMolecules().then(
             (data) => {
-                setSmallMoleculeIDs(data);
+                setSmallMolecules(data);
             }
         ).catch(
             (error) => {
@@ -28,7 +38,7 @@ export default function SmallMolecules() {
         const unlisten = listen('update_small_mols', () => {
             listSmallMolecules().then(
                 (data) => {
-                    setSmallMoleculeIDs(data);
+                    setSmallMolecules(data);
                 }
             ).catch(
                 (error) => {
@@ -52,19 +62,23 @@ export default function SmallMolecules() {
     }
 
     return (
-        <div>
-            <div style={
+        <div className={"max-h-screen overflow-scroll scrollbar-hide"}>
+            <div className={"flex flex-col gap-10"}>
+                <Button onClick={handleCreateSmallMolecule}>Create Small Molecule</Button>
                 {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
-                }
-            }>
-                <button onClick={handleCreateSmallMolecule}>Create Small Molecule</button>
-                {
-                    smallMoleculeIDs?.map((id) => {
+                    smallMolecules?.map(([id]) => {
                         return (
-                            <SmallMoleculeEntry key={id} id={id}/>
+                            <DataHandle<SmallMolecule>
+                                key={`small_mol_fetcher_${id}`}
+                                id={id}
+                                fetchObject={getSmallMolecule}
+                                updateObject={updateSmallMolecule}
+                                deleteObject={deleteSmallMolecule}
+                            >
+                                {(props: ChildProps<SmallMolecule>) => (
+                                    <SmallMoleculeDetail {...props} key={`small_mol_${id}`}/>
+                                )}
+                            </DataHandle>
                         );
                     })
                 }
