@@ -6,6 +6,8 @@ import SmallMolecules from "./smallmols/smallmols.tsx";
 import Home from "./home/home.tsx";
 import Measurement from "./measurements/measurement.tsx";
 import {FolderOutlined} from "@ant-design/icons";
+import Vessels from "./vessels/vessels.tsx";
+import Models from "./models/components/equation.tsx";
 
 const {Content, Sider} = Layout;
 
@@ -26,7 +28,7 @@ const items = [
         key: '2',
         icon: React.createElement(FolderOutlined),
         label: 'Vessels',
-        route: '/authors',
+        route: '/vessels',
     },
     {
         key: '3',
@@ -76,9 +78,8 @@ const App: React.FC = () => {
 
     return (
         <Layout
+            className={"min-h-screen"}
             style={{
-                minHeight: '97vh',
-                maxHeight: '99vh',
                 background: colorBgContainer,
                 borderRadius: 100,
             }}
@@ -88,6 +89,7 @@ const App: React.FC = () => {
                 style={{
                     background: colorBgContainer,
                     borderRadius: borderRadiusLG,
+                    marginTop: 5,
                 }}
             >
                 <div className="demo-logo-vertical"/>
@@ -99,10 +101,7 @@ const App: React.FC = () => {
                 />
             </Sider>
             <Layout>
-                <Content style={{
-                    margin: '24px 16px 24px',
-                    overscrollBehaviorY: 'none',
-                }}>
+                <Content className={"my-4 mx-4"}>
                     <div
                         style={{
                             padding: 24,
@@ -113,12 +112,12 @@ const App: React.FC = () => {
                         <Routes>
                             <Route path="/" element={<Home/>}/>
                             <Route path="/authors" element={<div>Authors Content</div>}/>
-                            <Route path="/vessels" element={<div>Vessels Content</div>}/>
+                            <Route path="/vessels" element={<Vessels/>}/>
                             <Route path="/small-molecules" element={<SmallMolecules/>}/>
                             <Route path="/proteins" element={<div>Proteins Content</div>}/>
                             <Route path="/reactions" element={<div>Reactions Content</div>}/>
                             <Route path="/measurements" element={<Measurement/>}/>
-                            <Route path="/models" element={<div>Models Content</div>}/>
+                            <Route path="/models" element={<Models/>}/>
                         </Routes>
                     </div>
                 </Content>
