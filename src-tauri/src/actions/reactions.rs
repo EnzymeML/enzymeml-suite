@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use enzymeml_rs::enzyme_ml::{Vessel, VesselBuilder};
+use enzymeml_rs::prelude::{Protein, ProteinBuilder, Reaction, ReactionBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::{create_object, delete_object, get_object, update_event, update_object};
@@ -8,26 +8,26 @@ use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 
 #[tauri::command]
-pub fn create_vessel(
+pub fn create_reaction(
     state: State<Arc<EnzymeMLState>>,
     app_handle: AppHandle,
 ) {
     create_object!(
-        state.doc, vessels,
-        VesselBuilder, "v", id
+        state.doc, reactions,
+        ReactionBuilder, "r", id
     );
 
     update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_vessels");
+    update_event!(app_handle, "update_reactions");
 }
 
 #[tauri::command]
-pub fn update_vessel(
+pub fn update_reaction(
     state: State<Arc<EnzymeMLState>>,
-    data: Vessel,
+    data: Reaction,
     app_handle: AppHandle,
 ) -> Result<(), String> {
-    let id = update_object!(state.doc, vessels, data, id);
+    let id = update_object!(state.doc, reactions, data, id);
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, &id);
@@ -36,35 +36,35 @@ pub fn update_vessel(
 }
 
 #[tauri::command]
-pub fn list_vessels(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)> {
+pub fn list_reactions(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)> {
     // Extract the guarded state values
     let state_doc = state.doc.lock().unwrap();
 
-    state_doc.vessels
+    state_doc.reactions
         .iter()
         .map(|s| (s.id.clone(), s.name.clone()))
         .collect()
 }
 
 #[tauri::command]
-pub fn get_vessel(
+pub fn get_reaction(
     state: State<Arc<EnzymeMLState>>,
     id: &str,
-) -> Result<Vessel, String> {
-    get_object!(state.doc, vessels, id, id)
+) -> Result<Reaction, String> {
+    get_object!(state.doc, reactions, id, id)
 }
 
 #[tauri::command]
-pub fn delete_vessel(
+pub fn delete_reaction(
     state: State<Arc<EnzymeMLState>>,
     id: &str,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     // Signature: State, Path, ID, ID property
-    delete_object!(state.doc, vessels, id, id);
+    delete_object!(state.doc, reactions, id, id);
 
     update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_vessels");
+    update_event!(app_handle, "update_reactions");
 
     Ok(())
 }

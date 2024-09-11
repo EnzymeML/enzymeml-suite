@@ -1,7 +1,8 @@
 import {FormInstance} from "antd";
 
 export interface Identifiable {
-    id: string;
+    id?: string;
+    species_id?: string | null;
 }
 
 export interface ChildProps<T extends Identifiable> {
@@ -10,5 +11,5 @@ export interface ChildProps<T extends Identifiable> {
     form: FormInstance<T>,
     isLoading: boolean,
     handleUpdateObject: () => void,
-    handleDeleteObject: () => void,
+    handleDeleteObject?: () => void,
 }

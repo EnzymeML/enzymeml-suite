@@ -57,17 +57,19 @@ pub fn new_document(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) {
 }
 
 #[tauri::command]
-pub fn save(state: State<Arc<EnzymeMLState>>) -> Result<i32, String> {
+pub fn save(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<i32, String> {
     // Extract the guarded state values
     let state_doc = state.doc.lock().unwrap();
     let state_title = state.title.lock().unwrap();
     let mut state_id = state.id.lock().unwrap();
 
     if let Some(id) = *state_id {
+        app_handle.emit_all("update_document", ()).expect("Failed to emit event");
         update_document(id, &state_doc).map_err(|err| err.to_string())
     } else {
         let id = insert_document(&state_title, &state_doc).map_err(|err| err.to_string())?;
         *state_id = Some(id);
+        app_handle.emit_all("update_document", ()).expect("Failed to emit event");
         Ok(id)
     }
 }

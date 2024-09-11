@@ -9,6 +9,7 @@
 /// * `$struct` - The struct containing the nested collection.
 /// * `$($path).+` - The path to the nested collection within the struct.
 /// * `$id` - The ID of the item to retrieve.
+/// * `$id_prop` - The property of the item that contains the ID.
 ///
 /// # Returns
 ///
@@ -37,6 +38,7 @@ macro_rules! get_object {
 /// * `$state` - The state containing the nested collection, wrapped in a `Mutex`.
 /// * `$($path).+` - The path to the nested collection within the state.
 /// * `$id` - The ID of the item to delete.
+/// * `$id_prop` - The property of the item that contains the ID.
 ///
 /// # Panics
 ///
@@ -75,6 +77,9 @@ macro_rules! update_object {
         let index = state.$($path).+.iter().position(|s| s.$id_prop == $data.$id_prop)
             .expect("Item not found");
         state.$($path).+[index] = $data;
+
+        let id = state.$($path).+[index].$id_prop.clone();
+        id
     }};
 }
 
@@ -113,4 +118,15 @@ macro_rules! create_object {
 
         id
     }};
+}
+
+ 
+#[macro_export]
+macro_rules! update_event {
+    ($app_handle:expr, $event:expr) => {
+        $app_handle
+            .emit_all($event, ())
+            .expect("Failed to emit event");
+    };
+    () => {};
 }

@@ -27,6 +27,7 @@ rocket = { version = "0.5.1", features = ["json"] }
 rocket_cors = "0.6.0"
 simplelog = "0.12.2"
 log = "0.4.22"
+meval = "0.2.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

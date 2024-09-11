@@ -1,6 +1,7 @@
 import React, {ReactNode, useEffect, useState} from 'react';
 import {Form} from "antd";
 import {ChildProps, Identifiable} from "../types.ts";
+import {listen} from "@tauri-apps/api/event";
 
 type AlternativeStringCol<T, K extends keyof T> = T[K] extends string ? K : never;
 
@@ -8,9 +9,9 @@ type DataFetchProps<T extends Identifiable> = {
     id: string,
     fetchObject: (id: string) => Promise<T | undefined>;
     updateObject: (id: string, data: T) => Promise<void>;
-    deleteObject: (id: string) => Promise<void>;
+    deleteObject?: (id: string) => Promise<void>;
     children: (props: ChildProps<T>) => ReactNode;
-    alternativeIdCol?: AlternativeStringCol<T, keyof T>;
+    alternativeIdCol?: AlternativeStringCol<T, keyof T> | string;
 };
 
 export default function DataHandle<T extends Identifiable>(
@@ -22,29 +23,46 @@ export default function DataHandle<T extends Identifiable>(
         deleteObject,
         alternativeIdCol,
     }: DataFetchProps<T>
-): React.ReactElement {
+): React.ReactElement | null {
     // States
     const [form] = Form.useForm<T>();
     const [data, setData] = useState<T | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    // Used to fetch the data for the first time, upon
-    // component mount
+    // If there is no delete function, replace with identity function
+    if (!deleteObject) {
+        deleteObject = () => Promise.resolve();
+    }
+
+    // Effects
     useEffect(() => {
-        // Fetch small molecule
-        fetchObject(id).then(
-            (data) => {
-                if (data) {
-                    setData(data);
-                    setIsLoading(false);
+        // Function to fetch and set
+        const fetchAndSetData = () => {
+            fetchObject(id).then(
+                (data: T | undefined) => {
+                    if (data) {
+                        setData(data);
+                        setIsLoading(false);
+                    }
                 }
-            }
-        ).catch(
-            (error) => {
-                setError(error);
-            }
-        )
+            ).catch(
+                (error) => {
+                    setError(error);
+                }
+            )
+        }
+
+        // Call the function on mount
+        fetchAndSetData();
+
+        // Re-render upon event
+        const unlisten = listen(id, () => fetchAndSetData());
+
+        // Clean up the event listener on component unmount
+        return () => {
+            unlisten.then((fn) => fn());
+        };
     }, []);
 
     // Generic function to update the data
@@ -81,6 +99,10 @@ export default function DataHandle<T extends Identifiable>(
                     }
                 )
             } else {
+                if (!data.id) {
+                    throw new Error(`No ID found in data: ${JSON.stringify(data, null, 2)}`);
+                }
+
                 deleteObject(data.id).then(
                     () => {
                         console.log('Object deleted');
@@ -91,13 +113,9 @@ export default function DataHandle<T extends Identifiable>(
     }
 
     if (!data) {
-        return (
-            <div>
-
-            </div>
-        );
+        return null;
     }
-
+    
     return (
         <>
             {children(

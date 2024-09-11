@@ -7,7 +7,9 @@ import Home from "./home/home.tsx";
 import Measurement from "./measurements/measurement.tsx";
 import {FolderOutlined} from "@ant-design/icons";
 import Vessels from "./vessels/vessels.tsx";
-import Models from "./models/components/equation.tsx";
+import Models from "./models/models.tsx";
+import Proteins from "./proteins/proteins.tsx";
+import Reactions from "./reactions/reactions.tsx";
 
 const {Content, Sider} = Layout;
 
@@ -17,12 +19,6 @@ const items = [
         icon: React.createElement(FolderOutlined),
         label: 'Overview',
         route: '/',
-    },
-    {
-        key: '1',
-        icon: React.createElement(FolderOutlined),
-        label: 'Authors',
-        route: '/authors',
     },
     {
         key: '2',
@@ -111,11 +107,10 @@ const App: React.FC = () => {
                     >
                         <Routes>
                             <Route path="/" element={<Home/>}/>
-                            <Route path="/authors" element={<div>Authors Content</div>}/>
                             <Route path="/vessels" element={<Vessels/>}/>
                             <Route path="/small-molecules" element={<SmallMolecules/>}/>
-                            <Route path="/proteins" element={<div>Proteins Content</div>}/>
-                            <Route path="/reactions" element={<div>Reactions Content</div>}/>
+                            <Route path="/proteins" element={<Proteins/>}/>
+                            <Route path="/reactions" element={<Reactions/>}/>
                             <Route path="/measurements" element={<Measurement/>}/>
                             <Route path="/models" element={<Models/>}/>
                         </Routes>

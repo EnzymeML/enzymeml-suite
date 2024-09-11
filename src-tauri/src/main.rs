@@ -1,4 +1,4 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+// Prevents additi pub(crate) pub(crate)onal console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::sync::Arc;
@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tauri::async_runtime::spawn;
 use tauri::Manager;
 
-use crate::actions::{equations, smallmols, vessels};
+use crate::actions::{enzmldoc, equations, parameters, proteins, reactions, simulation, smallmols, vessels, windows};
 use crate::api::create_rocket;
 use crate::states::EnzymeMLState;
 
@@ -27,6 +27,11 @@ pub mod actions {
     pub mod vessels;
     pub mod utils;
     pub mod equations;
+    pub mod simulation;
+    pub mod windows;
+    pub mod parameters;
+    pub mod proteins;
+    pub mod reactions;
 }
 
 #[tokio::main]
@@ -44,7 +49,6 @@ async fn main() {
                 window.open_devtools();
                 window.close_devtools();
             }
-
             // Initialize the database.
             db::init();
 
@@ -61,24 +65,67 @@ async fn main() {
         })
         .manage(tauri_state)
         .invoke_handler(tauri::generate_handler![
+            // Data IO
             dataio::save,
             dataio::load,
             dataio::list_all_entries,
             dataio::new_document,
             dataio::export_to_json,
             dataio::get_state,
+
+            // EnzymeML Document
+            enzmldoc::get_all_species_ids,
+            enzmldoc::get_all_non_constant_species_ids,
+            enzmldoc::get_species_name,
+            enzmldoc::set_title,
+
+            // Small Molecules
             smallmols::create_small_mol,
             smallmols::get_small_mol,
             smallmols::update_small_mol,
             smallmols::delete_small_mol,
             smallmols::list_small_mols,
+
+            // Vessels
             vessels::create_vessel,
             vessels::get_vessel,
             vessels::update_vessel,
             vessels::delete_vessel,
             vessels::list_vessels,
+
+            // Proteins
+            proteins::create_protein,
+            proteins::get_protein,
+            proteins::update_protein,
+            proteins::delete_protein,
+            proteins::list_proteins,
+
+            // Reactions
+            reactions::create_reaction,
+            reactions::get_reaction,
+            reactions::update_reaction,
+            reactions::delete_reaction,
+            reactions::list_reactions,
+
+            // Equations
             equations::update_equation,
             equations::get_equation,
+            equations::delete_equation,
+            equations::create_equation,
+            equations::list_equations,
+
+            // Parameters
+            parameters::list_parameters,
+            parameters::create_parameter,
+            parameters::get_parameter,
+            parameters::update_parameter,
+            parameters::delete_parameter,
+
+            // Simulation
+            simulation::simulate_enzymeml,
+
+            // Windows
+            windows::open_simulator,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

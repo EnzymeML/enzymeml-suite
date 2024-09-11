@@ -1,78 +1,25 @@
-import React, {useEffect, useState} from "react";
-import {AutoComplete, Badge, Button, Form, Input, Select, Switch, Tag} from "antd";
+import {AutoComplete, Button, Form, Input, Select, Switch} from "antd";
 import {ChildProps} from "../../types.ts";
-import {SmallMolecule} from "../../../../enzymeml-ts/src";
+import {Protein} from "../../../../enzymeml-ts/src";
 import CardHeader from "../../components/cardheading.tsx";
+import React, {useEffect, useState} from "react";
 import {listVessels} from "../../commands/vessels.ts";
-import {fetchFromPubChem, fetchPubChemDetails} from "../fetchutils.ts";
-import {RiExternalLinkLine} from "react-icons/ri";
+import {extractHref, Option, OptionBadge, VesselBadge} from "../../smallmols/components/smallmoldetail.tsx";
 import {AutoCompleteProps} from "antd/lib";
+import {fetchFromUniProt, UniProtEntry} from "../fetchutils.ts";
+import {RiExternalLinkLine} from "react-icons/ri";
 
-export interface Option {
-    label: string | React.ReactElement,
-    value: string,
-}
-
-export const OptionBadge = ({value, database, baseUri}: { value: string, database: string, baseUri: string }) => {
-    let href = baseUri + value;
-    return (
-        <div className={"flex flex-row justify-between"}>
-            <span className="text-gray-600">{value}</span>
-            <Tag color="blue" className="scale-90">
-                <a className={"flex flex-row gap-2 place-items-center"} href={href} target={"_blank"}>
-                    {database}
-                    <RiExternalLinkLine/>
-                </a>
-            </Tag>
-        </div>
-    )
-}
-
-export const VesselBadge = ({name, id}: { name: string, id: string }) => {
-    return (
-        <div className={"flex flex-row gap-1 place-items-center"}>
-            <span>{name}</span>
-            <Badge count={id}
-                   size={"small"}
-                   color={"cyan"}
-                   className={"scale-90 opacity-75"}
-            />
-        </div>
-    )
-
-}
-
-export const extractHref = (value: string | string[] | undefined | null) => {
-    let href
-
-    if (typeof value === "string") {
-        href = value;
-    } else if (Array.isArray(value)) {
-        href = value[0];
-    } else {
-        return undefined;
-    }
-
-    // If the value is not a URL return undefined
-    if (!href.startsWith("http")) {
-        return undefined;
-    }
-
-    return href;
-}
-
-export default function SmallMoleculeDetail(
+export default function ProteinDetail(
     {
         data,
         handleUpdateObject,
         handleDeleteObject,
         form,
-    }: ChildProps<SmallMolecule>
+    }: ChildProps<Protein>
 ) {
-
-    // States
     const [vesselOptions, setVesselOptions] = useState<Option[]>([])
-    const [pubChemOptions, setPubChemOptions] = useState<AutoCompleteProps["options"]>([])
+    const [uniprotOptions, setUniprotOptions] = useState<AutoCompleteProps["options"]>([])
+    const [unitProtResult, setUnitProtResult] = useState<UniProtEntry[]>()
 
     // Effects
     useEffect(() => {
@@ -96,7 +43,7 @@ export default function SmallMoleculeDetail(
         )
     }, []);
 
-    // Handler
+    // Reference handler
     const handlePreUpdateObject = () => {
         const references = form.getFieldValue("references");
         // Add back as an array if it is a string
@@ -106,33 +53,68 @@ export default function SmallMoleculeDetail(
         handleUpdateObject();
     }
 
+    // Search and autocomplete Uniprot
     const onSearch = (searchText: string) => {
-        fetchFromPubChem(searchText, 15).then(
+        fetchFromUniProt(searchText, 15).then(
             (res) => {
+                if (res === null) {
+                    return;
+                }
+
                 const options = res.map(
                     (item) => {
                         return {
-                            value: item,
-                            label: <OptionBadge value={item} database={"PubChem"}
-                                                baseUri={"https://pubchem.ncbi.nlm.nih.gov/compound/"}/>
+                            value: item.primaryAccession,
+                            label: <OptionBadge value={item.proteinDescription.recommendedName.fullName.value}
+                                                database={"UniProt"} baseUri={"https://www.uniprot.org/uniprotkb/"}/>
                         }
                     }
                 );
-                setPubChemOptions(options);
+
+                setUniprotOptions(options);
+                setUnitProtResult(res);
             }
         );
     }
 
-    const onSelect = (name: string) => {
-        fetchPubChemDetails(name, form).then(() => {
-            handleUpdateObject();
-        })
+    const onSelect = (uniprotId: string) => {
+        const entry = unitProtResult?.find((item) => item.primaryAccession === uniprotId);
+
+        console.log(entry)
+
+        if (entry === undefined) {
+            return;
+        }
+
+        // Extract the data from the UniProt entry
+        if (entry.proteinDescription.recommendedName.ecNumbers !== undefined) {
+            form.setFieldsValue({
+                ecnumber: entry.proteinDescription.recommendedName.ecNumbers[0].value
+            });
+        } else {
+            form.setFieldsValue({
+                ecnumber: null
+            });
+        }
+
+        form.setFieldsValue({
+            name: entry.proteinDescription.recommendedName.fullName.value,
+            sequence: entry.sequence.value,
+            organism: entry.organism.scientificName,
+            organism_tax_id: String(entry.organism.taxonId),
+            references: [`https://www.uniprot.org/uniprot/${uniprotId}`],
+        });
+
+        handleUpdateObject();
+
+        setUniprotOptions([])
+        setUnitProtResult([])
     }
 
     return (
         <div className="flex flex-col gap-4">
             <div className={"flex flex-row justify-between"}>
-                <CardHeader id={data.id} name={data.name} placeholder={"Small Molecule"}/>
+                <CardHeader id={data.id} name={data.name} placeholder={"Protein"}/>
                 <Button onClick={handleDeleteObject}>Delete</Button>
             </div>
             <Form
@@ -146,7 +128,7 @@ export default function SmallMoleculeDetail(
                 <Form.Item label="Name" name="name" rules={[{required: true}]}>
                     <AutoComplete
                         className={"w-full"}
-                        options={pubChemOptions}
+                        options={uniprotOptions}
                         onSearch={onSearch}
                         onSelect={onSelect}
                         onChange={handlePreUpdateObject}
@@ -158,11 +140,17 @@ export default function SmallMoleculeDetail(
                 <Form.Item label="Is constant" name="constant" valuePropName="checked">
                     <Switch/>
                 </Form.Item>
-                <Form.Item label="SMILES" name="canonical_smiles">
+                <Form.Item label="Sequence" name="sequence">
                     <Input.TextArea/>
                 </Form.Item>
-                <Form.Item label="InChIKey" name="inchikey">
-                    <Input.TextArea/>
+                <Form.Item label="EC Number" name="ecnumber">
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Organism" name="organism">
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Taxonomy ID" name="organism_tax_id">
+                    <Input/>
                 </Form.Item>
                 <Form.Item
                     label={

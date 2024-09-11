@@ -1,14 +1,24 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {listen} from '@tauri-apps/api/event'
 import {allExpanded, defaultStyles, JsonView} from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
-import {EnzymeMLState, exportToJSON, getState, newEntry, saveEntry} from "../commands/dataio.ts";
-import {Button} from "antd";
+import {
+    DBEntries,
+    EnzymeMLState,
+    exportToJSON,
+    getState,
+    listEntries,
+    newEntry,
+    saveEntry
+} from "../commands/dataio.ts";
+import {Button, Select} from "antd";
+import {setTitle} from "../commands/enzmldoc.ts";
 
 export default function Home() {
 
     // States
     const [currentDoc, setCurrentDoc] = useState<EnzymeMLState | null>(null);
+    const [documents, setDocuments] = useState<DBEntries[]>()
 
     // Effects
     useEffect(() => {
@@ -19,6 +29,16 @@ export default function Home() {
             .catch((error) => {
                 console.error('Error:', error);
             });
+
+        listEntries().then(
+            (data) => {
+                setDocuments(data);
+            }
+        ).catch(
+            (error) => {
+                console.error('Error:', error);
+            }
+        )
 
     }, []);
 
@@ -31,6 +51,16 @@ export default function Home() {
                 .catch((error) => {
                     console.error('Error:', error);
                 });
+
+            listEntries().then(
+                (data) => {
+                    setDocuments(data);
+                }
+            ).catch(
+                (error) => {
+                    console.error('Error:', error);
+                }
+            )
         });
 
         // Clean up the event listener on component unmount
@@ -75,11 +105,26 @@ export default function Home() {
                     gap: '10px'
                 }
             }>
-                <h1 className={"text-2xl font-bold"}>{currentDoc?.title}</h1>
+                <input
+                    className="text-2xl font-bold"
+                    value={currentDoc?.title || ""}
+                    onChange={(e: React.ChangeEventHandler<HTMLInputElement>) => setTitle(e.target.value)}
+                />
                 <div className={"flex flex-row gap-2"}>
                     <Button onClick={handleSaveEntry}>Save Entry</Button>
                     <Button onClick={handleNewEntry}>New Entry</Button>
                     <Button onClick={handleDownload}>Download</Button>
+                    <Select placeholder={"Select a document"}
+                            options={
+                                documents?.map(
+                                    ([id, title]) => (
+                                        {
+                                            label: id,
+                                            value: title
+                                        }
+                                    )
+                                )
+                            }/>
                 </div>
                 <JsonView data={currentDoc?.doc} shouldExpandNode={allExpanded} style={defaultStyles}/>
             </div>

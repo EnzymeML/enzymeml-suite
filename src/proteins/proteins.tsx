@@ -3,22 +3,22 @@ import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
 import DataHandle from "../components/datafetch.tsx";
 import {ChildProps} from "../types.ts";
-import {Vessel} from "../../../enzymeml-ts/src";
-import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
-import VesselDetail from "./components/vesseldetail.tsx";
+import {Protein} from "../../../enzymeml-ts/src";
 import {Button} from "antd";
+import {createProtein, deleteProtein, getProtein, listProteins, updateProtein} from "../commands/proteins.ts";
+import ProteinDetail from "./components/proteindetail.tsx";
 
-export default function Vessels() {
+export default function Proteins() {
 
     // States
-    const [vessels, setVessels] = useState<[string, string][] | null>(null);
+    const [proteins, setProteins] = useState<[string, string][] | null>(null);
 
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
-        listVessels().then(
+        listProteins().then(
             (data) => {
-                setVessels(data);
+                setProteins(data);
             }
         ).catch(
             (error) => {
@@ -27,12 +27,12 @@ export default function Vessels() {
         )
     }, []);
 
-    // Re-fetch small molecules on update
+    // Re-fetch proteins on update
     useEffect(() => {
-        const unlisten = listen('update_vessels', () => {
-            listVessels().then(
+        const unlisten = listen('update_proteins', () => {
+            listProteins().then(
                 (data) => {
-                    setVessels(data);
+                    setProteins(data);
                 }
             ).catch(
                 (error) => {
@@ -47,8 +47,8 @@ export default function Vessels() {
         };
     }, []);
 
-    const handleCreateVessel = () => {
-        createVessel().then(
+    const handleCreateProtein = () => {
+        createProtein().then(
             () => {
                 console.log('Small molecule created');
             }
@@ -58,18 +58,18 @@ export default function Vessels() {
     return (
         <div className={"max-h-screen overflow-scroll scrollbar-hide"}>
             <div className={"flex flex-col gap-10"}>
-                <Button onClick={handleCreateVessel}>Create Vessel</Button>
+                <Button onClick={handleCreateProtein}>Create Protein</Button>
                 {
-                    vessels?.map(([id]) => {
+                    proteins?.map(([id]) => {
                         return (
-                            <DataHandle<Vessel>
-                                key={`vessel_fetcher_${id}`}
+                            <DataHandle<Protein>
+                                key={`protein_fetcher_${id}`}
                                 id={id}
-                                fetchObject={getVessel}
-                                updateObject={updateVessel}
-                                deleteObject={deleteVessel}
+                                fetchObject={getProtein}
+                                updateObject={updateProtein}
+                                deleteObject={deleteProtein}
                             >
-                                {(props: ChildProps<Vessel>) => (<VesselDetail {...props} key={`vessel_${id}`}/>)}
+                                {(props: ChildProps<Protein>) => (<ProteinDetail {...props} key={`protein_${id}`}/>)}
                             </DataHandle>
                         );
                     })

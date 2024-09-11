@@ -1,11 +1,11 @@
 import {invoke} from "@tauri-apps/api/tauri";
 import {Vessel} from "../../../enzymeml-ts/src";
 
-export async function createVessel() {
+export async function createVessel(): Promise<void> {
     try {
         await invoke('create_vessel', {});
     } catch (error) {
-        console.error('Error invoking command:', error);
+        throw new Error('Error invoking command: ' + error);
     }
 }
 
@@ -13,32 +13,31 @@ export async function listVessels(): Promise<[string, string][]> {
     try {
         return await invoke('list_vessels', {});
     } catch (error) {
-        console.error('Error invoking command:', error);
-        return [];
+        throw new Error('Error invoking command: ' + error);
     }
 
 }
 
-export async function getVessel(id: string): Promise<Vessel | undefined> {
+export async function getVessel(id: string): Promise<Vessel> {
     try {
         return await invoke('get_vessel', {id});
     } catch (error) {
-        console.error('Error invoking command:', error);
+        throw new Error('Error invoking command: ' + error);
     }
 }
 
-export async function updateVessel(id: string, data: Vessel) {
+export async function updateVessel(id: string, data: Vessel): Promise<void> {
     try {
         await invoke('update_vessel', {id: id, data: data});
     } catch (error) {
-        console.error('Error invoking command:', error);
+        throw new Error('Error invoking command: ' + error);
     }
 }
 
-export async function deleteVessel(id: string) {
+export async function deleteVessel(id: string): Promise<void> {
     try {
         await invoke('delete_vessel', {id});
     } catch (error) {
-        console.error('Error invoking command:', error);
+        throw new Error('Error invoking command: ' + error);
     }
 }

@@ -1,12 +1,14 @@
 use std::sync::{Arc, Mutex};
 
 use enzymeml_rs::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
+use enzymeml_rs::prelude::Parameter;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct EnzymeMLState {
     pub title: Mutex<String>,
     pub doc: Mutex<EnzymeMLDocument>,
     pub id: Mutex<Option<i32>>,
+    pub param_buffer: Mutex<Vec<Parameter>>,
 }
 
 impl Default for EnzymeMLState {
@@ -20,6 +22,7 @@ impl Default for EnzymeMLState {
                     .unwrap(),
             ),
             id: Mutex::new(None),
+            param_buffer: Mutex::new(Vec::new()),
         }
     }
 }

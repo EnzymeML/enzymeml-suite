@@ -3,7 +3,7 @@ use std::sync::Arc;
 use enzymeml_rs::enzyme_ml::{EquationBuilder, EquationType, SmallMolecule, SmallMoleculeBuilder};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{create_object, delete_object, get_object, update_object};
+use crate::{create_object, delete_object, get_object, update_event, update_object};
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 
@@ -18,24 +18,16 @@ pub fn create_small_mol(
         SmallMoleculeBuilder, "s", id
     );
 
-    // Create an ODE for the new small molecule
     let ode = EquationBuilder::default()
         .species_id(id.clone())
         .equation_type(EquationType::Ode)
         .build()
         .expect("Failed to build ODE");
 
-    // Add the ODE to the document
     state.doc.lock().unwrap().equations.push(ode);
 
-    // Notify the frontend
-    app_handle
-        .emit_all("update_document", ())
-        .expect("Failed to emit event");
-
-    app_handle
-        .emit_all("update_small_mols", ())
-        .expect("Failed to emit event");
+    update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_small_mols");
 }
 
 #[tauri::command]
@@ -44,16 +36,9 @@ pub fn update_small_mol(
     data: SmallMolecule,
     app_handle: AppHandle,
 ) -> Result<(), String> {
-    update_object!(state.doc, small_molecules, data, id);
+    let id = update_object!(state.doc, small_molecules, data, id);
 
-    // Notify the frontend
-    app_handle
-        .emit_all("update_document", ())
-        .expect("Failed to emit event");
-
-    app_handle
-        .emit_all("update_small_mols", ())
-        .expect("Failed to emit event");
+    update_event!(app_handle, &id);
 
     Ok(())
 }
@@ -90,14 +75,8 @@ pub fn delete_small_mol(
     let species_id = id.to_string();
     delete_object!(state.doc, equations, Some(species_id.clone()), species_id);
 
-    // Notify the frontend
-    app_handle
-        .emit_all("update_document", ())
-        .expect("Failed to emit event");
-
-    app_handle
-        .emit_all("update_small_mols", ())
-        .expect("Failed to emit event");
+    update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_small_mols");
 
     Ok(())
 }
