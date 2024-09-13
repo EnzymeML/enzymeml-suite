@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use enzymeml_rs::prelude::{Protein, ProteinBuilder, Reaction, ReactionBuilder};
+use enzymeml_rs::prelude::{Reaction, ReactionBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::{create_object, delete_object, get_object, update_event, update_object};

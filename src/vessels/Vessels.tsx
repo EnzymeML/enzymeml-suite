@@ -1,11 +1,11 @@
 import 'react-json-view-lite/dist/index.css';
 import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import DataHandle from "../components/datafetch.tsx";
+import DataHandle from "../components/DataFetch.tsx";
 import {ChildProps} from "../types.ts";
 import {Vessel} from "../../../enzymeml-ts/src";
 import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
-import VesselDetail from "./components/vesseldetail.tsx";
+import VesselDetail from "./components/VesselDetail.tsx";
 import {Button} from "antd";
 
 export default function Vessels() {

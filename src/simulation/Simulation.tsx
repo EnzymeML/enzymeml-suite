@@ -1,5 +1,5 @@
 import {InitialConditionsType, simulateDocument, SimulationResult} from "../commands/simulation.ts";
-import {SimulationPlot} from "./plot.tsx";
+import {SimulationPlot} from "./Plot.tsx";
 import {useEffect, useState} from "react";
 import {getSpeciesNameByID, listAllNonConstantSpeciesIds} from "../commands/enzmldoc.ts";
 import {Form, InputNumber} from "antd";

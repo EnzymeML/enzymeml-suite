@@ -4,7 +4,7 @@ import SeriesLabel from 'highcharts/modules/series-label';
 import {HighchartsReact} from 'highcharts-react-official';
 import {SimulationResult} from "../commands/simulation.ts";
 import exporting from 'highcharts/modules/exporting';
-import {speciesIdMapType} from "./simulation.tsx";
+import {speciesIdMapType} from "./Simulation.tsx";
 
 export function convertDataToHighchart(results: SimulationResult, speciesIDMap: speciesIdMapType): Highcharts.Options {
     const series = Object.entries(results.species).map(([speciesID, data]) => {

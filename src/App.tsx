@@ -1,70 +1,99 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes, useNavigate} from 'react-router-dom';
-import {Layout, Menu, theme} from 'antd';
+import {ConfigProvider, Layout, Menu, theme} from 'antd';
 import './App.css';
-import SmallMolecules from "./smallmols/smallmols.tsx";
-import Home from "./home/home.tsx";
-import Measurement from "./measurements/measurement.tsx";
-import {FolderOutlined} from "@ant-design/icons";
-import Vessels from "./vessels/vessels.tsx";
-import Models from "./models/models.tsx";
-import Proteins from "./proteins/proteins.tsx";
-import Reactions from "./reactions/reactions.tsx";
+import SmallMolecules from "./smallmols/SmallMolecules.tsx";
+import Home from "./home/Home.tsx";
+import Measurement from "./measurements/Measurement.tsx";
+import Icon from "@ant-design/icons";
+import Vessels from "./vessels/Vessels.tsx";
+import Models from "./models/Models.tsx";
+import Proteins from "./proteins/Proteins.tsx";
+import Reactions from "./reactions/Reactions.tsx";
+import SmallMoleculeIcon from "./icons/smallmolecule.svg";
+import ProteinIcon from "./icons/protein.svg";
+import ReactionsIcon from "./icons/reactions1.svg";
+import MeasurementIcon from "./icons/measurements.svg";
+import ModelsIcon from "./icons/models.svg";
+import VesselsIcon from "./icons/vessels.svg";
+import HomeIcon from "./icons/home.svg";
+import useAppStore from "./stores/stylestore.ts";
+import WindowFrame from "./components/WindowFrame.tsx";
 
+const ICON_SIZE = 20;
 const {Content, Sider} = Layout;
 
+// @ts-ignore
 const items = [
     {
         key: '0',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={HomeIcon}/>,
         label: 'Overview',
         route: '/',
     },
     {
         key: '2',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={VesselsIcon}/>,
         label: 'Vessels',
         route: '/vessels',
     },
     {
         key: '3',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={SmallMoleculeIcon}/>,
         label: 'Small Molecules',
         route: '/small-molecules',
     },
     {
         key: '4',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={ProteinIcon}/>,
         label: 'Proteins',
         route: '/proteins',
     },
     {
         key: '5',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={ReactionsIcon}/>,
         label: 'Reactions',
         route: '/reactions',
     },
     {
         key: '6',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={MeasurementIcon}/>,
         label: 'Measurements',
         route: '/measurements',
     },
     {
         key: '7',
-        icon: React.createElement(FolderOutlined),
+        // @ts-ignore
+        icon: <Icon style={{fontSize: ICON_SIZE}} component={ModelsIcon}/>,
         label: 'Models',
         route: '/models',
     },
 ];
 
-const App: React.FC = () => {
-    const {
-        token: {colorBgContainer, borderRadiusLG},
-    } = theme.useToken();
+function App() {
 
+    // States
+    const darkMode = useAppStore(state => state.darkMode);
+
+    // Effects
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    // Hooks
     const navigate = useNavigate();
+    const {token} = theme.useToken();
 
+    // Handlers
     const handleMenuClick = (e: any) => {
         const clickedItem = items.find(item => item.key === e.key);
         if (clickedItem) {
@@ -74,37 +103,47 @@ const App: React.FC = () => {
 
     return (
         <Layout
-            className={"min-h-screen"}
+            className={"pl-2 h-full"}
             style={{
-                background: colorBgContainer,
-                borderRadius: 100,
+                background: darkMode ? token.colorBgBase : token.colorBgLayout,
+                borderColor: token.colorBorder,
+                borderLeftWidth: 1,
+                borderRightWidth: 1,
+                borderStyle: 'solid',
             }}
         >
             <Sider
+                className={"shadow-sm"}
                 breakpoint="md"
                 style={{
-                    background: colorBgContainer,
-                    borderRadius: borderRadiusLG,
-                    marginTop: 5,
+                    background: token.colorFillContent,
+                    borderRadius: token.borderRadiusLG,
+                    borderBottomLeftRadius: token.borderRadiusLG,
+                    borderBottomRightRadius: token.borderRadiusLG,
                 }}
             >
-                <div className="demo-logo-vertical"/>
                 <Menu
-                    theme="light"
+                    className={"h-full py-2"}
+                    style={{
+                        background: token.colorBgContainer,
+                        borderRadius: token.borderRadiusLG,
+                        border: 0,
+                        borderBottomLeftRadius: token.borderRadiusLG,
+                        borderBottomRightRadius: token.borderRadiusLG,
+                        borderBottom: 1,
+                        borderRight: 1,
+                        borderStyle: 'solid',
+                        borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+                    }}
+                    theme={darkMode ? "dark" : "light"}
                     mode="inline"
                     items={items}
                     onClick={handleMenuClick}
                 />
             </Sider>
             <Layout>
-                <Content className={"my-4 mx-4"}>
-                    <div
-                        style={{
-                            padding: 24,
-                            background: colorBgContainer,
-                            borderRadius: borderRadiusLG,
-                        }}
-                    >
+                <Content className={"mx-2 h-full overflow-y-scroll scrollbar-hide"}>
+                    <div>
                         <Routes>
                             <Route path="/" element={<Home/>}/>
                             <Route path="/vessels" element={<Vessels/>}/>
@@ -121,10 +160,42 @@ const App: React.FC = () => {
     );
 };
 
-const WrappedApp: React.FC = () => (
-    <Router>
-        <App/>
-    </Router>
-);
+const WrappedApp: React.FC = () => {
+
+    // States
+    const darkMode = useAppStore(state => state.darkMode);
+
+    // Actions
+    const setDarkMode = useAppStore(state => state.setDarkMode);
+
+    // Event listeners
+    const windowQuery = window.matchMedia("(prefers-color-scheme:dark)");
+
+    // Callbacks
+    const darkModeChange = useCallback((event: MediaQueryListEvent) => {
+        setDarkMode(event.matches);
+    }, []);
+
+    // Effects
+    useEffect(() => {
+        windowQuery.addEventListener("change", darkModeChange);
+        return () => {
+            windowQuery.removeEventListener("change", darkModeChange);
+        };
+    }, [windowQuery, darkModeChange]);
+
+    useEffect(() => {
+        setDarkMode(windowQuery.matches);
+    }, []);
+
+    return (
+        <ConfigProvider theme={{algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
+            <Router>
+                <WindowFrame>
+                    <App/>
+                </WindowFrame>
+            </Router>
+        </ConfigProvider>)
+};
 
 export default WrappedApp;

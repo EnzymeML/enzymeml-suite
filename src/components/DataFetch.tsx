@@ -115,7 +115,7 @@ export default function DataHandle<T extends Identifiable>(
     if (!data) {
         return null;
     }
-    
+
     return (
         <>
             {children(

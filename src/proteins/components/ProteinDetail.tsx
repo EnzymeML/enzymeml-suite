@@ -1,13 +1,24 @@
 import {AutoComplete, Button, Form, Input, Select, Switch} from "antd";
 import {ChildProps} from "../../types.ts";
 import {Protein} from "../../../../enzymeml-ts/src";
-import CardHeader from "../../components/cardheading.tsx";
-import React, {useEffect, useState} from "react";
+import CardHeader from "../../components/CardHeading.tsx";
+import {ChangeEvent, useEffect, useState} from "react";
 import {listVessels} from "../../commands/vessels.ts";
-import {extractHref, Option, OptionBadge, VesselBadge} from "../../smallmols/components/smallmoldetail.tsx";
+import {extractHref} from "../../smallmols/components/SmallMoleculeDetail.tsx";
 import {AutoCompleteProps} from "antd/lib";
 import {fetchFromUniProt, UniProtEntry} from "../fetchutils.ts";
 import {RiExternalLinkLine} from "react-icons/ri";
+import SpeciesReference from "../../components/SpeciesReference.tsx";
+import DBEntryRow from "../../components/DBEntryRow.tsx";
+import {Option} from "../../types/options.ts";
+
+function check(value: string | number | undefined | null): string | null {
+    if (value === undefined || value === null) {
+        return null;
+    } else {
+        return String(value)
+    }
+}
 
 export default function ProteinDetail(
     {
@@ -29,7 +40,7 @@ export default function ProteinDetail(
                 let options = data.map(
                     ([id, name]) => (
                         {
-                            label: <VesselBadge name={name} id={id}/>,
+                            label: <SpeciesReference name={name} id={id}/>,
                             value: id
                         }
                     )
@@ -65,8 +76,10 @@ export default function ProteinDetail(
                     (item) => {
                         return {
                             value: item.primaryAccession,
-                            label: <OptionBadge value={item.proteinDescription.recommendedName.fullName.value}
-                                                database={"UniProt"} baseUri={"https://www.uniprot.org/uniprotkb/"}/>
+                            label: <DBEntryRow value={item.proteinDescription.recommendedName.fullName.value}
+                                               database={"UniProt"} baseUri={"https://www.uniprot.org/uniprotkb/"}
+                                               id={item.primaryAccession}
+                            />
                         }
                     }
                 );
@@ -77,15 +90,45 @@ export default function ProteinDetail(
         );
     }
 
+    const onEcNumberSearch = (searchText: string) => {
+        onSearch(`ec:${searchText} *`)
+    }
+
     const onSelect = (uniprotId: string) => {
         const entry = unitProtResult?.find((item) => item.primaryAccession === uniprotId);
 
-        console.log(entry)
-
         if (entry === undefined) {
+            return;
+        } else {
+            processEntry(entry);
+        }
+    }
+
+    const onSetReference = (uniprotURI: string) => {
+        let uniprotId;
+        if (uniprotURI.startsWith("https://www.uniprot.org")) {
+            const url = new URL('https://www.uniprot.org/uniprot/P12345');
+            const pathParts = url.pathname.split('/');
+            uniprotId = pathParts[2];
+        }
+
+        if (uniprotId === undefined) {
             return;
         }
 
+        fetchFromUniProt(uniprotId, 1).then(
+            (res) => {
+                if (res === null) {
+                    return;
+                }
+
+                const entry = res[0];
+                processEntry(entry);
+            }
+        );
+    }
+
+    const processEntry = (entry: UniProtEntry) => {
         // Extract the data from the UniProt entry
         if (entry.proteinDescription.recommendedName.ecNumbers !== undefined) {
             form.setFieldsValue({
@@ -99,10 +142,10 @@ export default function ProteinDetail(
 
         form.setFieldsValue({
             name: entry.proteinDescription.recommendedName.fullName.value,
-            sequence: entry.sequence.value,
-            organism: entry.organism.scientificName,
-            organism_tax_id: String(entry.organism.taxonId),
-            references: [`https://www.uniprot.org/uniprot/${uniprotId}`],
+            sequence: check(entry.sequence.value),
+            organism: check(entry.organism.scientificName),
+            organism_tax_id: check(entry.organism.taxonId),
+            references: [`https://www.uniprot.org/uniprot/${entry.primaryAccession}`],
         });
 
         handleUpdateObject();
@@ -143,8 +186,24 @@ export default function ProteinDetail(
                 <Form.Item label="Sequence" name="sequence">
                     <Input.TextArea/>
                 </Form.Item>
-                <Form.Item label="EC Number" name="ecnumber">
-                    <Input/>
+                <Form.Item label="EC Number"
+                           name="ecnumber"
+                           rules={
+                               [
+                                   {
+                                       pattern: new RegExp("^\\d+\\.\\d+\\.\\d+\\.\\d+$"),
+                                       message: "Please enter a valid EC number"
+                                   }
+                               ]
+                           }
+                >
+                    <AutoComplete
+                        className={"w-full"}
+                        options={uniprotOptions}
+                        onSearch={onEcNumberSearch}
+                        onSelect={onSelect}
+                        onChange={handlePreUpdateObject}
+                    />
                 </Form.Item>
                 <Form.Item label="Organism" name="organism">
                     <Input/>
@@ -164,7 +223,7 @@ export default function ProteinDetail(
                             </a> : "Reference"
                     }
                     name="references">
-                    <Input/>
+                    <Input onChange={(e: ChangeEvent<HTMLInputElement>) => onSetReference(e.target.value)}/>
                 </Form.Item>
             </Form>
         </div>

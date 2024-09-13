@@ -1,21 +1,20 @@
-import {Button, Form, Input, Switch} from "antd";
+import {Button, Form, Input, InputNumber, Switch} from "antd";
 import {ChildProps} from "../../types.ts";
-import {Reaction} from "../../../../enzymeml-ts/src";
-import CardHeader from "../../components/cardheading.tsx";
+import {Vessel} from "../../../../enzymeml-ts/src";
+import CardHeader from "../../components/CardHeading.tsx";
 
-export default function ReactionDetail(
+export default function VesselDetail(
     {
         data,
         handleUpdateObject,
         handleDeleteObject,
         form,
-    }: ChildProps<Reaction>
+    }: ChildProps<Vessel>
 ) {
-
     return (
         <div className="flex flex-col gap-4">
             <div className={"flex flex-row justify-between"}>
-                <CardHeader id={data.id} name={data.name} placeholder={"Reaction"}/>
+                <CardHeader id={data.id} name={data.name} placeholder={"Vessel"}/>
                 <Button onClick={handleDeleteObject}>Delete</Button>
             </div>
             <Form
@@ -29,7 +28,16 @@ export default function ReactionDetail(
                 <Form.Item label="Name" name="name">
                     <Input/>
                 </Form.Item>
-                <Form.Item label="Is reversible" name="reversible" valuePropName="checked">
+                <Form.Item label="Volume" name="volume">
+                    <InputNumber
+                        type={"number"}
+                        placeholder="Vessel volume"
+                    />
+                </Form.Item>
+                <Form.Item label="Unit" name="unit">
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Is constant" name="constant" valuePropName="checked">
                     <Switch/>
                 </Form.Item>
             </Form>

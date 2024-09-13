@@ -1,12 +1,12 @@
 import 'react-json-view-lite/dist/index.css';
 import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import DataHandle from "../components/datafetch.tsx";
+import DataHandle from "../components/DataFetch.tsx";
 import {ChildProps} from "../types.ts";
 import {Protein} from "../../../enzymeml-ts/src";
 import {Button} from "antd";
 import {createProtein, deleteProtein, getProtein, listProteins, updateProtein} from "../commands/proteins.ts";
-import ProteinDetail from "./components/proteindetail.tsx";
+import ProteinDetail from "./components/ProteinDetail.tsx";
 
 export default function Proteins() {
 

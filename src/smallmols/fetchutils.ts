@@ -1,6 +1,7 @@
 // Type definitions and functions to fetch data from PubChem
 import {SmallMolecule} from "../../../enzymeml-ts/src";
 import {FormInstance} from "antd";
+import capitalize from "antd/lib/_util/capitalize";
 
 export interface PCAutoCompleteType {
     dictionary_terms: { compound: string[] }
@@ -84,6 +85,7 @@ export async function fetchPubChemDetails(name: string, form: FormInstance<Small
 
         // Update the data object
         form.setFieldsValue({
+            name: capitalize(name),
             canonical_smiles: canonical_smiles,
             inchikey: inchikey,
             references: [href],

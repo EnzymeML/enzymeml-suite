@@ -10,6 +10,7 @@
     "version": "0.0.0"
   },
   "tauri": {
+    "macOSPrivateApi": true,
     "allowlist": {
       "http": {
         "all": true,
@@ -17,6 +18,13 @@
       },
       "shell": {
         "open": true
+      },
+      "window": {
+        "startDragging": true,
+        "maximize": true,
+        "unmaximize": true,
+        "minimize": true,
+        "close": true
       }
     },
     "windows": [
@@ -24,10 +32,11 @@
         "title": "EnzymeML Suite",
         "width": 1000,
         "height": 800,
-        "minWidth": 600,
+        "minWidth": 700,
         "minHeight": 400,
-        "decorations": true,
-        "resizable": true
+        "decorations": false,
+        "resizable": true,
+        "transparent": true
       }
     ],
     "security": {

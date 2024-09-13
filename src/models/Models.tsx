@@ -6,11 +6,11 @@ import {getEquation, updateEquation} from "../commands/equations.ts";
 import {deleteSmallMolecule} from "../commands/smallmols.ts";
 import {ChildProps} from "../types.ts";
 import {Equation} from "../../../enzymeml-ts/src";
-import DataHandle from '../components/datafetch.tsx';
-import Model from "./components/model.tsx";
+import DataHandle from '../components/DataFetch.tsx';
+import Model from "./components/Model.tsx";
 import {Button} from "antd";
 import {openSimulation} from "../commands/simulation.ts";
-import Parameters from "./components/parameters.tsx";
+import Parameters from "./components/Parameters.tsx";
 
 export default function Models() {
 

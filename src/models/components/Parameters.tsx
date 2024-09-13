@@ -1,6 +1,6 @@
-import DataHandle from "../../components/datafetch.tsx";
+import DataHandle from "../../components/DataFetch.tsx";
 import {ChildProps} from "../../types.ts";
-import ParameterDetail from "./parameter.tsx";
+import ParameterDetail from "./Parameter.tsx";
 import {getParameter, listAllParametersIds, updateParameter} from "../../commands/parameters.ts";
 import {Parameter} from "../../../../enzymeml-ts/src";
 import {useEffect, useState} from "react";

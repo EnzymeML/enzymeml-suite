@@ -108,7 +108,7 @@ export default function Home() {
                 <input
                     className="text-2xl font-bold"
                     value={currentDoc?.title || ""}
-                    onChange={(e: React.ChangeEventHandler<HTMLInputElement>) => setTitle(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                 />
                 <div className={"flex flex-row gap-2"}>
                     <Button onClick={handleSaveEntry}>Save Entry</Button>
