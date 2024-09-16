@@ -18,6 +18,7 @@ pub fn create_vessel(
     );
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_vessels");
 }
 
@@ -30,6 +31,7 @@ pub fn update_vessel(
     let id = update_object!(state.doc, vessels, data, id);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, &id);
 
     Ok(())
@@ -64,6 +66,7 @@ pub fn delete_vessel(
     delete_object!(state.doc, vessels, id, id);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_vessels");
 
     Ok(())

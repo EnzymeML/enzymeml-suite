@@ -11,7 +11,7 @@ use crate::states::EnzymeMLState;
 pub fn create_small_mol(
     state: State<Arc<EnzymeMLState>>,
     app_handle: AppHandle,
-) {
+) -> String {
     // Create the object itself
     let id = create_object!(
         state.doc, small_molecules,
@@ -27,7 +27,10 @@ pub fn create_small_mol(
     state.doc.lock().unwrap().equations.push(ode);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_small_mols");
+    
+    id
 }
 
 #[tauri::command]
@@ -39,6 +42,7 @@ pub fn update_small_mol(
     let id = update_object!(state.doc, small_molecules, data, id);
 
     update_event!(app_handle, &id);
+    update_event!(app_handle, "update_nav");
 
     Ok(())
 }
@@ -76,6 +80,7 @@ pub fn delete_small_mol(
     delete_object!(state.doc, equations, Some(species_id.clone()), species_id);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_small_mols");
 
     Ok(())

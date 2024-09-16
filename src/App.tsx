@@ -1,6 +1,6 @@
 import './App.css';
 import React, {useCallback, useEffect} from 'react';
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes, useLocation} from 'react-router-dom';
 import {ConfigProvider, Layout, theme} from 'antd';
 import SmallMolecules from "./smallmols/SmallMolecules.tsx";
 import Home from "./home/Home.tsx";
@@ -9,9 +9,10 @@ import Vessels from "./vessels/Vessels.tsx";
 import Models from "./models/Models.tsx";
 import Proteins from "./proteins/Proteins.tsx";
 import Reactions from "./reactions/Reactions.tsx";
-import useAppStore from "./stores/appstore.ts";
+import useAppStore, {AvailablePaths} from "./stores/appstore.ts";
 import WindowFrame from "./components/WindowFrame.tsx";
 import MainMenu from "./components/MainMenu.tsx";
+import CollectionNav from "./components/CollectionNav.tsx";
 
 
 const {Content, Sider} = Layout;
@@ -20,6 +21,19 @@ function App() {
 
     // States
     const darkMode = useAppStore(state => state.darkMode);
+    const location = useLocation();
+
+    // Actions
+    const setCurrentPath = useAppStore((state) => state.setCurrentPath);
+
+    useEffect(() => {
+        const pathName = location.pathname;
+        if (Object.values(AvailablePaths).includes(pathName as AvailablePaths)) {
+            setCurrentPath(pathName as AvailablePaths);
+        } else {
+            throw new Error(`Path ${pathName} is not in AvailablePaths`);
+        }
+    }, [location, setCurrentPath]); // Run when `location` changes
 
     // Hooks
     const {token} = theme.useToken();
@@ -51,7 +65,10 @@ function App() {
                        borderRight: 0,
                    }}
             >
-                <MainMenu/>
+                <div className={"flex flex-col space-y-2"}>
+                    <MainMenu/>
+                    <CollectionNav/>
+                </div>
             </Sider>
             <Layout>
                 <Content className={"mx-2 h-full overflow-y-scroll scrollbar-hide"}>

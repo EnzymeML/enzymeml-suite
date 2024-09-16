@@ -1,9 +1,9 @@
 import {invoke} from "@tauri-apps/api/tauri";
 import {SmallMolecule} from "../../../enzymeml-ts/src";
 
-export async function createSmallMolecule(): Promise<void> {
+export async function createSmallMolecule(): Promise<string> {
     try {
-        await invoke('create_small_mol', {});
+        return await invoke('create_small_mol', {});
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

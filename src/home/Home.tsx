@@ -11,7 +11,7 @@ import {
     newEntry,
     saveEntry
 } from "../commands/dataio.ts";
-import {Button, Select} from "antd";
+import {Button, Input, Select} from "antd";
 import {setTitle} from "../commands/enzmldoc.ts";
 
 export default function Home() {
@@ -105,7 +105,7 @@ export default function Home() {
                     gap: '10px'
                 }
             }>
-                <input
+                <Input
                     className="text-2xl font-bold"
                     value={currentDoc?.title || ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
@@ -126,7 +126,9 @@ export default function Home() {
                                 )
                             }/>
                 </div>
-                <JsonView data={currentDoc?.doc} shouldExpandNode={allExpanded} style={defaultStyles}/>
+                <JsonView data={currentDoc?.doc}
+                          shouldExpandNode={allExpanded}
+                          style={defaultStyles}/>
             </div>
         </div>
     );

@@ -18,6 +18,7 @@ pub fn create_reaction(
     );
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_reactions");
 }
 
@@ -30,6 +31,7 @@ pub fn update_reaction(
     let id = update_object!(state.doc, reactions, data, id);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, &id);
 
     Ok(())
@@ -64,6 +66,7 @@ pub fn delete_reaction(
     delete_object!(state.doc, reactions, id, id);
 
     update_event!(app_handle, "update_document");
+    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_reactions");
 
     Ok(())

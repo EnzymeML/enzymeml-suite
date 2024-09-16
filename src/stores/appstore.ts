@@ -4,15 +4,31 @@ import {NotificationType} from "../components/NotificationProvider.tsx";
 
 type openNotificationType = (message: string, type: NotificationType, description: string) => void
 
+export enum AvailablePaths {
+    HOME = '/',
+    VESSELS = '/vessels',
+    SMALL_MOLECULES = '/small-molecules',
+    PROTEINS = '/proteins',
+    REACTIONS = '/reactions',
+    MEASUREMENTS = '/measurements',
+    MODELS = '/models',
+}
+
 interface AppState {
+    // States
     darkMode: boolean
     themePreference: string
-    setThemePreference: (themePreference: string) => void
-    setDarkMode: (darkMode: boolean) => void
     openNotification: openNotificationType
-    setOpenNotification: (openNotification: openNotificationType) => void
     databasesToUse: string[]
+    currentPath: AvailablePaths
+    selectedId: string | null
+    // Actions
+    setThemePreference: (themePreference: string) => void
+    setOpenNotification: (openNotification: openNotificationType) => void
+    setDarkMode: (darkMode: boolean) => void
     setDatabasesToUse: (databasesToUse: string[]) => void
+    setCurrentPath: (currentPath: AvailablePaths) => void
+    setSelectedId: (selectedId: string) => void
 }
 
 const useAppStore = create<AppState>()(
@@ -24,6 +40,8 @@ const useAppStore = create<AppState>()(
                 themePreference: localStorage.getItem('theme') || 'system',
                 openNotification: () => null,
                 databasesToUse: ['pubchem', 'uniprot'],
+                currentPath: AvailablePaths.HOME,
+                selectedId: null,
 
                 // Actions
                 setThemePreference: (themePreference) => set(() => {
@@ -32,6 +50,7 @@ const useAppStore = create<AppState>()(
                         themePreference: themePreference
                     }
                 }),
+                setCurrentPath: (currentPath: AvailablePaths) => set(() => ({currentPath: currentPath})),
                 setDarkMode: (darkMode) => set(() => ({darkMode: darkMode})),
                 setOpenNotification: (openNotification) => set(() => ({openNotification: openNotification})),
                 setDatabasesToUse: (databasesToUse) => set(() => {
@@ -40,6 +59,7 @@ const useAppStore = create<AppState>()(
                         databasesToUse: databasesToUse
                     }
                 }),
+                setSelectedId: (selectedId) => set(() => ({selectedId: selectedId}))
             }),
             {
                 name: 'bear-storage',

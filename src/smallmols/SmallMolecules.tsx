@@ -16,6 +16,7 @@ import FloatingCreate from "../components/FloatingCreate.tsx";
 import Collection from "../components/Collection.tsx";
 import DetailView from "../components/DetailView.tsx";
 import SmallMoleculeForm from "./SmallMoleculeForm.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
 const SmallMoleculeContext = React.createContext<ChildProps<SmallMolecule>>({})
@@ -25,12 +26,21 @@ export default function SmallMolecules() {
     // States
     const [smallMolecules, setSmallMolecules] = useState<[string, string][]>([]);
 
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
+    // Refs
+    const newMoleculeId = React.useRef<string | null>(null);
+    const refs = React.useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
+
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
         listSmallMolecules().then(
             (data) => {
                 setSmallMolecules(data);
+
+                setSelectedId(data[0][0]);
             }
         ).catch(
             (error) => {
@@ -59,10 +69,17 @@ export default function SmallMolecules() {
         };
     }, []);
 
+    useEffect(() => {
+        console.log("Refs", Object.keys(refs.current))
+        console.log("New molecule ID", newMoleculeId.current)
+
+    }, [smallMolecules]);
+
+    // Handlers
     const handleCreateSmallMolecule = () => {
         createSmallMolecule().then(
-            () => {
-                console.log('Small molecule created');
+            (id) => {
+                setSelectedId(id);
             }
         )
     }
@@ -79,10 +96,13 @@ export default function SmallMolecules() {
                 deleteObject={deleteSmallMolecule}
                 context={SmallMoleculeContext}
             >
-                <DetailView context={SmallMoleculeContext}
-                            placeholder={"Small Molecule"}
-                            nameKey={"name"}
-                            FormComponent={SmallMoleculeForm}/>
+                <div id={id}>
+                    <DetailView context={SmallMoleculeContext}
+                                placeholder={"Small Molecule"}
+                                nameKey={"name"}
+                                FormComponent={SmallMoleculeForm}
+                                shouldScrollTo={newMoleculeId.current === id}/>
+                </div>
             </DataProvider>
         );
     });

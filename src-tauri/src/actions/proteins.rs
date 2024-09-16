@@ -19,6 +19,7 @@ pub fn create_protein(
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_proteins");
+    update_event!(app_handle, "update_nav");
 }
 
 #[tauri::command]
@@ -31,6 +32,7 @@ pub fn update_protein(
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, &id);
+    update_event!(app_handle, "update_nav");
 
     Ok(())
 }
@@ -65,6 +67,7 @@ pub fn delete_protein(
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_proteins");
+    update_event!(app_handle, "update_nav");
 
     Ok(())
 }

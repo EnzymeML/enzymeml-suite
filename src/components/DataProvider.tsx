@@ -134,8 +134,8 @@ export default function DataProvider<T extends Identifiable>(
                 isLoading: isLoading,
                 handleDeleteObject: handleDeleteObject,
                 handleUpdateObject: handleUpdateObject,
-                setLocked: setLocked,
                 locked: locked,
+                setLocked: setLocked,
             }}>
                 {children}
             </context.Provider>

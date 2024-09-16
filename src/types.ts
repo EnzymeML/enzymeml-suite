@@ -17,8 +17,8 @@ export interface ChildProps<T extends Identifiable> {
     handleUpdateObject: () => void,
     handleDeleteObject: () => void,
     alternativeIdCol?: AlternativeStringCol<T, keyof T> | string;
-    setLocked: React.Dispatch<React.SetStateAction<boolean>>;
     locked: boolean;
+    setLocked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface FormViewProps<T extends Identifiable> {

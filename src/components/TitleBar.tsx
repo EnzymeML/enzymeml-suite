@@ -24,7 +24,7 @@ function TitleButtons() {
     }
 
     return (
-        <div className={"flex flex-row gap-2"}>
+        <div className={"flex flex-row space-x-2"}>
             <SaveOutlined onClick={saveEntryAndNotify}/>
             <UserSettings/>
             <QuestionCircleOutlined/>

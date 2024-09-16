@@ -1,17 +1,17 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Layout, theme} from "antd";
 import {Content} from "antd/lib/layout/layout";
 import {AnimatePresence, motion} from "framer-motion";
 import {ChildProps, Identifiable} from "../types.ts";
 import useAppStore from "../stores/appstore.ts";
 import DetailHeader from "./DetailHeader.tsx";
-import NotificationProvider from "./NotificationProvider.tsx";
 
 interface DetailViewProps<T extends Identifiable> {
     placeholder: string,
     context: React.Context<ChildProps<T>>,
     nameKey: string,
     FormComponent: React.ComponentType<{ context: React.Context<ChildProps<T>> }>
+    shouldScrollTo: boolean
 }
 
 export default function DetailView<T extends Identifiable>(
@@ -19,7 +19,8 @@ export default function DetailView<T extends Identifiable>(
         placeholder,
         context,
         nameKey,
-        FormComponent
+        FormComponent,
+        shouldScrollTo = false,
     }: DetailViewProps<T>
 ): React.ReactElement {
 
@@ -31,6 +32,7 @@ export default function DetailView<T extends Identifiable>(
 
     // States
     const darkMode = useAppStore(state => state.darkMode);
+    const selectedId = useAppStore(state => state.selectedId);
 
     if (!props) {
         return <h1>No context given. Please contact support.</h1>
@@ -47,36 +49,53 @@ export default function DetailView<T extends Identifiable>(
         return <h1>No ID available. Please contact support</h1>
     }
 
+    // Effects
+    useEffect(() => {
+        if (shouldScrollTo) {
+            const element = document.getElementById(id);
+            element?.scrollIntoView({behavior: "smooth", block: "center"});
+        }
+    }, []);
+
     return (
-        <NotificationProvider>
-            <Layout className={"flex flex-col overflow-auto"}>
-                <Content>
-                    <div className={"shadow-sm mb-2"} style={{
-                        padding: 24,
-                        background: token.colorBgContainer,
-                        borderRadius: token.borderRadiusLG,
-                        borderBottom: 1,
-                        borderStyle: 'solid',
-                        borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
-                        color: token.colorText,
-                    }}>
-                        <div className="flex flex-col gap-2">
-                            <DetailHeader
-                                id={id}
-                                speciesName={props.data[nameKey]}
-                                placeholder={placeholder}
-                                handleDeleteObject={props.handleDeleteObject}
-                                setLocked={props.setLocked}
-                            />
-                            <AnimatePresence>
-                                <motion.div>
+        <Layout className={"flex flex-col overflow-auto"}>
+            <Content>
+                <div className={"shadow-sm mb-2"}
+                     style={{
+                         padding: 24,
+                         background: token.colorBgContainer,
+                         borderRadius: token.borderRadiusLG,
+                         borderBottom: 1,
+                         borderStyle: 'solid',
+                         borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+                         color: token.colorText,
+                     }}>
+                    <div className="flex flex-col gap-2">
+                        <DetailHeader
+                            id={id}
+                            speciesName={props.data[nameKey]}
+                            placeholder={placeholder}
+                            handleDeleteObject={props.handleDeleteObject}
+                            setLocked={props.setLocked}
+                            setHidden={props.setHidden}
+                        />
+                        <AnimatePresence>
+                            {selectedId === id && (
+                                <motion.div
+                                    key={id}
+                                    initial={{opacity: 0, height: 0}}
+                                    animate={{opacity: 1, height: 'auto'}}
+                                    exit={{opacity: 0, height: 0}}
+                                    transition={{duration: 0.2}}
+                                    style={{overflow: 'hidden'}} // to prevent content from overflowing while collapsing
+                                >
                                     <FormComponent context={context}/>
                                 </motion.div>
-                            </AnimatePresence>
-                        </div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </Content>
-            </Layout>
-        </NotificationProvider>
+                </div>
+            </Content>
+        </Layout>
     );
 }
