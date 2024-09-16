@@ -1,9 +1,36 @@
 import {appWindow} from "@tauri-apps/api/window";
 import {theme} from "antd";
-import Icon, {QuestionCircleOutlined, SettingOutlined} from "@ant-design/icons";
+import Icon, {QuestionCircleOutlined, SaveOutlined} from "@ant-design/icons";
 import EnzymeMLLogoMono from "../icons/enzymeml_logo.svg";
 import EnzymeMLLogoCol from "../icons/enzymeml_logo_coloured.svg";
-import useAppStore from "../stores/stylestore.ts";
+import useAppStore from "../stores/appstore.ts";
+import {saveEntry} from "../commands/dataio.ts";
+import {NotificationType} from "./NotificationProvider.tsx";
+import UserSettings from "./UserSettings.tsx";
+
+function TitleButtons() {
+
+    // Actions
+    const openNotification = useAppStore(state => state.openNotification);
+
+    const saveEntryAndNotify = () => {
+        saveEntry()
+            .then(() => {
+                openNotification('Entry saved', NotificationType.SUCCESS, 'Your entry has been saved successfully');
+            })
+            .catch((error) => {
+                openNotification('Error saving entry', NotificationType.ERROR, error.toString());
+            })
+    }
+
+    return (
+        <div className={"flex flex-row gap-2"}>
+            <SaveOutlined onClick={saveEntryAndNotify}/>
+            <UserSettings/>
+            <QuestionCircleOutlined/>
+        </div>
+    );
+}
 
 export default function TitleBar() {
 
@@ -12,6 +39,7 @@ export default function TitleBar() {
 
     const {token} = theme.useToken();
 
+    // Handlers
     const minimizeWindow = async () => {
         await appWindow.minimize();
     }
@@ -24,8 +52,10 @@ export default function TitleBar() {
         await appWindow.close();
     }
 
+
     return (
         <div className="flex flex-col w-full"
+             data-tauri-drag-region
              style={{
                  background: darkMode ? token.colorBgBase : token.colorBgLayout,
                  borderTopLeftRadius: token.borderRadiusLG,
@@ -38,7 +68,7 @@ export default function TitleBar() {
                  borderStyle: 'solid',
              }}
         >
-            <div className="flex flex-row justify-between items-center h-12 px-4">
+            <div className="flex flex-row justify-between items-center h-12 px-4" data-tauri-drag-region>
                 <div className="flex space-x-2 mr-4">
                     <button
                         className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
@@ -53,12 +83,13 @@ export default function TitleBar() {
                         onClick={maximizeWindow}
                     />
                 </div>
-                <Icon component={darkMode ? EnzymeMLLogoMono : EnzymeMLLogoCol}
-                      style={{fontSize: 25, color: token.colorTextDisabled}}/>
-                <div className={"flex flex-row gap-2"}>
-                    <QuestionCircleOutlined/>
-                    <SettingOutlined/>
-                </div>
+                <a href={"https://enzymeml.org"} target={"_blank"}>
+                    {/* @ts-ignore */}
+                    <Icon component={darkMode ? EnzymeMLLogoMono : EnzymeMLLogoCol}
+                          style={{fontSize: 25, color: token.colorTextDisabled}}
+                    />
+                </a>
+                <TitleButtons/>
             </div>
         </div>
     )

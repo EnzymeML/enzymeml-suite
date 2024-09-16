@@ -68,6 +68,7 @@ export function convertDataToHighchart(results: SimulationResult, speciesIDMap: 
                 }
             }
         },
+        // @ts-ignore
         series: series
     };
 

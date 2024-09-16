@@ -1,16 +1,18 @@
 import React from "react";
 import {Badge} from "antd";
 
+interface CardHeaderProps {
+    id: string,
+    name: string,
+    placeholder: string,
+}
+
 export default function CardHeader(
     {
         id,
         name,
         placeholder,
-    }: {
-        id: string,
-        name: string,
-        placeholder: string,
-    }
+    }: CardHeaderProps
 ): React.ReactElement {
 
     let displayName

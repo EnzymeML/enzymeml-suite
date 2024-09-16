@@ -1,16 +1,16 @@
-import {AutoComplete, Button, Form, Input, Select, Switch} from "antd";
-import {ChildProps} from "../../types.ts";
-import {Protein} from "../../../../enzymeml-ts/src";
-import CardHeader from "../../components/CardHeading.tsx";
-import {ChangeEvent, useEffect, useState} from "react";
-import {listVessels} from "../../commands/vessels.ts";
-import {extractHref} from "../../smallmols/components/SmallMoleculeDetail.tsx";
+import {AutoComplete, Form, Input, Select, Switch} from "antd";
+import {FormViewProps} from "../types.ts";
+import {Protein} from "../../../enzymeml-ts/src";
+import React, {ChangeEvent, useEffect, useState} from "react";
+import {listVessels} from "../commands/vessels.ts";
 import {AutoCompleteProps} from "antd/lib";
-import {fetchFromUniProt, UniProtEntry} from "../fetchutils.ts";
+import {fetchFromUniProt, UniProtEntry} from "./fetchutils.ts";
 import {RiExternalLinkLine} from "react-icons/ri";
-import SpeciesReference from "../../components/SpeciesReference.tsx";
-import DBEntryRow from "../../components/DBEntryRow.tsx";
-import {Option} from "../../types/options.ts";
+import SpeciesReference from "../components/SpeciesReference.tsx";
+import DBEntryRow from "../components/DBEntryRow.tsx";
+import {Option} from "../types/options.ts";
+import {extractHref} from "../smallmols/SmallMoleculeForm.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 function check(value: string | number | undefined | null): string | null {
     if (value === undefined || value === null) {
@@ -20,17 +20,17 @@ function check(value: string | number | undefined | null): string | null {
     }
 }
 
-export default function ProteinDetail(
-    {
-        data,
-        handleUpdateObject,
-        handleDeleteObject,
-        form,
-    }: ChildProps<Protein>
+export default function ProteinForm(
+    {context}: FormViewProps<Protein>
 ) {
+    // States
     const [vesselOptions, setVesselOptions] = useState<Option[]>([])
     const [uniprotOptions, setUniprotOptions] = useState<AutoCompleteProps["options"]>([])
     const [unitProtResult, setUnitProtResult] = useState<UniProtEntry[]>()
+    const databasesToUse = useAppStore((state) => state.databasesToUse);
+
+    // Context
+    const {handleUpdateObject, form, data, locked} = React.useContext(context);
 
     // Effects
     useEffect(() => {
@@ -66,6 +66,10 @@ export default function ProteinDetail(
 
     // Search and autocomplete Uniprot
     const onSearch = (searchText: string) => {
+        if (!databasesToUse.includes("uniprot")) {
+            return;
+        }
+
         fetchFromUniProt(searchText, 15).then(
             (res) => {
                 if (res === null) {
@@ -155,77 +159,74 @@ export default function ProteinDetail(
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className={"flex flex-row justify-between"}>
-                <CardHeader id={data.id} name={data.name} placeholder={"Protein"}/>
-                <Button onClick={handleDeleteObject}>Delete</Button>
-            </div>
-            <Form
-                form={form}
-                labelCol={{span: 4}}
-                wrapperCol={{span: 16}}
-                layout="horizontal"
-                initialValues={data}
-                onValuesChange={handlePreUpdateObject}
+
+        <Form
+            className={"my-6"}
+            form={form}
+            labelCol={{span: 4}}
+            wrapperCol={{span: 16}}
+            layout="horizontal"
+            initialValues={data}
+            disabled={locked}
+            onValuesChange={handlePreUpdateObject}
+        >
+            <Form.Item label="Name" name="name" rules={[{required: true}]}>
+                <AutoComplete
+                    className={"w-full"}
+                    options={uniprotOptions}
+                    onSearch={onSearch}
+                    onSelect={onSelect}
+                    onChange={handlePreUpdateObject}
+                />
+            </Form.Item>
+            <Form.Item label="Vessel" name="vessel_id">
+                <Select options={vesselOptions}/>
+            </Form.Item>
+            <Form.Item label="Is constant" name="constant" valuePropName="checked">
+                <Switch/>
+            </Form.Item>
+            <Form.Item label="Sequence" name="sequence">
+                <Input.TextArea/>
+            </Form.Item>
+            <Form.Item label="EC Number"
+                       name="ecnumber"
+                       rules={
+                           [
+                               {
+                                   pattern: new RegExp("^\\d+\\.\\d+\\.\\d+\\.\\d+$"),
+                                   message: "Please enter a valid EC number"
+                               }
+                           ]
+                       }
             >
-                <Form.Item label="Name" name="name" rules={[{required: true}]}>
-                    <AutoComplete
-                        className={"w-full"}
-                        options={uniprotOptions}
-                        onSearch={onSearch}
-                        onSelect={onSelect}
-                        onChange={handlePreUpdateObject}
-                    />
-                </Form.Item>
-                <Form.Item label="Vessel" name="vessel_id">
-                    <Select options={vesselOptions}/>
-                </Form.Item>
-                <Form.Item label="Is constant" name="constant" valuePropName="checked">
-                    <Switch/>
-                </Form.Item>
-                <Form.Item label="Sequence" name="sequence">
-                    <Input.TextArea/>
-                </Form.Item>
-                <Form.Item label="EC Number"
-                           name="ecnumber"
-                           rules={
-                               [
-                                   {
-                                       pattern: new RegExp("^\\d+\\.\\d+\\.\\d+\\.\\d+$"),
-                                       message: "Please enter a valid EC number"
-                                   }
-                               ]
-                           }
-                >
-                    <AutoComplete
-                        className={"w-full"}
-                        options={uniprotOptions}
-                        onSearch={onEcNumberSearch}
-                        onSelect={onSelect}
-                        onChange={handlePreUpdateObject}
-                    />
-                </Form.Item>
-                <Form.Item label="Organism" name="organism">
-                    <Input/>
-                </Form.Item>
-                <Form.Item label="Taxonomy ID" name="organism_tax_id">
-                    <Input/>
-                </Form.Item>
-                <Form.Item
-                    label={
-                        extractHref(form.getFieldValue("references")) ?
-                            <a className={"flex flex-row gap-1 place-items-baseline"}
-                               href={extractHref(form.getFieldValue("references"))}
-                               target={"_blank"}
-                            >
-                                Reference
-                                <RiExternalLinkLine size={11}/>
-                            </a> : "Reference"
-                    }
-                    name="references">
-                    <Input onChange={(e: ChangeEvent<HTMLInputElement>) => onSetReference(e.target.value)}/>
-                </Form.Item>
-            </Form>
-        </div>
+                <AutoComplete
+                    className={"w-full"}
+                    options={uniprotOptions}
+                    onSearch={onEcNumberSearch}
+                    onSelect={onSelect}
+                    onChange={handlePreUpdateObject}
+                />
+            </Form.Item>
+            <Form.Item label="Organism" name="organism">
+                <Input/>
+            </Form.Item>
+            <Form.Item label="Taxonomy ID" name="organism_tax_id">
+                <Input/>
+            </Form.Item>
+            <Form.Item
+                label={
+                    extractHref(form.getFieldValue("references")) ?
+                        <a className={"flex flex-row gap-1 place-items-baseline"}
+                           href={extractHref(form.getFieldValue("references"))}
+                           target={"_blank"}
+                        >
+                            Reference
+                            <RiExternalLinkLine size={11}/>
+                        </a> : "Reference"
+                }
+                name="references">
+                <Input onChange={(e: ChangeEvent<HTMLInputElement>) => onSetReference(e.target.value)}/>
+            </Form.Item>
+        </Form>
     );
 }

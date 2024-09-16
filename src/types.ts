@@ -1,8 +1,12 @@
 import {FormInstance} from "antd";
+import {AlternativeStringCol} from "./components/DataProvider.tsx";
+import React from "react";
 
 export interface Identifiable {
     id?: string;
     species_id?: string | null;
+
+    [key: string]: any
 }
 
 export interface ChildProps<T extends Identifiable> {
@@ -11,5 +15,12 @@ export interface ChildProps<T extends Identifiable> {
     form: FormInstance<T>,
     isLoading: boolean,
     handleUpdateObject: () => void,
-    handleDeleteObject?: () => void,
+    handleDeleteObject: () => void,
+    alternativeIdCol?: AlternativeStringCol<T, keyof T> | string;
+    setLocked: React.Dispatch<React.SetStateAction<boolean>>;
+    locked: boolean;
+}
+
+export interface FormViewProps<T extends Identifiable> {
+    context: React.Context<ChildProps<T>>
 }

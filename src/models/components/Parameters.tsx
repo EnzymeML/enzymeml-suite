@@ -1,8 +1,4 @@
-import DataHandle from "../../components/DataFetch.tsx";
-import {ChildProps} from "../../types.ts";
-import ParameterDetail from "./Parameter.tsx";
-import {getParameter, listAllParametersIds, updateParameter} from "../../commands/parameters.ts";
-import {Parameter} from "../../../../enzymeml-ts/src";
+import {listAllParametersIds} from "../../commands/parameters.ts";
 import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
 
@@ -37,24 +33,11 @@ export default function Parameters() {
         }
     }, []);
 
+    console.log(parameterIDs)
+
     return (
         <div className={"flex flex-col gap-10 w-full"}>
-            {
-                parameterIDs.map((id: string) => {
-                    return (
-                        <DataHandle<Parameter>
-                            key={`param_${id}`}
-                            id={id}
-                            fetchObject={getParameter}
-                            updateObject={updateParameter}
-                        >
-                            {(props: ChildProps<Parameter>) => (
-                                <ParameterDetail {...props} key={`param_${id}`}/>
-                            )}
-                        </DataHandle>
-                    );
-                })
-            }
+
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import {theme} from "antd";
-import useAppStore from "../stores/stylestore.ts";
+import useAppStore from "../stores/appstore.ts";
 
 export default function Footer() {
 

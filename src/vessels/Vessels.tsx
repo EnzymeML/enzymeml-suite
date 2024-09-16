@@ -1,17 +1,22 @@
 import 'react-json-view-lite/dist/index.css';
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import DataHandle from "../components/DataFetch.tsx";
-import {ChildProps} from "../types.ts";
+import DataProvider from "../components/DataProvider.tsx";
 import {Vessel} from "../../../enzymeml-ts/src";
 import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
-import VesselDetail from "./components/VesselDetail.tsx";
-import {Button} from "antd";
+import DetailView from "../components/DetailView.tsx";
+import FloatingCreate from "../components/FloatingCreate.tsx";
+import Collection from "../components/Collection.tsx";
+import EmptyPage from "../components/EmptyPage.tsx";
+import VesselForm from "./VesselForm.tsx";
+
+// @ts-ignore
+const VesselContext = React.createContext<ChildProps<Vessel>>({})
 
 export default function Vessels() {
 
     // States
-    const [vessels, setVessels] = useState<[string, string][] | null>(null);
+    const [vessels, setVessels] = useState<[string, string][]>([]);
 
     // Fetch small molecules on load
     useEffect(() => {
@@ -55,26 +60,36 @@ export default function Vessels() {
         )
     }
 
+    // Create the items for the Collapsible component
+    const items = vessels.map(([id]) => {
+        return (
+            <DataProvider<Vessel>
+                key={`vessel_${id}`}
+                targetKey={`vessel_${id}`}
+                id={id}
+                fetchObject={getVessel}
+                updateObject={updateVessel}
+                deleteObject={deleteVessel}
+                context={VesselContext}
+            >
+                <DetailView context={VesselContext}
+                            placeholder={"Vessel"}
+                            nameKey={"name"}
+                            FormComponent={VesselForm}/>
+            </DataProvider>
+        );
+    });
+
+    if (vessels.length === 0) {
+        return (
+            <EmptyPage type={"Vessel"} handleCreate={handleCreateVessel}/>
+        )
+    }
+
     return (
-        <div className={"max-h-screen overflow-scroll scrollbar-hide"}>
-            <div className={"flex flex-col gap-10"}>
-                <Button onClick={handleCreateVessel}>Create Vessel</Button>
-                {
-                    vessels?.map(([id]) => {
-                        return (
-                            <DataHandle<Vessel>
-                                key={`vessel_fetcher_${id}`}
-                                id={id}
-                                fetchObject={getVessel}
-                                updateObject={updateVessel}
-                                deleteObject={deleteVessel}
-                            >
-                                {(props: ChildProps<Vessel>) => (<VesselDetail {...props} key={`vessel_${id}`}/>)}
-                            </DataHandle>
-                        );
-                    })
-                }
-            </div>
+        <div className={"flex flex-col"}>
+            <FloatingCreate handleCreate={handleCreateVessel} type={"Vessel"}/>
+            <Collection items={items}/>
         </div>
     );
 }

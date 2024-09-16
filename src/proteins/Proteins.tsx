@@ -1,17 +1,23 @@
+import React, {useEffect, useState} from "react";
 import 'react-json-view-lite/dist/index.css';
-import {useEffect, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import DataHandle from "../components/DataFetch.tsx";
+import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
-import {Protein} from "../../../enzymeml-ts/src";
-import {Button} from "antd";
 import {createProtein, deleteProtein, getProtein, listProteins, updateProtein} from "../commands/proteins.ts";
-import ProteinDetail from "./components/ProteinDetail.tsx";
+import EmptyPage from "../components/EmptyPage.tsx";
+import Collection from "../components/Collection.tsx";
+import FloatingCreate from "../components/FloatingCreate.tsx";
+import {Protein} from "../../../enzymeml-ts/src";
+import ProteinForm from "./ProteinForm.tsx";
+import DetailView from "../components/DetailView.tsx";
+
+// @ts-ignore
+const ProteinContext = React.createContext<ChildProps<Vessel>>({})
 
 export default function Proteins() {
 
     // States
-    const [proteins, setProteins] = useState<[string, string][] | null>(null);
+    const [proteins, setProteins] = useState<[string, string][]>([]);
 
     // Fetch small molecules on load
     useEffect(() => {
@@ -55,26 +61,36 @@ export default function Proteins() {
         )
     }
 
+    // Create the items for the Collapsible component
+    const items = proteins.map(([id]) => {
+        return (
+            <DataProvider<Protein>
+                key={`protein_${id}`}
+                targetKey={`protein_${id}`}
+                id={id}
+                fetchObject={getProtein}
+                updateObject={updateProtein}
+                deleteObject={deleteProtein}
+                context={ProteinContext}
+            >
+                <DetailView context={ProteinContext}
+                            placeholder={"Protein"}
+                            nameKey={"name"}
+                            FormComponent={ProteinForm}/>
+            </DataProvider>
+        );
+    });
+
+    if (proteins.length === 0) {
+        return (
+            <EmptyPage type={"Protein"} handleCreate={handleCreateProtein}/>
+        );
+    }
+
     return (
-        <div className={"max-h-screen overflow-scroll scrollbar-hide"}>
-            <div className={"flex flex-col gap-10"}>
-                <Button onClick={handleCreateProtein}>Create Protein</Button>
-                {
-                    proteins?.map(([id]) => {
-                        return (
-                            <DataHandle<Protein>
-                                key={`protein_fetcher_${id}`}
-                                id={id}
-                                fetchObject={getProtein}
-                                updateObject={updateProtein}
-                                deleteObject={deleteProtein}
-                            >
-                                {(props: ChildProps<Protein>) => (<ProteinDetail {...props} key={`protein_${id}`}/>)}
-                            </DataHandle>
-                        );
-                    })
-                }
-            </div>
+        <div className={"flex flex-col"}>
+            <FloatingCreate handleCreate={handleCreateProtein} type={"Protein"}/>
+            <Collection items={items}/>
         </div>
     );
 }

@@ -1,20 +1,26 @@
-import React, {ReactNode, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Form} from "antd";
 import {ChildProps, Identifiable} from "../types.ts";
 import {listen} from "@tauri-apps/api/event";
+import Reveal from "../animations/Reveal.tsx";
 
-type AlternativeStringCol<T, K extends keyof T> = T[K] extends string ? K : never;
+export type AlternativeStringCol<T, K extends keyof T> = T[K] extends string ? K : never;
 
-type DataFetchProps<T extends Identifiable> = {
+export interface DataHandlingProps<T extends Identifiable> {
     id: string,
     fetchObject: (id: string) => Promise<T | undefined>;
     updateObject: (id: string, data: T) => Promise<void>;
     deleteObject?: (id: string) => Promise<void>;
-    children: (props: ChildProps<T>) => ReactNode;
     alternativeIdCol?: AlternativeStringCol<T, keyof T> | string;
-};
+    targetKey: string;
+}
 
-export default function DataHandle<T extends Identifiable>(
+interface DataFetchProps<T extends Identifiable> extends DataHandlingProps<T> {
+    children: React.ReactNode;
+    context: React.Context<ChildProps<T>>;
+}
+
+export default function DataProvider<T extends Identifiable>(
     {
         id,
         fetchObject,
@@ -22,6 +28,8 @@ export default function DataHandle<T extends Identifiable>(
         updateObject,
         deleteObject,
         alternativeIdCol,
+        targetKey,
+        context,
     }: DataFetchProps<T>
 ): React.ReactElement | null {
     // States
@@ -29,6 +37,7 @@ export default function DataHandle<T extends Identifiable>(
     const [data, setData] = useState<T | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [locked, setLocked] = useState<boolean>(false)
 
     // If there is no delete function, replace with identity function
     if (!deleteObject) {
@@ -117,17 +126,19 @@ export default function DataHandle<T extends Identifiable>(
     }
 
     return (
-        <>
-            {children(
-                {
-                    data,
-                    error,
-                    form,
-                    isLoading,
-                    handleUpdateObject,
-                    handleDeleteObject,
-                }
-            )}
-        </>
+        <Reveal targetKey={`${targetKey}_${id}`} useTranslate>
+            <context.Provider value={{
+                data: data,
+                error: error,
+                form: form,
+                isLoading: isLoading,
+                handleDeleteObject: handleDeleteObject,
+                handleUpdateObject: handleUpdateObject,
+                setLocked: setLocked,
+                locked: locked,
+            }}>
+                {children}
+            </context.Provider>
+        </Reveal>
     );
 }
