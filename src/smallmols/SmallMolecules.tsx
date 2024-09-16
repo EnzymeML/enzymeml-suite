@@ -12,7 +12,6 @@ import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
 import {SmallMolecule} from "../../../enzymeml-ts/src";
 import EmptyPage from "../components/EmptyPage.tsx";
-import FloatingCreate from "../components/FloatingCreate.tsx";
 import Collection from "../components/Collection.tsx";
 import DetailView from "../components/DetailView.tsx";
 import SmallMoleculeForm from "./SmallMoleculeForm.tsx";
@@ -29,10 +28,6 @@ export default function SmallMolecules() {
     // Actions
     const setSelectedId = useAppStore(state => state.setSelectedId);
 
-    // Refs
-    const newMoleculeId = React.useRef<string | null>(null);
-    const refs = React.useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
-
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
@@ -40,7 +35,9 @@ export default function SmallMolecules() {
             (data) => {
                 setSmallMolecules(data);
 
-                setSelectedId(data[0][0]);
+                if (data.length > 0) {
+                    setSelectedId(data[0][0]);
+                }
             }
         ).catch(
             (error) => {
@@ -69,21 +66,6 @@ export default function SmallMolecules() {
         };
     }, []);
 
-    useEffect(() => {
-        console.log("Refs", Object.keys(refs.current))
-        console.log("New molecule ID", newMoleculeId.current)
-
-    }, [smallMolecules]);
-
-    // Handlers
-    const handleCreateSmallMolecule = () => {
-        createSmallMolecule().then(
-            (id) => {
-                setSelectedId(id);
-            }
-        )
-    }
-
     // Create the items for the Collapsible component
     const items = smallMolecules.map(([id]) => {
         return (
@@ -100,8 +82,7 @@ export default function SmallMolecules() {
                     <DetailView context={SmallMoleculeContext}
                                 placeholder={"Small Molecule"}
                                 nameKey={"name"}
-                                FormComponent={SmallMoleculeForm}
-                                shouldScrollTo={newMoleculeId.current === id}/>
+                                FormComponent={SmallMoleculeForm}/>
                 </div>
             </DataProvider>
         );
@@ -109,14 +90,14 @@ export default function SmallMolecules() {
 
     if (smallMolecules.length === 0) {
         return (
-            <EmptyPage type={"Small Molecule"} handleCreate={handleCreateSmallMolecule}/>
+            <EmptyPage type={"Small Molecule"} handleCreate={createSmallMolecule}/>
         );
     }
 
     return (
-        <div className={"flex flex-col"}>
-            <FloatingCreate handleCreate={handleCreateSmallMolecule} type={"Small Molecule"}/>
-            <Collection items={items}/>
-        </div>
+        <Collection items={items}
+                    handleCreateObject={createSmallMolecule}
+                    type={"Small Molecule"}
+        />
     );
 }

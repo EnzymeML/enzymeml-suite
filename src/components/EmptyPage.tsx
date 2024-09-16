@@ -10,14 +10,30 @@ export default function EmptyPage(
         handleCreate,
     }: {
         type: string,
-        handleCreate: () => void,
+        handleCreate: () => Promise<string>,
     }
 ) {
     // States
     const darkMode = useAppStore(state => state.darkMode);
 
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
     // Styling
     const {token} = theme.useToken();
+
+    // Handlers
+    const onCreate = () => {
+        handleCreate().then(
+            (id) => {
+                setSelectedId(id);
+            }
+        ).catch(
+            (error) => {
+                console.error('Error:', error);
+            }
+        )
+    }
 
     return (
         <NotificationProvider>
@@ -36,7 +52,7 @@ export default function EmptyPage(
                             type="default"
                             icon={<PlusOutlined/>}
                             size="middle"
-                            onClick={handleCreate}
+                            onClick={onCreate}
                     >
                         Create {type}
                     </Button>

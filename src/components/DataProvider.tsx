@@ -126,7 +126,7 @@ export default function DataProvider<T extends Identifiable>(
     }
 
     return (
-        <Reveal targetKey={`${targetKey}_${id}`} useTranslate>
+        <Reveal targetKey={`${targetKey}_${id}`}>
             <context.Provider value={{
                 data: data,
                 error: error,

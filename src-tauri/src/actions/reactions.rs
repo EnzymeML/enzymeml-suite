@@ -11,8 +11,8 @@ use crate::states::EnzymeMLState;
 pub fn create_reaction(
     state: State<Arc<EnzymeMLState>>,
     app_handle: AppHandle,
-) {
-    create_object!(
+) -> String {
+    let id = create_object!(
         state.doc, reactions,
         ReactionBuilder, "r", id
     );
@@ -20,6 +20,8 @@ pub fn create_reaction(
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_reactions");
+    
+    id
 }
 
 #[tauri::command]

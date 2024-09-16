@@ -9,7 +9,6 @@ export interface DetailHeaderProps {
     placeholder: string;
     handleDeleteObject: (id: string) => void;
     setLocked: React.Dispatch<React.SetStateAction<boolean>>;
-    setHidden: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function DetailHeader(

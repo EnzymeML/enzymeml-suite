@@ -37,12 +37,14 @@ const fetchCollectionNames = async (path: AvailablePaths) => {
 function CollectionItem({name, id}: { name: string, id: string }) {
 
     // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
     const onClick = () => {
         const element = document.getElementById(id);
 
         if (element) {
-            element.scrollIntoView({behavior: "smooth"});
-            element.scrollBy(-1000, -200);
+            setSelectedId(id);
+            element.scrollIntoView({behavior: "smooth", block: "nearest"});
         }
     }
 

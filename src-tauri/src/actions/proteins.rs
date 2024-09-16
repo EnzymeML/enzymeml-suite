@@ -11,8 +11,8 @@ use crate::states::EnzymeMLState;
 pub fn create_protein(
     state: State<Arc<EnzymeMLState>>,
     app_handle: AppHandle,
-) {
-    create_object!(
+) -> String {
+    let id = create_object!(
         state.doc, proteins,
         ProteinBuilder, "p", id
     );
@@ -20,6 +20,8 @@ pub fn create_protein(
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_proteins");
     update_event!(app_handle, "update_nav");
+    
+    id
 }
 
 #[tauri::command]

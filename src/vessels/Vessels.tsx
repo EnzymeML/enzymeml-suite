@@ -5,10 +5,10 @@ import DataProvider from "../components/DataProvider.tsx";
 import {Vessel} from "../../../enzymeml-ts/src";
 import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
 import DetailView from "../components/DetailView.tsx";
-import FloatingCreate from "../components/FloatingCreate.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";
 import VesselForm from "./VesselForm.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
 const VesselContext = React.createContext<ChildProps<Vessel>>({})
@@ -18,12 +18,19 @@ export default function Vessels() {
     // States
     const [vessels, setVessels] = useState<[string, string][]>([]);
 
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
         listVessels().then(
             (data) => {
                 setVessels(data);
+
+                if (data.length > 0) {
+                    setSelectedId(data[0][0]);
+                }
             }
         ).catch(
             (error) => {
@@ -52,14 +59,6 @@ export default function Vessels() {
         };
     }, []);
 
-    const handleCreateVessel = () => {
-        createVessel().then(
-            () => {
-                console.log('Small molecule created');
-            }
-        )
-    }
-
     // Create the items for the Collapsible component
     const items = vessels.map(([id]) => {
         return (
@@ -75,21 +74,22 @@ export default function Vessels() {
                 <DetailView context={VesselContext}
                             placeholder={"Vessel"}
                             nameKey={"name"}
-                            FormComponent={VesselForm}/>
+                            FormComponent={VesselForm}
+                />
             </DataProvider>
         );
     });
 
     if (vessels.length === 0) {
         return (
-            <EmptyPage type={"Vessel"} handleCreate={handleCreateVessel}/>
+            <EmptyPage type={"Vessel"}
+                       handleCreate={createVessel}/>
         )
     }
 
     return (
-        <div className={"flex flex-col"}>
-            <FloatingCreate handleCreate={handleCreateVessel} type={"Vessel"}/>
-            <Collection items={items}/>
-        </div>
+        <Collection items={items}
+                    handleCreateObject={createVessel}
+                    type={"Vessel"}/>
     );
 }

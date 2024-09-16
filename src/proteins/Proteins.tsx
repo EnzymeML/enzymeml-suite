@@ -6,10 +6,10 @@ import {ChildProps} from "../types.ts";
 import {createProtein, deleteProtein, getProtein, listProteins, updateProtein} from "../commands/proteins.ts";
 import EmptyPage from "../components/EmptyPage.tsx";
 import Collection from "../components/Collection.tsx";
-import FloatingCreate from "../components/FloatingCreate.tsx";
 import {Protein} from "../../../enzymeml-ts/src";
 import ProteinForm from "./ProteinForm.tsx";
 import DetailView from "../components/DetailView.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
 const ProteinContext = React.createContext<ChildProps<Vessel>>({})
@@ -19,12 +19,19 @@ export default function Proteins() {
     // States
     const [proteins, setProteins] = useState<[string, string][]>([]);
 
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
         listProteins().then(
             (data) => {
                 setProteins(data);
+
+                if (data.length > 0) {
+                    setSelectedId(data[0][0]);
+                }
             }
         ).catch(
             (error) => {
@@ -53,14 +60,6 @@ export default function Proteins() {
         };
     }, []);
 
-    const handleCreateProtein = () => {
-        createProtein().then(
-            () => {
-                console.log('Small molecule created');
-            }
-        )
-    }
-
     // Create the items for the Collapsible component
     const items = proteins.map(([id]) => {
         return (
@@ -83,14 +82,14 @@ export default function Proteins() {
 
     if (proteins.length === 0) {
         return (
-            <EmptyPage type={"Protein"} handleCreate={handleCreateProtein}/>
+            <EmptyPage type={"Protein"}
+                       handleCreate={createProtein}/>
         );
     }
 
     return (
-        <div className={"flex flex-col"}>
-            <FloatingCreate handleCreate={handleCreateProtein} type={"Protein"}/>
-            <Collection items={items}/>
-        </div>
+        <Collection items={items}
+                    handleCreateObject={createProtein}
+                    type={"Protein"}/>
     );
 }

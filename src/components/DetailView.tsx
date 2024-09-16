@@ -11,7 +11,6 @@ interface DetailViewProps<T extends Identifiable> {
     context: React.Context<ChildProps<T>>,
     nameKey: string,
     FormComponent: React.ComponentType<{ context: React.Context<ChildProps<T>> }>
-    shouldScrollTo: boolean
 }
 
 export default function DetailView<T extends Identifiable>(
@@ -20,7 +19,6 @@ export default function DetailView<T extends Identifiable>(
         context,
         nameKey,
         FormComponent,
-        shouldScrollTo = false,
     }: DetailViewProps<T>
 ): React.ReactElement {
 
@@ -51,9 +49,9 @@ export default function DetailView<T extends Identifiable>(
 
     // Effects
     useEffect(() => {
-        if (shouldScrollTo) {
+        if (selectedId === id) {
             const element = document.getElementById(id);
-            element?.scrollIntoView({behavior: "smooth", block: "center"});
+            element?.scrollIntoView({behavior: "smooth", block: "nearest"});
         }
     }, []);
 
@@ -77,16 +75,18 @@ export default function DetailView<T extends Identifiable>(
                             placeholder={placeholder}
                             handleDeleteObject={props.handleDeleteObject}
                             setLocked={props.setLocked}
-                            setHidden={props.setHidden}
                         />
                         <AnimatePresence>
                             {selectedId === id && (
                                 <motion.div
                                     key={id}
-                                    initial={{opacity: 0, height: 0}}
+                                    initial={{opacity: 0.4, height: 0}}
                                     animate={{opacity: 1, height: 'auto'}}
                                     exit={{opacity: 0, height: 0}}
-                                    transition={{duration: 0.2}}
+                                    transition={{
+                                        opacity: {duration: 0.01},
+                                        height: {duration: 0.13}
+                                    }}
                                     style={{overflow: 'hidden'}} // to prevent content from overflowing while collapsing
                                 >
                                     <FormComponent context={context}/>
