@@ -2,7 +2,7 @@ import {create} from 'zustand'
 import {devtools, persist} from 'zustand/middleware'
 import {NotificationType} from "../components/NotificationProvider.tsx";
 
-type openNotificationType = (message: string, type: NotificationType, description: string) => void
+export type openNotificationType = (message: string, type: NotificationType, description: string) => void
 
 export enum AvailablePaths {
     HOME = '/',

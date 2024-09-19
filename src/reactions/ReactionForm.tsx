@@ -2,6 +2,7 @@ import {Form, Input, Switch} from "antd";
 import {FormViewProps} from "../types.ts";
 import {Reaction} from "../../../enzymeml-ts/src";
 import React from "react";
+import FormBase from "../components/FormBase.tsx";
 
 export default function ReactionForm(
     {context}: FormViewProps<Reaction>
@@ -12,14 +13,11 @@ export default function ReactionForm(
 
     return (
 
-        <Form
+        <FormBase
             form={form}
-            labelCol={{span: 4}}
-            wrapperCol={{span: 16}}
-            layout="horizontal"
-            initialValues={data}
-            disabled={locked}
-            onValuesChange={handleUpdateObject}
+            data={data}
+            handleUpdate={handleUpdateObject}
+            locked={locked}
         >
             <Form.Item label="Name" name="name">
                 <Input/>
@@ -27,6 +25,6 @@ export default function ReactionForm(
             <Form.Item label="Is reversible" name="reversible" valuePropName="checked">
                 <Switch/>
             </Form.Item>
-        </Form>
+        </FormBase>
     );
 }

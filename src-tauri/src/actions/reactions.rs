@@ -3,24 +3,18 @@ use std::sync::Arc;
 use enzymeml_rs::prelude::{Reaction, ReactionBuilder};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{create_object, delete_object, get_object, update_event, update_object};
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
+use crate::{create_object, delete_object, get_object, update_event, update_object};
 
 #[tauri::command]
-pub fn create_reaction(
-    state: State<Arc<EnzymeMLState>>,
-    app_handle: AppHandle,
-) -> String {
-    let id = create_object!(
-        state.doc, reactions,
-        ReactionBuilder, "r", id
-    );
+pub fn create_reaction(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> String {
+    let id = create_object!(state.doc, reactions, ReactionBuilder, "r", id);
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_reactions");
-    
+
     id
 }
 
@@ -44,17 +38,15 @@ pub fn list_reactions(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)>
     // Extract the guarded state values
     let state_doc = state.doc.lock().unwrap();
 
-    state_doc.reactions
+    state_doc
+        .reactions
         .iter()
         .map(|s| (s.id.clone(), s.name.clone()))
         .collect()
 }
 
 #[tauri::command]
-pub fn get_reaction(
-    state: State<Arc<EnzymeMLState>>,
-    id: &str,
-) -> Result<Reaction, String> {
+pub fn get_reaction(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Reaction, String> {
     get_object!(state.doc, reactions, id, id)
 }
 

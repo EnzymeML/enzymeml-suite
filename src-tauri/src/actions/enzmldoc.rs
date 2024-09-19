@@ -22,7 +22,8 @@ pub fn set_title(
     state_doc.name = title.to_string();
     *state_title = title.to_string();
 
-    app_handle.emit_all("update_document", ())
+    app_handle
+        .emit_all("update_document", ())
         .map_err(|e| e.to_string())?;
 
     Ok(())
@@ -47,16 +48,15 @@ pub fn create_new_document(title: &str) -> Result<i32, Box<dyn Error>> {
 }
 
 #[tauri::command]
-pub fn get_all_species_ids(
-    state: State<Arc<EnzymeMLState>>,
-) -> Vec<String> {
+pub fn get_all_species_ids(state: State<Arc<EnzymeMLState>>) -> Vec<String> {
     let doc = state.doc.lock().unwrap();
     extract_species_ids(&doc)
 }
 
 pub fn extract_species_ids(doc: &MutexGuard<EnzymeMLDocument>) -> Vec<String> {
-    doc
-        .small_molecules.iter().map(|s| s.id.clone())
+    doc.small_molecules
+        .iter()
+        .map(|s| s.id.clone())
         .chain(doc.proteins.iter().map(|s| s.id.clone()))
         .chain(doc.complexes.iter().map(|s| s.id.clone()))
         .collect()
@@ -70,12 +70,22 @@ pub fn get_species_name(
     let state_doc = state.doc.lock().unwrap();
 
     // Combine all species into one vector
-    let all_species = state_doc.small_molecules.iter()
+    let all_species = state_doc
+        .small_molecules
+        .iter()
         .map(|s| (s.id.clone(), s.name.clone()))
-        .chain(state_doc.proteins.iter()
-            .map(|s| (s.id.clone(), s.name.clone())))
-        .chain(state_doc.complexes.iter()
-            .map(|s| (s.id.clone(), s.name.clone())))
+        .chain(
+            state_doc
+                .proteins
+                .iter()
+                .map(|s| (s.id.clone(), s.name.clone())),
+        )
+        .chain(
+            state_doc
+                .complexes
+                .iter()
+                .map(|s| (s.id.clone(), s.name.clone())),
+        )
         .collect::<Vec<(String, String)>>();
 
     // Find the species with the given ID
@@ -88,15 +98,20 @@ pub fn get_species_name(
 }
 
 #[tauri::command]
-pub fn get_all_non_constant_species_ids(
-    state: State<Arc<EnzymeMLState>>,
-) -> Vec<String> {
+pub fn get_all_non_constant_species_ids(state: State<Arc<EnzymeMLState>>) -> Vec<String> {
     println!("Getting all non-constant species IDs");
     let state_doc = state.doc.lock().unwrap();
     state_doc
-        .small_molecules.iter().filter(|s| !s.constant)
+        .small_molecules
+        .iter()
+        .filter(|s| !s.constant)
         .map(|s| s.id.clone())
-        .chain(state_doc.proteins.iter().filter(|s| !s.constant)
-            .map(|s| s.id.clone()))
+        .chain(
+            state_doc
+                .proteins
+                .iter()
+                .filter(|s| !s.constant)
+                .map(|s| s.id.clone()),
+        )
         .collect()
 }

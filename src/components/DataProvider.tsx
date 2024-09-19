@@ -3,6 +3,7 @@ import {Form} from "antd";
 import {ChildProps, Identifiable} from "../types.ts";
 import {listen} from "@tauri-apps/api/event";
 import Reveal from "../animations/Reveal.tsx";
+import NotificationProvider from "./NotificationProvider.tsx";
 
 export type AlternativeStringCol<T, K extends keyof T> = T[K] extends string ? K : never;
 
@@ -126,19 +127,21 @@ export default function DataProvider<T extends Identifiable>(
     }
 
     return (
-        <Reveal targetKey={`${targetKey}_${id}`}>
-            <context.Provider value={{
-                data: data,
-                error: error,
-                form: form,
-                isLoading: isLoading,
-                handleDeleteObject: handleDeleteObject,
-                handleUpdateObject: handleUpdateObject,
-                locked: locked,
-                setLocked: setLocked,
-            }}>
-                {children}
-            </context.Provider>
-        </Reveal>
+        <NotificationProvider>
+            <Reveal targetKey={`${targetKey}_${id}`}>
+                <context.Provider value={{
+                    data: data,
+                    error: error,
+                    form: form,
+                    isLoading: isLoading,
+                    handleDeleteObject: handleDeleteObject,
+                    handleUpdateObject: handleUpdateObject,
+                    locked: locked,
+                    setLocked: setLocked,
+                }}>
+                    {children}
+                </context.Provider>
+            </Reveal>
+        </NotificationProvider>
     );
 }

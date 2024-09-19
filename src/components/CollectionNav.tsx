@@ -1,4 +1,4 @@
-import {Badge, List, theme, Typography} from "antd";
+import {Badge, Col, List, Row, theme, Typography} from "antd";
 import useAppStore, {AvailablePaths} from "../stores/appstore.ts";
 import {listSmallMolecules} from "../commands/smallmols.ts";
 import {listVessels} from "../commands/vessels.ts";
@@ -6,11 +6,16 @@ import {listProteins} from "../commands/proteins.ts";
 import {useEffect, useRef, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
 import {useLocation} from "react-router-dom";
+import {getBadgeColor} from "./CardHeader.tsx";
+import {listReactions} from "../commands/reactions.ts";
+import {listMeasurements} from "../commands/measurements.ts";
+import Grow from "../animations/Grow.tsx";
 
 interface Collection {
     fetchFun: () => Promise<[string, string][]>;
 }
 
+// @ts-ignore
 const pathMapping: { [key in AvailablePaths]: Collection } = {
     [AvailablePaths.SMALL_MOLECULES]: {
         fetchFun: listSmallMolecules
@@ -22,7 +27,10 @@ const pathMapping: { [key in AvailablePaths]: Collection } = {
         fetchFun: listProteins
     },
     [AvailablePaths.REACTIONS]: {
-        fetchFun: () => Promise.resolve([])
+        fetchFun: listReactions
+    },
+    [AvailablePaths.MEASUREMENTS]: {
+        fetchFun: listMeasurements
     }
 };
 
@@ -34,33 +42,55 @@ const fetchCollectionNames = async (path: AvailablePaths) => {
     return pathMapping[path].fetchFun();
 }
 
+const truncateName = (name: string) => {
+    return name.length > 20 ? name.slice(0, 20) + " ..." : name;
+}
+
 function CollectionItem({name, id}: { name: string, id: string }) {
+
+    // States
+    const [hovered, setHovered] = useState<boolean>(false);
 
     // Actions
     const setSelectedId = useAppStore(state => state.setSelectedId);
+    const darkMode = useAppStore(state => state.darkMode);
+
+    // Style
+    const {token} = theme.useToken();
 
     const onClick = () => {
-        const element = document.getElementById(id);
+        setSelectedId(id);
+    }
 
-        if (element) {
-            setSelectedId(id);
-            element.scrollIntoView({behavior: "smooth", block: "nearest"});
-        }
+    let style = {color: token.colorTextSecondary};
+
+    if (name.length === 0) {
+        name = "Unnamed";
+        style = {color: token.colorTextDisabled};
     }
 
     return (
         <List.Item className={"cursor-pointer w-full"}
                    onClick={onClick}>
-            <div className={"flex flex-row items-center gap-2"}>
-                <Badge count={id}
-                       size={"small"}
-                       color={"lime"}
-                />
-                <Typography.Text color={"accentColor"}
+            <Row align={"top"} gutter={16} className={"w-full"}>
+                <Col span={5}>
+                    <Badge count={id}
+                           size={"small"}
+                           color={getBadgeColor(darkMode)}
+                    />
+                </Col>
+                <Col span={18}
+                     onMouseEnter={() => setHovered(true)}
+                     onMouseLeave={() => setHovered(false)}
                 >
-                    {name}
-                </Typography.Text>
-            </div>
+                    <Typography.Text
+                        style={style}
+                        color={"accentColor"}
+                    >
+                        {hovered ? name : truncateName(name)}
+                    </Typography.Text>
+                </Col>
+            </Row>
         </List.Item>
     )
 }
@@ -110,21 +140,46 @@ export default function CollectionNav() {
         };
     }, []);
 
+    useEffect(() => {
+        const unlisten = listen('update_nav', () => {
+            fetchCollectionNames(pathRef.current as AvailablePaths).then(
+                (data) => {
+                    if (!(data === undefined)) {
+                        setCollectionNames(data);
+                    }
+                }
+            )
+        });
+
+        // Clean up the event listener on component unmount
+        return () => {
+            unlisten.then((fn) => fn());
+        };
+    }, []);
+
+    if (path === AvailablePaths.HOME) {
+        return null;
+    } else if (collectionNames.length === 0) {
+        return null
+    }
+
     return (
-        <List className={"h-auto py-2 shadow-sm"}
-              style={{
-                  background: token.colorBgContainer,
-                  borderRadius: token.borderRadiusLG,
-                  border: 0,
-                  borderBottomLeftRadius: token.borderRadiusLG,
-                  borderBottomRightRadius: token.borderRadiusLG,
-                  borderBottom: 1,
-                  borderStyle: 'solid',
-                  borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
-              }}
-              size={"small"}
-              dataSource={collectionNames}
-              renderItem={(item) => <CollectionItem name={item[1]} id={item[0]}/>}
-        />
+        <Grow>
+            <List className={"h-auto py-2 shadow-sm 2-full"}
+                  style={{
+                      background: token.colorBgContainer,
+                      borderRadius: token.borderRadiusLG,
+                      border: 0,
+                      borderBottomLeftRadius: token.borderRadiusLG,
+                      borderBottomRightRadius: token.borderRadiusLG,
+                      borderBottom: 1,
+                      borderStyle: 'solid',
+                      borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+                  }}
+                  size={"small"}
+                  dataSource={collectionNames}
+                  renderItem={(item) => <CollectionItem name={item[1]} id={item[0]}/>}
+            />
+        </Grow>
     )
 }

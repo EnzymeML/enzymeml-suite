@@ -2,6 +2,7 @@ import {Form, Input, InputNumber, Switch} from "antd";
 import {FormViewProps} from "../types.ts";
 import {Vessel} from "../../../enzymeml-ts/src";
 import React from "react";
+import FormBase from "../components/FormBase.tsx";
 
 export default function VesselForm(
     {context}: FormViewProps<Vessel>
@@ -10,20 +11,18 @@ export default function VesselForm(
     const {handleUpdateObject, form, data, locked} = React.useContext(context);
 
     return (
-        <Form
+        <FormBase
             form={form}
-            labelCol={{span: 4}}
-            wrapperCol={{span: 16}}
-            layout="horizontal"
-            disabled={locked}
-            initialValues={data}
-            onValuesChange={handleUpdateObject}
+            data={data}
+            handleUpdate={handleUpdateObject}
+            locked={locked}
         >
             <Form.Item label="Name" name="name">
                 <Input/>
             </Form.Item>
             <Form.Item label="Volume" name="volume">
                 <InputNumber
+                    className={"w-full"}
                     type={"number"}
                     placeholder="Vessel volume"
                 />
@@ -34,6 +33,6 @@ export default function VesselForm(
             <Form.Item label="Is constant" name="constant" valuePropName="checked">
                 <Switch/>
             </Form.Item>
-        </Form>
+        </FormBase>
     );
 }

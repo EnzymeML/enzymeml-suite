@@ -9,9 +9,9 @@ use enzymeml_rs::enzyme_ml::EnzymeMLDocument;
 use tauri::{AppHandle, Manager, State};
 use tauri::api::dialog::blocking::FileDialogBuilder;
 
+use crate::{models, update_event};
 use crate::db::establish_connection;
 use crate::docutils::{deserialize_doc, serialize_doc};
-use crate::models;
 use crate::models::Document;
 use crate::schema;
 use crate::states::{EnzymeMLState, ExposedEnzymeMLState};
@@ -20,6 +20,51 @@ use crate::states::{EnzymeMLState, ExposedEnzymeMLState};
 #[tauri::command]
 pub fn get_state(state: State<'_, Arc<EnzymeMLState>>) -> ExposedEnzymeMLState {
     ExposedEnzymeMLState::from(state.inner())
+}
+
+#[tauri::command]
+pub async fn export_meas_template(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
+    let dialog_result = FileDialogBuilder::new()
+        .set_title("Save File")
+        .set_file_name("measurement_template.xlsx")
+        .save_file();
+
+    match dialog_result {
+        Some(path) => {
+            let state_doc = state.doc.lock().unwrap();
+            state_doc
+                .to_excel(path.clone(), true)
+                .expect("Failed to export to Excel");
+            Ok(path)
+        }
+        None => Err("No file selected".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn import_excel_meas(
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<usize, String> {
+    let dialog_result = FileDialogBuilder::new()
+        .set_title("Open File")
+        .add_filter("Excel Files", &["xlsx"])
+        .pick_file();
+
+    match dialog_result {
+        Some(path) => {
+            let mut state_doc = state.doc.lock().unwrap();
+            let prev_amnt_meas = state_doc.measurements.len();
+            state_doc
+                .add_from_excel(path)
+                .map_err(|err| err.to_string())?;
+
+            update_event!(app_handle, "update_measurements");
+
+            Ok(state_doc.measurements.len() - prev_amnt_meas)
+        }
+        None => Err("No file selected".to_string()),
+    }
 }
 
 #[tauri::command]
@@ -53,7 +98,9 @@ pub fn new_document(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) {
     *state_id = None;
 
     // Notify the frontend
-    app_handle.emit_all("update_document", ()).expect("Failed to emit event");
+    app_handle
+        .emit_all("update_document", ())
+        .expect("Failed to emit event");
 }
 
 #[tauri::command]
@@ -64,12 +111,16 @@ pub fn save(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<i
     let mut state_id = state.id.lock().unwrap();
 
     if let Some(id) = *state_id {
-        app_handle.emit_all("update_document", ()).expect("Failed to emit event");
+        app_handle
+            .emit_all("update_document", ())
+            .expect("Failed to emit event");
         update_document(id, &state_doc).map_err(|err| err.to_string())
     } else {
         let id = insert_document(&state_title, &state_doc).map_err(|err| err.to_string())?;
         *state_id = Some(id);
-        app_handle.emit_all("update_document", ()).expect("Failed to emit event");
+        app_handle
+            .emit_all("update_document", ())
+            .expect("Failed to emit event");
         Ok(id)
     }
 }

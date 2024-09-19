@@ -6,9 +6,9 @@ use enzymeml_rs::equation::extract_symbols;
 use enzymeml_rs::prelude::{EquationBuilder, EquationType, ParameterBuilder};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{delete_object, get_object, update_event, update_object};
 use crate::actions::enzmldoc::extract_species_ids;
 use crate::states::EnzymeMLState;
+use crate::{delete_object, get_object, update_event, update_object};
 
 #[tauri::command]
 pub fn list_equations(state: State<Arc<EnzymeMLState>>) -> Vec<Option<String>> {
@@ -28,12 +28,7 @@ pub fn update_equation(
     data: Equation,
     app_handle: AppHandle,
 ) -> Result<(), String> {
-    let id: Option<String> = update_object!(
-        state.doc,
-        equations,
-        data.clone(),
-        species_id
-    );
+    let id: Option<String> = update_object!(state.doc, equations, data.clone(), species_id);
 
     if id.is_none() {
         return Err("Equation not found".to_string());
@@ -62,14 +57,15 @@ pub fn create_equation(
         "ode" => EquationType::Ode,
         "assignment" => EquationType::Assignment,
         "initial_assignment" => EquationType::InitialAssignment,
-        _ => return Err("Invalid equation type".to_string())
+        _ => return Err("Invalid equation type".to_string()),
     };
 
     // Create the equation
     let equation = EquationBuilder::default()
         .species_id(species_id.to_string())
         .equation_type(equation_type)
-        .build().map_err(|err| err.to_string())?;
+        .build()
+        .map_err(|err| err.to_string())?;
 
     process_equation(&state, &equation)?;
     doc.equations.push(equation);
@@ -81,10 +77,7 @@ pub fn create_equation(
 }
 
 #[tauri::command]
-pub fn get_equation(
-    state: State<Arc<EnzymeMLState>>,
-    id: &str,
-) -> Result<Equation, String> {
+pub fn get_equation(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Equation, String> {
     get_object!(
         state.doc,
         equations,
@@ -118,20 +111,19 @@ fn process_equation(state: &State<Arc<EnzymeMLState>>, equation: &Equation) -> R
     let mut doc = state.doc.lock().unwrap();
     let mut param_buffer = state.param_buffer.lock().unwrap();
 
-    let expr: meval::Expr = equation.equation.parse()
+    let expr: meval::Expr = equation
+        .equation
+        .parse()
         .map_err(|_| "Could not parse equation")?;
 
     let vars: Vec<String> = extract_variables(&doc);
-    let exist_params: HashSet<String> = doc.parameters.iter()
-        .map(|p| p.id.clone())
-        .collect();
+    let exist_params: HashSet<String> = doc.parameters.iter().map(|p| p.id.clone()).collect();
 
     for symbol in extract_symbols(&expr).iter() {
         if !vars.contains(symbol) && !exist_params.contains(symbol) {
             // Add the parameter to the document
-            doc.parameters.push(
-                create_or_from_buffer(&mut param_buffer, symbol)
-            );
+            doc.parameters
+                .push(create_or_from_buffer(&mut param_buffer, symbol));
 
             // Remove the parameter from the buffer
             param_buffer.retain(|p| p.id != *symbol);
@@ -141,7 +133,10 @@ fn process_equation(state: &State<Arc<EnzymeMLState>>, equation: &Equation) -> R
     Ok(())
 }
 
-fn create_or_from_buffer(param_buffer: &mut MutexGuard<Vec<Parameter>>, symbol: &String) -> Parameter {
+fn create_or_from_buffer(
+    param_buffer: &mut MutexGuard<Vec<Parameter>>,
+    symbol: &String,
+) -> Parameter {
     if let Some(param) = param_buffer.iter().find(|p| p.id == *symbol) {
         param.clone()
     } else {
@@ -154,14 +149,18 @@ fn create_or_from_buffer(param_buffer: &mut MutexGuard<Vec<Parameter>>, symbol: 
     }
 }
 
-
 fn extract_variables(doc: &MutexGuard<EnzymeMLDocument>) -> Vec<String> {
     let mut vars = vec![];
 
     // Extract from all species (small_molecules, proteins, complexes)
     let species_ids: HashSet<String> = extract_species_ids(doc).into_iter().collect();
-    let assignment_ids: HashSet<String> = doc.equations.iter()
-        .filter(|e| e.equation_type == EquationType::Assignment || e.equation_type == EquationType::InitialAssignment)
+    let assignment_ids: HashSet<String> = doc
+        .equations
+        .iter()
+        .filter(|e| {
+            e.equation_type == EquationType::Assignment
+                || e.equation_type == EquationType::InitialAssignment
+        })
         .map(|e| e.species_id.clone().unwrap())
         .collect();
 
@@ -196,7 +195,9 @@ fn move_to_param_buffer(param_buffer: &mut MutexGuard<Vec<Parameter>>, param: &P
 }
 
 fn extract_all_symbols(doc: &MutexGuard<EnzymeMLDocument>) -> Vec<String> {
-    let symbols: Vec<String> = doc.equations.iter()
+    let symbols: Vec<String> = doc
+        .equations
+        .iter()
         .flat_map(|e| extract_symbols(&e.equation.parse().unwrap()))
         .collect();
     symbols

@@ -2,6 +2,7 @@ import {Dropdown, DropdownProps, MenuProps} from "antd";
 import {CheckOutlined, SettingOutlined} from "@ant-design/icons";
 import useAppStore from "../stores/appstore.ts";
 import {useEffect, useState} from "react";
+import {emit} from "@tauri-apps/api/event";
 
 export enum ThemeSubMenuKeys {
     LIGHT = "theme-light",
@@ -156,6 +157,10 @@ export default function UserSettings() {
 
     const storeTheme = (theme: string) => {
         setThemePreference(theme);
+        emit(
+            'theme-change',
+            {theme: theme}
+        ).catch((error) => console.error("Error emitting theme-change event:", error));
     };
 
     const handleOpenChange: DropdownProps['onOpenChange'] = (nextOpen, info) => {

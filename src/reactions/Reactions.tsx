@@ -9,6 +9,7 @@ import ReactionForm from "./ReactionForm.tsx";
 import FloatingCreate from "../components/FloatingCreate.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
 const ReactionContext = React.createContext<ChildProps<Reaction>>({})
@@ -18,12 +19,19 @@ export default function Reactions() {
     // States
     const [reactions, setReactions] = useState<[string, string][]>([]);
 
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
+
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
         listReactions().then(
             (data) => {
                 setReactions(data);
+
+                if (data.length > 0) {
+                    setSelectedId(data[0][0]);
+                }
             }
         ).catch(
             (error) => {
@@ -72,24 +80,26 @@ export default function Reactions() {
                 deleteObject={deleteReaction}
                 context={ReactionContext}
             >
-                <DetailView context={ReactionContext}
-                            placeholder={"Reaction"}
-                            nameKey={"name"}
-                            FormComponent={ReactionForm}/>
+                <div id={id}>
+                    <DetailView context={ReactionContext}
+                                placeholder={"Reaction"}
+                                nameKey={"name"}
+                                FormComponent={ReactionForm}/>
+                </div>
             </DataProvider>
         );
     });
 
     if (reactions.length === 0) {
         return (
-            <EmptyPage type={"Reaction"} handleCreate={handleCreateReaction}/>
+            <EmptyPage type={"Reaction"} handleCreate={createReaction}/>
         );
     }
-    
+
     return (
         <div className={"flex flex-col"}>
             <FloatingCreate handleCreate={handleCreateReaction} type={"Reaction"}/>
-            <Collection items={items}/>
+            <Collection items={items} handleCreateObject={createReaction} type={"Reaction"}/>
         </div>
     );
 }

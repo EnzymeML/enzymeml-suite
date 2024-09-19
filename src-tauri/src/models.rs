@@ -1,7 +1,7 @@
 use super::schema::documents;
 use diesel::prelude::*;
 
-#[derive(Queryable, Identifiable, AsChangeset ,Selectable, Debug)]
+#[derive(Queryable, Identifiable, AsChangeset, Selectable, Debug)]
 #[diesel(table_name = documents)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Document {

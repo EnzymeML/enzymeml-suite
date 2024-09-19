@@ -11,6 +11,8 @@ import SpeciesReference from "../components/SpeciesReference.tsx";
 import {ChildProps} from "../types.ts";
 import {SmallMolecule} from "../../../enzymeml-ts/src";
 import useAppStore from "../stores/appstore.ts";
+import SmileDrawerContainer from "./components/SmilesDrawerContainer.tsx";
+import FormBase from "../components/FormBase.tsx";
 
 export const extractHref = (value: string | string[] | undefined | null) => {
     let href
@@ -109,60 +111,54 @@ export default function SmallMoleculeForm(
     }
 
     return (
-        <Form
-            className={"my-6"}
+        <FormBase
             form={form}
-            labelCol={{span: 4}}
-            wrapperCol={{span: 18}}
-            layout="horizontal"
-            initialValues={data}
-            onValuesChange={handlePreUpdateObject}
-            disabled={locked}
+            data={data}
+            handleUpdate={handlePreUpdateObject}
+            locked={locked}
         >
-            <Form.Item label="Name" name="name" rules={[{required: true}]}>
-                <AutoComplete
-                    className={"w-full"}
-                    options={pubChemOptions}
-                    onSearch={onSearch}
-                    onSelect={onSelect}
-                    onChange={handlePreUpdateObject}
-                />
-            </Form.Item>
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Form.Item label="Vessel" name="vessel_id" labelCol={{span: 8}}
-                               wrapperCol={{span: 16}}>
+            <Row gutter={16} align={"top"}>
+                <Col span={17}>
+                    <Form.Item label="Name" name="name" rules={[{required: true}]}>
+                        <AutoComplete
+                            className={"w-full"}
+                            options={pubChemOptions}
+                            onSearch={onSearch}
+                            onSelect={onSelect}
+                            onChange={handlePreUpdateObject}
+                        />
+                    </Form.Item>
+                    <Form.Item label="Vessel" name="vessel_id">
                         <Select options={vesselOptions}/>
                     </Form.Item>
-                </Col>
-                <Col span={12}>
-                    <Form.Item label="Is constant" name="constant" valuePropName="checked"
-                               labelCol={{span: 8}}
-                               wrapperCol={{span: 8}}>
+                    <Form.Item label="Is constant" name="constant" valuePropName="checked">
                         <Switch/>
                     </Form.Item>
+                    <Form.Item label="SMILES" name="canonical_smiles">
+                        <Input.TextArea/>
+                    </Form.Item>
+                    <Form.Item label="InChIKey" name="inchikey">
+                        <Input.TextArea/>
+                    </Form.Item>
+                    <Form.Item
+                        label={
+                            extractHref(form.getFieldValue("references")) ?
+                                <a className={"flex flex-row gap-1 place-items-baseline"}
+                                   href={extractHref(form.getFieldValue("references"))}
+                                   target={"_blank"}
+                                >
+                                    Reference
+                                    <RiExternalLinkLine size={11}/>
+                                </a> : "Reference"
+                        }
+                        name="references">
+                        <Input/>
+                    </Form.Item>
+                </Col>
+                <Col span={5}>
+                    <SmileDrawerContainer smilesStr={form.getFieldValue("canonical_smiles")}/>
                 </Col>
             </Row>
-            <Form.Item label="SMILES" name="canonical_smiles">
-                <Input.TextArea/>
-            </Form.Item>
-            <Form.Item label="InChIKey" name="inchikey">
-                <Input.TextArea/>
-            </Form.Item>
-            <Form.Item
-                label={
-                    extractHref(form.getFieldValue("references")) ?
-                        <a className={"flex flex-row gap-1 place-items-baseline"}
-                           href={extractHref(form.getFieldValue("references"))}
-                           target={"_blank"}
-                        >
-                            Reference
-                            <RiExternalLinkLine size={11}/>
-                        </a> : "Reference"
-                }
-                name="references">
-                <Input/>
-            </Form.Item>
-        </Form>
+        </FormBase>
     )
 }

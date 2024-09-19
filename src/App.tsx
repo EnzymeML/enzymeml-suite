@@ -4,7 +4,7 @@ import {BrowserRouter as Router, Route, Routes, useLocation} from 'react-router-
 import {ConfigProvider, Layout, theme} from 'antd';
 import SmallMolecules from "./smallmols/SmallMolecules.tsx";
 import Home from "./home/Home.tsx";
-import Measurement from "./measurements/Measurement.tsx";
+import Measurements from "./measurements/Measurements.tsx";
 import Vessels from "./vessels/Vessels.tsx";
 import Models from "./models/Models.tsx";
 import Proteins from "./proteins/Proteins.tsx";
@@ -13,6 +13,7 @@ import useAppStore, {AvailablePaths} from "./stores/appstore.ts";
 import WindowFrame from "./components/WindowFrame.tsx";
 import MainMenu from "./components/MainMenu.tsx";
 import CollectionNav from "./components/CollectionNav.tsx";
+import SubMenu from "./components/SubMenu.tsx";
 
 
 const {Content, Sider} = Layout;
@@ -47,7 +48,7 @@ function App() {
     }, []);
 
     return (
-        <Layout className={"pl-2 h-full"}
+        <Layout className={"pl-2 h-full antialiased"}
                 style={{
                     background: darkMode ? token.colorBgBase : token.colorBgLayout,
                     borderColor: token.colorBorder,
@@ -67,6 +68,7 @@ function App() {
             >
                 <div className={"flex flex-col space-y-2"}>
                     <MainMenu/>
+                    <SubMenu/>
                     <CollectionNav/>
                 </div>
             </Sider>
@@ -79,7 +81,7 @@ function App() {
                             <Route path="/small-molecules" element={<SmallMolecules/>}/>
                             <Route path="/proteins" element={<Proteins/>}/>
                             <Route path="/reactions" element={<Reactions/>}/>
-                            <Route path="/measurements" element={<Measurement/>}/>
+                            <Route path="/measurements" element={<Measurements/>}/>
                             <Route path="/models" element={<Models/>}/>
                         </Routes>
                     </div>

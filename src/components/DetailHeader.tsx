@@ -26,7 +26,8 @@ export default function DetailHeader(
 
     return (
         <div className={"flex flex-row justify-between cursor-pointer"}>
-            <div onClick={() => setSelectedId(id)}>
+            <div className={"h-full w-full"}
+                 onClick={() => setSelectedId(id)}>
                 <CardHeader id={id}
                             name={speciesName}
                             placeholder={placeholder}/>

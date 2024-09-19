@@ -72,10 +72,12 @@ export default function Proteins() {
                 deleteObject={deleteProtein}
                 context={ProteinContext}
             >
-                <DetailView context={ProteinContext}
-                            placeholder={"Protein"}
-                            nameKey={"name"}
-                            FormComponent={ProteinForm}/>
+                <div id={id}>
+                    <DetailView context={ProteinContext}
+                                placeholder={"Protein"}
+                                nameKey={"name"}
+                                FormComponent={ProteinForm}/>
+                </div>
             </DataProvider>
         );
     });

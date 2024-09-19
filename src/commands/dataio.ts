@@ -3,6 +3,7 @@ import {invoke} from '@tauri-apps/api/tauri';
 import {EnzymeMLDocument} from "enzymeml";
 
 export type DBEntries = [string, number];
+
 export interface EnzymeMLState {
     id?: number,
     title: string,
@@ -44,6 +45,22 @@ export async function exportToJSON(): Promise<string> {
 export async function getState(): Promise<EnzymeMLState> {
     try {
         return await invoke<EnzymeMLState>('get_state');
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function exportMeasurementTemplate(): Promise<string> {
+    try {
+        return await invoke<string>('export_meas_template');
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function importMeasurement(): Promise<number> {
+    try {
+        return await invoke('import_excel_meas');
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

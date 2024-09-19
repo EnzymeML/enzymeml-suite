@@ -3,20 +3,14 @@ use std::sync::Arc;
 use enzymeml_rs::enzyme_ml::{EquationBuilder, EquationType, SmallMolecule, SmallMoleculeBuilder};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{create_object, delete_object, get_object, update_event, update_object};
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
+use crate::{create_object, delete_object, get_object, update_event, update_object};
 
 #[tauri::command]
-pub fn create_small_mol(
-    state: State<Arc<EnzymeMLState>>,
-    app_handle: AppHandle,
-) -> String {
+pub fn create_small_mol(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> String {
     // Create the object itself
-    let id = create_object!(
-        state.doc, small_molecules,
-        SmallMoleculeBuilder, "s", id
-    );
+    let id = create_object!(state.doc, small_molecules, SmallMoleculeBuilder, "s", id);
 
     let ode = EquationBuilder::default()
         .species_id(id.clone())
@@ -29,7 +23,7 @@ pub fn create_small_mol(
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_small_mols");
-    
+
     id
 }
 
@@ -52,17 +46,15 @@ pub fn list_small_mols(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)
     // Extract the guarded state values
     let state_doc = state.doc.lock().unwrap();
 
-    state_doc.small_molecules
+    state_doc
+        .small_molecules
         .iter()
         .map(|s| (s.id.clone(), s.name.clone()))
         .collect()
 }
 
 #[tauri::command]
-pub fn get_small_mol(
-    state: State<Arc<EnzymeMLState>>,
-    id: &str,
-) -> Result<SmallMolecule, String> {
+pub fn get_small_mol(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<SmallMolecule, String> {
     get_object!(state.doc, small_molecules, id, id)
 }
 

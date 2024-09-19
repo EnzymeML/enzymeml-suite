@@ -120,7 +120,6 @@ macro_rules! create_object {
     }};
 }
 
- 
 #[macro_export]
 macro_rules! update_event {
     ($app_handle:expr, $event:expr) => {

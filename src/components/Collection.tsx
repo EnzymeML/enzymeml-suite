@@ -1,4 +1,4 @@
-import {AnimatePresence} from "framer-motion";
+import {AnimatePresence, LayoutGroup, motion} from "framer-motion";
 import React from "react";
 import FloatingCreate from "./FloatingCreate.tsx";
 import useAppStore from "../stores/appstore.ts";
@@ -39,11 +39,20 @@ export default function Collection(
 
     return (
         <AnimatePresence>
-            <div className={"flex flex-col"}>
+            <motion.div
+                className={"flex flex-col"}
+                key={type}
+                initial={{opacity: 0.0}}
+                animate={{opacity: 1}}
+                transition={{duration: 0.1, ease: "easeInOut"}}
+                style={{overflow: 'hidden'}}
+            >
                 <FloatingCreate handleCreate={onCreate} type={type}/>
-                {items.map((element) => element)}
-                <div className={"mb-96"}/>
-            </div>
+                <LayoutGroup>
+                    {items.map((element) => element)}
+                    <div className={"mb-72"}/>
+                </LayoutGroup>
+            </motion.div>
         </AnimatePresence>
     )
 }

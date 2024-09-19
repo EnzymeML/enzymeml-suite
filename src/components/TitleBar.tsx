@@ -32,7 +32,9 @@ function TitleButtons() {
     );
 }
 
-export default function TitleBar() {
+export default function TitleBar(
+    {useButtons}: { useButtons?: boolean }
+) {
 
     // States
     const darkMode = useAppStore(state => state.darkMode);
@@ -89,7 +91,9 @@ export default function TitleBar() {
                           style={{fontSize: 25, color: token.colorTextDisabled}}
                     />
                 </a>
-                <TitleButtons/>
+                {
+                    useButtons && <TitleButtons/>
+                }
             </div>
         </div>
     )

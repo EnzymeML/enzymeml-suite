@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use enzymeml_rs::enzyme_ml::EnzymeMLDocument;
-use rocket::{Build, get, put, Rocket, routes, State};
 use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
+use rocket::{get, put, routes, Build, Rocket, State};
 use rocket_cors::AllowedOrigins;
 use serde::{Serialize, Serializer};
 use serde_json::Value;

@@ -1,22 +1,28 @@
-import 'react-json-view-lite/dist/index.css';
+import './style.css';
+import useAppStore from "../stores/appstore.ts";
 import React, {useEffect, useState} from "react";
+import {
+    createMeasurement,
+    deleteMeasurement,
+    getMeasurement,
+    listMeasurements,
+    updateMeasurement
+} from "../commands/measurements.ts";
 import {listen} from "@tauri-apps/api/event";
 import DataProvider from "../components/DataProvider.tsx";
-import {Vessel} from "../../../enzymeml-ts/src";
-import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
+import {Measurement} from "../../../enzymeml-ts/src";
 import DetailView from "../components/DetailView.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";
-import VesselForm from "./VesselForm.tsx";
-import useAppStore from "../stores/appstore.ts";
+import MeasurementForm from "./MeasurementForm.tsx";
 
 // @ts-ignore
-const VesselContext = React.createContext<ChildProps<Vessel>>({})
+const MeasurementContext = React.createContext<ChildProps<Measurement>>({})
 
-export default function Vessels() {
+export default function Measurements() {
 
     // States
-    const [vessels, setVessels] = useState<[string, string][]>([]);
+    const [measurements, setMeasurements] = useState<[string, string][]>([]);
 
     // Actions
     const setSelectedId = useAppStore(state => state.setSelectedId);
@@ -24,9 +30,9 @@ export default function Vessels() {
     // Fetch small molecules on load
     useEffect(() => {
         // Fetch small molecule IDs
-        listVessels().then(
+        listMeasurements().then(
             (data) => {
-                setVessels(data);
+                setMeasurements(data);
 
                 if (data.length > 0) {
                     setSelectedId(data[0][0]);
@@ -41,10 +47,10 @@ export default function Vessels() {
 
     // Re-fetch small molecules on update
     useEffect(() => {
-        const unlisten = listen('update_vessels', () => {
-            listVessels().then(
+        const unlisten = listen('update_measurements', () => {
+            listMeasurements().then(
                 (data) => {
-                    setVessels(data);
+                    setMeasurements(data);
                 }
             ).catch(
                 (error) => {
@@ -60,38 +66,40 @@ export default function Vessels() {
     }, []);
 
     // Create the items for the Collapsible component
-    const items = vessels.map(([id]) => {
+    const items = measurements.map(([id]) => {
         return (
-            <DataProvider<Vessel>
-                key={`vessel_${id}`}
-                targetKey={`vessel_${id}`}
+            <DataProvider<Measurement>
+                key={`measurement_${id}`}
+                targetKey={`measurement_${id}`}
                 id={id}
-                fetchObject={getVessel}
-                updateObject={updateVessel}
-                deleteObject={deleteVessel}
-                context={VesselContext}
+                fetchObject={getMeasurement}
+                updateObject={updateMeasurement}
+                deleteObject={deleteMeasurement}
+                context={MeasurementContext}
             >
                 <div id={id}>
-                    <DetailView context={VesselContext}
-                                placeholder={"Vessel"}
+                    <DetailView context={MeasurementContext}
+                                placeholder={"Measurement"}
                                 nameKey={"name"}
-                                FormComponent={VesselForm}
+                                FormComponent={MeasurementForm}
                     />
                 </div>
             </DataProvider>
         );
     });
 
-    if (vessels.length === 0) {
+    if (measurements.length === 0) {
         return (
-            <EmptyPage type={"Vessel"}
-                       handleCreate={createVessel}/>
+            <EmptyPage type={"Measurement"}
+                       handleCreate={createMeasurement}/>
         )
     }
 
     return (
         <Collection items={items}
-                    handleCreateObject={createVessel}
-                    type={"Vessel"}/>
+                    handleCreateObject={createMeasurement}
+                    type={"Measurement"}
+        />
     );
-}
+};
+

@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {Layout, theme} from "antd";
 import {Content} from "antd/lib/layout/layout";
 import {AnimatePresence, motion} from "framer-motion";
@@ -47,14 +47,6 @@ export default function DetailView<T extends Identifiable>(
         return <h1>No ID available. Please contact support</h1>
     }
 
-    // Effects
-    useEffect(() => {
-        if (selectedId === id) {
-            const element = document.getElementById(id);
-            element?.scrollIntoView({behavior: "smooth", block: "nearest"});
-        }
-    }, []);
-
     return (
         <Layout className={"flex flex-col overflow-auto"}>
             <Content>
@@ -76,16 +68,16 @@ export default function DetailView<T extends Identifiable>(
                             handleDeleteObject={props.handleDeleteObject}
                             setLocked={props.setLocked}
                         />
-                        <AnimatePresence>
+                        <AnimatePresence initial={false}>
                             {selectedId === id && (
                                 <motion.div
                                     key={id}
-                                    initial={{opacity: 0.4, height: 0}}
+                                    initial={{opacity: 0.0, height: 0}}
                                     animate={{opacity: 1, height: 'auto'}}
                                     exit={{opacity: 0, height: 0}}
                                     transition={{
-                                        opacity: {duration: 0.01},
-                                        height: {duration: 0.13}
+                                        opacity: {duration: 0.0},
+                                        height: {duration: 0.20}
                                     }}
                                     style={{overflow: 'hidden'}} // to prevent content from overflowing while collapsing
                                 >

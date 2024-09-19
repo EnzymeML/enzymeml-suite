@@ -97,7 +97,6 @@ export default function SmallMolecules() {
     return (
         <Collection items={items}
                     handleCreateObject={createSmallMolecule}
-                    type={"Small Molecule"}
-        />
+                    type={"Small Molecule"}/>
     );
 }

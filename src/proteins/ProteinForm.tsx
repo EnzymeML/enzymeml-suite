@@ -11,6 +11,7 @@ import DBEntryRow from "../components/DBEntryRow.tsx";
 import {Option} from "../types/options.ts";
 import {extractHref} from "../smallmols/SmallMoleculeForm.tsx";
 import useAppStore from "../stores/appstore.ts";
+import FormBase from "../components/FormBase.tsx";
 
 function check(value: string | number | undefined | null): string | null {
     if (value === undefined || value === null) {
@@ -160,15 +161,11 @@ export default function ProteinForm(
 
     return (
 
-        <Form
-            className={"my-6"}
+        <FormBase
             form={form}
-            labelCol={{span: 4}}
-            wrapperCol={{span: 16}}
-            layout="horizontal"
-            initialValues={data}
-            disabled={locked}
-            onValuesChange={handlePreUpdateObject}
+            data={data}
+            handleUpdate={handlePreUpdateObject}
+            locked={locked}
         >
             <Form.Item label="Name" name="name" rules={[{required: true}]}>
                 <AutoComplete
@@ -227,6 +224,6 @@ export default function ProteinForm(
                 name="references">
                 <Input onChange={(e: ChangeEvent<HTMLInputElement>) => onSetReference(e.target.value)}/>
             </Form.Item>
-        </Form>
+        </FormBase>
     );
 }

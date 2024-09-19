@@ -24,7 +24,7 @@ export default function Reveal(
                     initial={{opacity: 0, translateY: translateY}}
                     exit={{opacity: 0, translateY: translateY}}
                     animate={{opacity: 1, translateY: 0.0}}
-                    transition={{duration: 0.1}}
+                    transition={{duration: 0.2, ease: "easeInOut"}}
         >
             {children}
         </motion.div>)
