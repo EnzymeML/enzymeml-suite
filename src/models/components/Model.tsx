@@ -5,7 +5,7 @@ import {asciiToLatex, convertSpeciesIDsToUnderscore, convertUnderscoreSpeciesToI
 import "./equation.css";
 import {Form} from "antd";
 import {ChildProps} from "../../types.ts";
-import {Equation} from "../../../../enzymeml-ts/src";
+import {Equation} from "enzymeml/src";
 
 declare global {
     namespace JSX {

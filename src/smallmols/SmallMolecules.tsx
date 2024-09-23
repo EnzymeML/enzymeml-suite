@@ -9,7 +9,7 @@ import {
 import React, {useCallback, useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
-import {SmallMolecule} from "../../../enzymeml-ts/src";
+import {SmallMolecule} from "enzymeml/src";
 import EmptyPage from "../components/EmptyPage.tsx";
 import Collection from "../components/Collection.tsx";
 import DetailView from "../components/DetailView.tsx";

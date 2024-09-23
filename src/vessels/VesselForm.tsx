@@ -1,6 +1,6 @@
 import {Form, Input, Radio} from "antd";
 import {FormViewProps} from "../types.ts";
-import {Vessel} from "../../../enzymeml-ts/src";
+import {Vessel} from "enzymeml/src";
 import React from "react";
 import FormBase from "../components/FormBase.tsx";
 import QuantityForm from "../components/QuantityForm.tsx";

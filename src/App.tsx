@@ -101,7 +101,7 @@ function App() {
             </Layout>
         </Layout>
     );
-};
+}
 
 const WrappedApp: React.FC = () => {
 

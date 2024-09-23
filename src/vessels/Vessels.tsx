@@ -1,7 +1,7 @@
 import 'react-json-view-lite/dist/index.css';
 import React, {useCallback, useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
-import {Vessel} from "../../../enzymeml-ts/src";
+import {Vessel} from "enzymeml/src";
 import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
 import DetailView from "../components/DetailView.tsx";
 import Collection from "../components/Collection.tsx";

@@ -1,5 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
-import {UnitDefinition} from "../../../enzymeml-ts/src";
+import {UnitDefinition} from "enzymeml/src";
 
 export enum UnitTypes {
     VOLUME = 'Volume',

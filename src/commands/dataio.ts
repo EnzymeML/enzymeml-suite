@@ -16,7 +16,7 @@ export async function listEntries(): Promise<DBEntries[]> {
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
-};
+}
 
 export async function saveEntry(): Promise<void> {
     try {

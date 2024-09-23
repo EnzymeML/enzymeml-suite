@@ -1,5 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
-import {Reaction} from "../../../enzymeml-ts/src";
+import {Reaction} from "enzymeml/src";
 
 export async function createReaction(): Promise<string> {
     try {

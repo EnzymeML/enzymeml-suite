@@ -5,6 +5,7 @@ import {theme} from "antd";
 import useAppStore from "../../stores/appstore.ts";
 
 export const WIDTH = 200;
+const HEIGHT = WIDTH;
 
 interface SmileDrawerContainerProps {
     smilesStr: string
@@ -12,7 +13,7 @@ interface SmileDrawerContainerProps {
     height?: number
 }
 
-export default function SmileDrawerContainer({smilesStr, width = WIDTH, height = WIDTH}: SmileDrawerContainerProps) {
+export default function SmileDrawerContainer({smilesStr, width = WIDTH, height = HEIGHT}: SmileDrawerContainerProps) {
 
     // States
     const [pixelRatio, setPixelRatio] = useState(1)

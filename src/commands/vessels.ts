@@ -1,5 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
-import {Vessel} from "../../../enzymeml-ts/src";
+import {Vessel} from "enzymeml/src";
 
 export async function createVessel(): Promise<string> {
     try {

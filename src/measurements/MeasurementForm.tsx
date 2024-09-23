@@ -2,7 +2,7 @@ import {Button, Form, Input, InputNumber, SelectProps} from "antd";
 import {FormViewProps} from "../types.ts";
 import React, {useEffect, useState} from "react";
 import FormBase from "../components/FormBase.tsx";
-import {Measurement} from "../../../enzymeml-ts/src";
+import {DataTypes, Measurement} from "enzymeml/src";
 import {listAllSpeciesIdsNames} from "../commands/enzmldoc.ts";
 import {AutoCompleteProps} from "antd/lib";
 import SpeciesReference from "../components/SpeciesReference.tsx";
@@ -40,7 +40,7 @@ export default function MeasurementForm({context}: FormViewProps<Measurement>) {
         )
     }, []);
 
-
+    // Handlers
     return (
         <FormBase
             form={form}
@@ -83,14 +83,20 @@ export default function MeasurementForm({context}: FormViewProps<Measurement>) {
                     {(fields, subOpt) => (
                         <div style={{display: 'flex', flexDirection: 'column', rowGap: 16}}>
                             {fields.map((field) => (
-                                    <InitialsField field={field}
-                                                   subOpt={subOpt}
-                                                   availableSpecies={availableSpecies}
-                                                   handleUpdateObject={handleUpdateObject}
-                                    />
+                                    <>
+                                        <InitialsField field={field}
+                                                       subOpt={subOpt}
+                                                       availableSpecies={availableSpecies}
+                                                       handleUpdateObject={handleUpdateObject}
+                                        />
+                                    </>
                                 )
                             )}
-                            <Button type="dashed" onClick={() => subOpt.add()} block>
+                            <Button type="dashed" onClick={() => subOpt.add({
+                                data_type: DataTypes.CONCENTRATION,
+                                is_simulated: false
+                            })}
+                                    block>
                                 + Add Species
                             </Button>
                         </div>

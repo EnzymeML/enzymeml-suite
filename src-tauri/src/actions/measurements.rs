@@ -66,6 +66,7 @@ pub fn update_measurement(
     data: Measurement,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    println!("Updating measurement: {:#?}", data);
     let id = update_object!(state.doc, measurements, data, id);
 
     update_event!(app_handle, "update_document");

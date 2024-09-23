@@ -1,6 +1,6 @@
 import React from "react";
 import {FormViewProps} from "../types.ts";
-import {Equation} from "../../../enzymeml-ts/src";
+import {Equation} from "enzymeml/src";
 import FormBase from "../components/FormBase.tsx";
 import {Form} from "antd";
 import EquationInput from "../components/EquationInput.tsx";

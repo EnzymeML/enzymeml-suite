@@ -9,7 +9,7 @@ import {AutoCompleteProps} from "antd/lib";
 import {listVessels} from "../commands/vessels.ts";
 import SpeciesReference from "../components/SpeciesReference.tsx";
 import {ChildProps} from "../types.ts";
-import {SmallMolecule} from "../../../enzymeml-ts/src";
+import {SmallMolecule} from "enzymeml/src";
 import useAppStore from "../stores/appstore.ts";
 import SmileDrawerContainer from "./components/SmilesDrawerContainer.tsx";
 import FormBase from "../components/FormBase.tsx";

@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
-import {Reaction} from "../../../enzymeml-ts/src";
+import {Reaction} from "enzymeml/src";
 import {createReaction, deleteReaction, getReaction, listReactions, updateReaction} from "../commands/reactions.ts";
 import DetailView from "../components/DetailView.tsx";
 import ReactionForm from "./ReactionForm.tsx";

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
-import {Equation} from "../../../enzymeml-ts/src";
+import {Equation} from "enzymeml/src/index.ts";
 import EmptyPage from "../components/EmptyPage.tsx";
 import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
 import useAppStore from "../stores/appstore.ts";

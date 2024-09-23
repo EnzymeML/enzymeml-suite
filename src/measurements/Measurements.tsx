@@ -9,7 +9,7 @@ import {
     updateMeasurement
 } from "../commands/measurements.ts";
 import DataProvider from "../components/DataProvider.tsx";
-import {Measurement} from "../../../enzymeml-ts/src";
+import {Measurement} from "enzymeml/src";
 import DetailView from "../components/DetailView.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";

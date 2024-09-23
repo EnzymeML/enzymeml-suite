@@ -5,7 +5,7 @@ import {ChildProps} from "../types.ts";
 import {createProtein, deleteProtein, getProtein, listProteins, updateProtein} from "../commands/proteins.ts";
 import EmptyPage from "../components/EmptyPage.tsx";
 import Collection from "../components/Collection.tsx";
-import {Protein} from "../../../enzymeml-ts/src";
+import {Protein} from "enzymeml/src";
 import ProteinForm from "./ProteinForm.tsx";
 import DetailView from "../components/DetailView.tsx";
 import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";

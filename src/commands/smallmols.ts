@@ -1,5 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
-import {SmallMolecule} from "../../../enzymeml-ts/src";
+import {SmallMolecule} from "enzymeml/src";
 
 export async function createSmallMolecule(): Promise<string> {
     try {

@@ -1,6 +1,6 @@
 import {AutoComplete, Form, Input, Select, Switch} from "antd";
 import {FormViewProps} from "../types.ts";
-import {Protein} from "../../../enzymeml-ts/src";
+import {Protein} from "enzymeml/src";
 import React, {ChangeEvent, useEffect, useState} from "react";
 import {listVessels} from "../commands/vessels.ts";
 import {AutoCompleteProps} from "antd/lib";

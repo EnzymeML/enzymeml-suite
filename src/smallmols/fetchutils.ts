@@ -1,5 +1,5 @@
 // Type definitions and functions to fetch data from PubChem
-import {SmallMolecule} from "../../../enzymeml-ts/src";
+import {SmallMolecule} from "enzymeml/src";
 import {FormInstance} from "antd";
 import capitalize from "antd/lib/_util/capitalize";
 

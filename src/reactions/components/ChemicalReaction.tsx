@@ -4,7 +4,7 @@ import {EquationDisplayProps} from "../ReactionForm.tsx";
 import {useEffect, useState} from "react";
 import {getSpeciesNameByID} from "../../commands/enzmldoc.ts";
 import {abs} from "mathjs";
-import {ReactionElement} from "../../../../enzymeml-ts/src";
+import {ReactionElement} from "enzymeml/src";
 
 const prepareElementString = async (reactionElement: ReactionElement) => {
     const speciesName = await getSpeciesNameByID(reactionElement.species_id)

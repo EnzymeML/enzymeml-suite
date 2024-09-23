@@ -1,6 +1,6 @@
 import "//unpkg.com/mathlive";
 import {ChildProps} from "../../types.ts";
-import {Parameter} from "../../../../enzymeml-ts/src";
+import {Parameter} from "enzymeml/src";
 import {Badge, Form, InputNumber} from "antd";
 
 export default function ParameterDetail(

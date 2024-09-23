@@ -1,6 +1,6 @@
 import {Button, Form, Input, Radio, SelectProps} from "antd";
 import {FormViewProps} from "../types.ts";
-import {EquationType, Reaction, ReactionElement} from "../../../enzymeml-ts/src";
+import {EquationType, Reaction, ReactionElement} from "enzymeml/src";
 import React, {useEffect, useState} from "react";
 import FormBase from "../components/FormBase.tsx";
 import {listAllSpeciesIdsNames} from "../commands/enzmldoc.ts";
