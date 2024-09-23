@@ -1,6 +1,5 @@
 import "./styles/equation.css";
 import {convertLatexToAsciiMath, MathfieldElement} from "mathlive";
-import "//unpkg.com/mathlive";
 import React, {useEffect, useState} from "react";
 import {convertSpeciesIDsToUnderscore, idToLatex} from "../utilities/equationutils.ts";
 import {theme} from "antd";
