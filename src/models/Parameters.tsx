@@ -1,22 +1,23 @@
 import React, {useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
-import {Equation} from "enzymeml/src/index.ts";
 import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
 import useAppStore from "../stores/appstore.ts";
-import {deleteEquation, getEquation, listEquations, updateEquation} from "../commands/equations.ts";
-import EquationForm from "./EquationForm.tsx";
+import {deleteEquation} from "../commands/equations.ts";
 import {Empty, Layout, theme, Typography} from "antd";
 import {Content} from "antd/es/layout/layout";
 import {AnimatePresence} from "framer-motion";
+import {getParameter, listAllParametersIds, updateParameter} from "../commands/parameters.ts";
+import {Parameter} from "enzymeml/src";
+import ParameterForm from "./ParameterForm.tsx";
 
 // @ts-ignore
-const EquationContext = React.createContext<ChildProps<Equation>>({})
+const ParameterContext = React.createContext<ChildProps<Parameter>>({})
 
-export default function Equations() {
+export default function Parameters() {
 
     // States
-    const [equations, setEquations] = useState<[string, string][]>([]);
+    const [parameters, setParameters] = useState<[string, string][]>([]);
     const darkMode = useAppStore(state => state.darkMode);
 
     // Styling
@@ -24,34 +25,34 @@ export default function Equations() {
 
     // State handlers
     const setState = () => {
-        setCollectionIds(listEquations, setEquations);
+        setCollectionIds(listAllParametersIds, setParameters);
     };
 
     // Fetch items on mount
     useEffect(() => setState(), []);
-    useEffect(() => ListenToEvent("update_equations", setState), []);
+    useEffect(() => ListenToEvent("update_parameters", setState), []);
 
     // Create the items for the Collapsible component
-    const equationItems = equations.map(([id]) => {
+    const parameterItems = parameters.map(([id]) => {
         return (
-            <DataProvider<Equation>
-                key={`equation_${id}`}
-                targetKey={`equation_${id}`}
+            <DataProvider<Parameter>
+                key={`parameter_${id}`}
+                targetKey={`parameter_${id}`}
                 id={id}
-                fetchObject={getEquation}
-                updateObject={updateEquation}
+                fetchObject={getParameter}
+                updateObject={updateParameter}
                 deleteObject={deleteEquation}
                 alternativeIdCol={"species_id"}
-                context={EquationContext}
+                context={ParameterContext}
             >
                 <div id={id} className={"flex flex-col justify-center"}>
-                    <EquationForm context={EquationContext}/>
+                    <ParameterForm context={ParameterContext}/>
                 </div>
             </DataProvider>
         );
     });
 
-    if (equations.length === 0) {
+    if (parameters.length === 0) {
         return (
             <Empty/>
         );
@@ -70,10 +71,10 @@ export default function Equations() {
                          borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
                          color: token.colorText,
                      }}>
-                    <Typography.Title level={4}>Equations</Typography.Title>
+                    <Typography.Title level={4}>Parameters</Typography.Title>
                     <AnimatePresence>
                         <div className={"pt-4"}>
-                            {equationItems.map((element) => element)}
+                            {parameterItems.map((element) => element)}
                         </div>
                     </AnimatePresence>
                 </div>

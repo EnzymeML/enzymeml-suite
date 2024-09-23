@@ -59,11 +59,24 @@ export default function LineChart(
 
             if (true === true) {
                 const newChartTheme: LineProps["theme"] = {
+                    crosshair: {
+                        line: {
+                            stroke: token.colorText,
+                            strokeWidth: 1,
+                            strokeDasharray: "2 2"
+                        }
+                    },
                     legends: {
                         text: {
                             fill: token.colorTextLabel,
-                            fontSize: 18,
+                            fontSize: 12,
                         },
+                    },
+                    tooltip: {
+                        container: {
+                            background: token.colorBgContainer,
+                            color: token.colorText,
+                        }
                     },
                     grid: {
                         line: {
@@ -115,7 +128,7 @@ export default function LineChart(
                 // @ts-ignore
                 data={data}
                 theme={chartTheme}
-                lineWidth={useLines ? 2 : 0}
+                lineWidth={useLines ? 1 : 0}
                 animate={false}
                 margin={{top: 30, right: 140, bottom: 110, left: 80}}
                 xScale={{type: 'point'}}
@@ -123,11 +136,10 @@ export default function LineChart(
                     type: 'linear',
                     min: 'auto',
                     max: 'auto',
-                    stacked: true,
                     reverse: false
                 }}
                 yFormat=" >-.2f"
-                curve="natural"
+                curve="cardinal"
                 axisTop={null}
                 axisRight={null}
                 axisBottom={{
@@ -149,7 +161,7 @@ export default function LineChart(
                 enableGridX={true}
                 colors={{scheme: 'nivo'}}
                 enablePoints={true}
-                pointSize={usePoints ? 6 : 0}
+                pointSize={usePoints ? 4 : 0}
                 pointColor={{from: 'color', modifiers: []}}
                 pointBorderWidth={2}
                 pointBorderColor={{from: 'color', modifiers: []}}

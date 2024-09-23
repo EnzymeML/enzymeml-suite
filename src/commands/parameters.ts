@@ -1,7 +1,7 @@
 import {invoke} from "@tauri-apps/api/tauri";
 import {Parameter} from "enzymeml/src";
 
-export async function listAllParametersIds(): Promise<string[]> {
+export async function listAllParametersIds(): Promise<[string, string][]> {
     try {
         return await invoke('list_parameters');
     } catch (error) {

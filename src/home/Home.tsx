@@ -8,17 +8,23 @@ import {
     exportToJSON,
     getState,
     listEntries,
+    loadJSON,
     newEntry,
     saveEntry
 } from "../commands/dataio.ts";
 import {Button, Input, Select} from "antd";
 import {setTitle} from "../commands/enzmldoc.ts";
+import NotificationProvider, {NotificationType} from "../components/NotificationProvider.tsx";
+import useAppStore from "../stores/appstore.ts";
 
 export default function Home() {
 
     // States
     const [currentDoc, setCurrentDoc] = useState<EnzymeMLState | null>(null);
     const [documents, setDocuments] = useState<DBEntries[]>()
+
+    // Actions
+    const openNotification = useAppStore(state => state.openNotification);
 
     // Effects
     useEffect(() => {
@@ -73,17 +79,17 @@ export default function Home() {
     const handleSaveEntry = () => {
         saveEntry()
             .then(() => {
-                console.log('Entry saved');
+                openNotification('Success', NotificationType.SUCCESS, 'Entry saved successfully.');
             })
             .catch((error) => {
-                console.error('Error:', error);
+                openNotification('Error', NotificationType.ERROR, error.message);
             });
     }
 
     const handleNewEntry = () => {
         newEntry().catch(
             (error) => {
-                console.log("Error creating new entry: ", error);
+                openNotification('Error', NotificationType.ERROR, error.message);
             }
         )
     }
@@ -91,28 +97,42 @@ export default function Home() {
     const handleDownload = () => {
         exportToJSON().catch(
             (error) => {
-                console.log('Error upon download: ', error);
+                openNotification('Error', NotificationType.ERROR, error.message);
             }
         )
     }
 
-    return (
-        <div>
-            <div style={
-                {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
+    const handleLoadEntry = () => {
+        loadJSON()
+            .then(() => {
+                openNotification('Success', NotificationType.SUCCESS, 'Entry has been loaded.');
+            })
+            .catch(
+                (error) => {
+                    openNotification('Error', NotificationType.ERROR, error.message);
                 }
-            }>
+            )
+    }
+
+    return (
+        <NotificationProvider>
+            <div className={"h-screen"}
+                 style={
+                     {
+                         display: 'flex',
+                         flexDirection: 'column',
+                         gap: '10px'
+                     }
+                 }>
                 <Input
                     className="text-2xl font-bold"
                     value={currentDoc?.title || ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                 />
                 <div className={"flex flex-row gap-2"}>
-                    <Button onClick={handleSaveEntry}>Save Entry</Button>
                     <Button onClick={handleNewEntry}>New Entry</Button>
+                    <Button onClick={handleSaveEntry}>Save Entry</Button>
+                    <Button onClick={handleLoadEntry}>Load Entry</Button>
                     <Button onClick={handleDownload}>Download</Button>
                     <Select placeholder={"Select a document"}
                             options={
@@ -126,10 +146,22 @@ export default function Home() {
                                 )
                             }/>
                 </div>
-                <JsonView data={currentDoc?.doc}
-                          shouldExpandNode={allExpanded}
-                          style={defaultStyles}/>
+                <div className={"h-screen mt-2"}>
+                    <div className={"h-full flex justify-center overflow-auto rounded-2xl scrollbar-hide"}>
+                        <div className={"h-full w-[80%]"}
+                             style={{
+                                 borderRadius: 10,
+                                 border: '1px solid #e5e5e5'
+
+                             }}
+                        >
+                            <JsonView data={currentDoc?.doc}
+                                      shouldExpandNode={allExpanded}
+                                      style={defaultStyles}/>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </NotificationProvider>
     );
 }

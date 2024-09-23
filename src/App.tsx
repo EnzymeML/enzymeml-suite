@@ -6,7 +6,6 @@ import SmallMolecules from "./smallmols/SmallMolecules.tsx";
 import Home from "./home/Home.tsx";
 import Measurements from "./measurements/Measurements.tsx";
 import Vessels from "./vessels/Vessels.tsx";
-import Equations from "./models/Equations.tsx";
 import Proteins from "./proteins/Proteins.tsx";
 import Reactions from "./reactions/Reactions.tsx";
 import useAppStore, {AvailablePaths} from "./stores/appstore.ts";
@@ -14,6 +13,7 @@ import WindowFrame from "./components/WindowFrame.tsx";
 import MainMenu from "./components/MainMenu.tsx";
 import CollectionNav from "./components/CollectionNav.tsx";
 import SubMenu from "./components/SubMenu.tsx";
+import Model from "./models/Model.tsx";
 
 interface AppContext {
     selectedId: string | null;
@@ -93,7 +93,7 @@ function App() {
                                 <Route path="/proteins" element={<Proteins/>}/>
                                 <Route path="/reactions" element={<Reactions/>}/>
                                 <Route path="/measurements" element={<Measurements/>}/>
-                                <Route path="/models" element={<Equations/>}/>
+                                <Route path="/models" element={<Model/>}/>
                             </Routes>
                         </AppContext.Provider>
                     </div>

@@ -1,11 +1,14 @@
+use std::hash::Hash;
+use std::sync::Arc;
+
 use enzymeml::prelude::{Measurement, MeasurementBuilder, MeasurementDataBuilder};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 
+use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::actions::enzmldoc::get_species_name;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VisData {
@@ -127,7 +130,7 @@ pub fn get_datapoints(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Vec<
         }
 
         let vis_data = VisData {
-            id: species_data.species_id.clone(),
+            id: get_species_name(state.clone(), &species_data.species_id)?,
             data: data_points,
         };
 

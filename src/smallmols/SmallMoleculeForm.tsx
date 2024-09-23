@@ -26,7 +26,7 @@ export const extractHref = (value: string | string[] | undefined | null) => {
     }
 
     // If the value is not a URL return undefined
-    if (!href.startsWith("http")) {
+    if (!href?.startsWith("http")) {
         return undefined;
     }
 

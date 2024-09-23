@@ -87,6 +87,31 @@ pub async fn export_to_json(state: State<'_, Arc<EnzymeMLState>>) -> Result<Path
 }
 
 #[tauri::command]
+pub async fn load_json(
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let dialog_result = FileDialogBuilder::new()
+        .set_title("Open File")
+        .add_filter("JSON Files", &["json"])
+        .pick_file();
+
+    match dialog_result {
+        Some(path) => {
+            let mut state_doc = state.doc.lock().unwrap();
+            let json = std::fs::read_to_string(path).map_err(|err| err.to_string())?;
+            let doc = deserialize_doc(json.as_str()).map_err(|err| err.to_string())?;
+            *state_doc = doc;
+
+            update_event!(app_handle, "update_document");
+
+            Ok(())
+        }
+        None => Err("No file selected".to_string()),
+    }
+}
+
+#[tauri::command]
 pub fn new_document(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) {
     // Extract the guarded state values
     let mut state_doc = state.doc.lock().unwrap();

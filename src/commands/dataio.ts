@@ -42,6 +42,15 @@ export async function exportToJSON(): Promise<string> {
     }
 }
 
+export async function loadJSON(): Promise<void> {
+    try {
+        await invoke('load_json', {});
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+
+}
+
 export async function getState(): Promise<EnzymeMLState> {
     try {
         return await invoke<EnzymeMLState>('get_state');

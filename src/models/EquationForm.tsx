@@ -7,7 +7,7 @@ import EquationInput from "../components/EquationInput.tsx";
 import {asciiToLatex} from "../utilities/equationutils.ts";
 
 
-export default function ModelForm(
+export default function EquationForm(
     {context}: FormViewProps<Equation>
 ) {
     // Context

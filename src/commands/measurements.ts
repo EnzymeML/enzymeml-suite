@@ -27,7 +27,18 @@ export async function getMeasurement(id: string): Promise<Measurement> {
 }
 
 export async function updateMeasurement(id: string, data: Measurement): Promise<void> {
-    console.log('Updating measurement:', id, data)
+
+    // If the data unit of species data is a json string then parse it
+    data.species_data?.map((species) => {
+        if (typeof species.data_unit === 'string') {
+            species.data_unit = JSON.parse(species.data_unit);
+        }
+
+        return species;
+    })
+
+    console.log('data', data)
+
     try {
         await invoke('update_measurement', {id: id, data: data});
     } catch (error) {

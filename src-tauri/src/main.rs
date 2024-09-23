@@ -85,6 +85,7 @@ async fn main() {
             dataio::get_state,
             dataio::export_measurements,
             dataio::import_excel_meas,
+            dataio::load_json,
             // EnzymeML Document
             enzmldoc::get_all_species_ids,
             enzmldoc::get_all_non_constant_species_ids,
@@ -142,7 +143,6 @@ async fn main() {
             measurements::delete_measurement,
             measurements::list_measurements,
             // Windows
-            windows::open_simulator,
             windows::open_visualisation,
         ])
         .run(tauri::generate_context!())
