@@ -21,6 +21,14 @@ export async function listAllSpeciesIds(): Promise<string[]> {
     }
 }
 
+export async function listAllSpeciesIdsNames(): Promise<[string, string][]> {
+    try {
+        return await invoke('get_all_species');
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
 export async function listAllNonConstantSpeciesIds(): Promise<string[]> {
     try {
         return await invoke('get_all_non_constant_species_ids');

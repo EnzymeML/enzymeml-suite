@@ -1,90 +1,76 @@
+import useVizStore from "../stores/vizstore.ts";
 import {useEffect, useState} from "react";
-import {listMeasurements} from "../commands/measurements.ts";
-import {listen} from "@tauri-apps/api/event";
-import {getMeasurementHashMap, VisData} from "../commands/visualisation.ts";
-import {Button} from "antd";
+import {getMeasurement} from "../commands/measurements.ts";
+import CardHeader from "../components/CardHeader.tsx";
+import LineChart from "../components/LineChart.tsx";
+import {getDataPoints, VisData} from "../commands/visualisation.ts";
+import {theme} from "antd";
+import useAppStore from "../stores/appstore.ts";
 
 export default function Visualisation() {
 
     // States
-    const [measurementIds, setMeasurementIds] = useState<string[]>([])
-    const [selectedMeasData, setSelectedMeasData] = useState<VisData | null>(null)
+    const [data, setData] = useState<VisData | null>(null)
+    const [measurementName, setMeasurementName] = useState<string | null>(null)
+    const selectedMeasId = useVizStore(state => state.selectedMeasurement);
+    const darkMode = useAppStore(state => state.darkMode);
 
+    // Styling
+    const {token} = theme.useToken();
+
+    // Effects
     useEffect(() => {
-        listMeasurements().then(
+        if (!selectedMeasId) {
+            return;
+        }
+        // Set the name
+        getMeasurement(selectedMeasId).then(
             (data) => {
-                setMeasurementIds(data.map(measurement => measurement[0]));
-
-                if (data.length > 0) {
-                    getMeasurementHashMap(data[0][0]).then(
-                        (hashMap) => {
-                            setSelectedMeasData(hashMap);
-                        }
-                    ).catch(
-                        (error) => {
-                            console.error('Error:', error);
-                        }
-                    )
-                } else {
-                    setSelectedMeasData(null);
-                }
-            }
-        ).catch(
-            (error) => {
-                console.error('Error:', error);
+                setMeasurementName(data.name);
             }
         )
-    }, []);
 
-    // Tauri listens for changes in the system theme
-    useEffect(() => {
-        const unlisten = listen('update_vis', () => {
-            listMeasurements().then(
-                (data) => {
-                    setMeasurementIds(data.map(measurement => measurement[0]));
-                }
-            ).catch(
-                (error) => {
-                    console.error('Error:', error);
-                }
-            )
-        });
-
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, []);
-
-    // Handler
-    const handleMeasurementSelect = (id: string) => {
-        getMeasurementHashMap(id).then(
-            (hashMap) => {
-                setSelectedMeasData(hashMap);
+        // Set the data
+        getDataPoints(selectedMeasId).then(
+            (data) => {
+                setData(data);
             }
         ).catch(
-            (error) => {
-                console.error('Error:', error);
+            (err) => {
+                console.error(err);
             }
         )
+
+    }, [selectedMeasId]);
+
+    if (!measurementName) {
+        return null;
     }
 
+    if (!selectedMeasId) {
+        return null;
+    }
     return (
-        <div>
-            {
-                measurementIds.length > 0 ? (
-                    <ul>
-                        {measurementIds.map(id => (
-                            <Button key={id} onClick={() => handleMeasurementSelect(id)}>
-                                {id}
-                            </Button>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No measurements found.</p>
-                )
-            }
-            {selectedMeasData ? JSON.stringify(selectedMeasData) : null}
+        <div className={"h-full w-full py-2 shadow-sm"}
+             style={{
+                 background: token.colorBgContainer,
+                 borderRadius: token.borderRadiusLG,
+                 border: 0,
+                 borderBottomLeftRadius: token.borderRadiusLG,
+                 borderBottomRightRadius: token.borderRadiusLG,
+                 borderBottom: 1,
+                 borderStyle: 'solid',
+                 borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+             }}
+        >
+            <div className={"ml-12 my-2"}>
+                <CardHeader id={selectedMeasId}
+                            name={measurementName}
+                            placeholder={"Measurement"}
+                            switchDir
+                />
+            </div>
+            {data && <LineChart data={data}/>}
         </div>
     )
 }

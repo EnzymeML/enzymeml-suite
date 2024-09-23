@@ -28,7 +28,7 @@ interface AppState {
     setDarkMode: (darkMode: boolean) => void
     setDatabasesToUse: (databasesToUse: string[]) => void
     setCurrentPath: (currentPath: AvailablePaths) => void
-    setSelectedId: (selectedId: string) => void
+    setSelectedId: (selectedId: string | null) => void
 }
 
 const useAppStore = create<AppState>()(
@@ -59,7 +59,11 @@ const useAppStore = create<AppState>()(
                         databasesToUse: databasesToUse
                     }
                 }),
-                setSelectedId: (selectedId) => set(() => ({selectedId: selectedId}))
+                setSelectedId: (selectedId) => set(() => {
+                    return {
+                        selectedId: selectedId
+                    }
+                })
             }),
             {
                 name: 'bear-storage',

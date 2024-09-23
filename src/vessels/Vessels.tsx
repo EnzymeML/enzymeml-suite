@@ -1,6 +1,5 @@
 import 'react-json-view-lite/dist/index.css';
-import React, {useEffect, useState} from "react";
-import {listen} from "@tauri-apps/api/event";
+import React, {useCallback, useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {Vessel} from "../../../enzymeml-ts/src";
 import {createVessel, deleteVessel, getVessel, listVessels, updateVessel} from "../commands/vessels.ts";
@@ -8,6 +7,7 @@ import DetailView from "../components/DetailView.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";
 import VesselForm from "./VesselForm.tsx";
+import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
 import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
@@ -17,47 +17,16 @@ export default function Vessels() {
 
     // States
     const [vessels, setVessels] = useState<[string, string][]>([]);
+    const selectedId = useAppStore(state => state.selectedId);
 
-    // Actions
-    const setSelectedId = useAppStore(state => state.setSelectedId);
+    // State handlers
+    const setState = useCallback(() => {
+        setCollectionIds(listVessels, setVessels);
+    }, [listVessels, setVessels]);
 
-    // Fetch small molecules on load
-    useEffect(() => {
-        // Fetch small molecule IDs
-        listVessels().then(
-            (data) => {
-                setVessels(data);
-
-                if (data.length > 0) {
-                    setSelectedId(data[0][0]);
-                }
-            }
-        ).catch(
-            (error) => {
-                console.error('Error:', error);
-            }
-        )
-    }, []);
-
-    // Re-fetch small molecules on update
-    useEffect(() => {
-        const unlisten = listen('update_vessels', () => {
-            listVessels().then(
-                (data) => {
-                    setVessels(data);
-                }
-            ).catch(
-                (error) => {
-                    console.error('Error:', error);
-                }
-            )
-        });
-
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, []);
+    // Fetch items on mount
+    useEffect(() => setState(), [selectedId]);
+    useEffect(() => ListenToEvent("update_vessels", setState), []);
 
     // Create the items for the Collapsible component
     const items = vessels.map(([id]) => {
@@ -76,6 +45,7 @@ export default function Vessels() {
                                 placeholder={"Vessel"}
                                 nameKey={"name"}
                                 FormComponent={VesselForm}
+                                listOfIds={vessels}
                     />
                 </div>
             </DataProvider>

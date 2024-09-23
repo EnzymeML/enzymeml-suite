@@ -31,6 +31,9 @@ const pathMapping: { [key in AvailablePaths]: Collection } = {
     },
     [AvailablePaths.MEASUREMENTS]: {
         fetchFun: listMeasurements
+    },
+    [AvailablePaths.MODELS]: {
+        fetchFun: async () => []
     }
 };
 

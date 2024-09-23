@@ -3,13 +3,14 @@ import {Menu, MenuProps, theme} from "antd";
 import {useLocation} from "react-router-dom";
 import {useEffect, useRef, useState} from "react";
 import NotificationProvider, {NotificationType} from "./NotificationProvider.tsx";
-import {exportMeasurementTemplate, importMeasurement} from "../commands/dataio.ts";
+import {exportMeasurements, importMeasurement} from "../commands/dataio.ts";
 import Grow from "../animations/Grow.tsx";
 import {RightCircleOutlined} from "@ant-design/icons";
 import {openVisualisation} from "../commands/visualisation.ts";
 import {emit} from "@tauri-apps/api/event";
+import {deriveModel} from "../commands/equations.ts";
 
-type MenuItem = Required<MenuProps>['items'][number];
+export type MenuItem = Required<MenuProps>['items'][number];
 type HandlerFunction = (key: string, openNotification: openNotificationType) => void;
 
 interface SubMenuProps {
@@ -24,7 +25,33 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
     [AvailablePaths.PROTEINS]: null,
     [AvailablePaths.REACTIONS]: null,
     [AvailablePaths.HOME]: null,
-    [AvailablePaths.MODELS]: null,
+    [AvailablePaths.MODELS]: {
+        title: "Model Actions",
+        items: [
+            {
+                key: "derive-model",
+                label: "Derive Model",
+                icon: <RightCircleOutlined/>
+            }
+        ],
+        clickHandler: (key, openNotification) => {
+            switch (key) {
+                case 'derive-model':
+                    deriveModel().then(
+                        () => {
+                            openNotification('Success', NotificationType.SUCCESS, 'Model derived successfully.');
+                        }
+                    ).catch(
+                        (error) => {
+                            openNotification('Error', NotificationType.ERROR, error.message);
+                        }
+                    );
+                    break;
+                default:
+                    break;
+            }
+        }
+    },
     [AvailablePaths.MEASUREMENTS]: {
         title: 'Actions',
         items: [
@@ -35,7 +62,7 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
             },
             {
                 key: 'export-template',
-                label: 'Export Template',
+                label: 'Export Data',
                 icon: <RightCircleOutlined/>
             },
             {
@@ -47,13 +74,13 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
         clickHandler: (key, openNotification) => {
             switch (key) {
                 case 'export-template':
-                    exportMeasurementTemplate().then(
+                    exportMeasurements().then(
                         () => {
                             openNotification('Success', NotificationType.SUCCESS, 'Template exported successfully.');
                         }
                     ).catch(
                         (error) => {
-                            console.log(error);
+                            console.log("Error exporting template: ", error);
                         }
                     )
                     break;
@@ -77,7 +104,7 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
                         }
                     ).catch(
                         (error) => {
-                            openNotification('Error', NotificationType.ERROR, error.message);
+                            openNotification('Warning', NotificationType.WARNING, error.message);
                         }
                     );
                     break;

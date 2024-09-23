@@ -33,8 +33,6 @@ export default function Parameters() {
         }
     }, []);
 
-    console.log(parameterIDs)
-
     return (
         <div className={"flex flex-col gap-10 w-full"}>
 

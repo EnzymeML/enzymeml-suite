@@ -6,7 +6,7 @@ import SmallMolecules from "./smallmols/SmallMolecules.tsx";
 import Home from "./home/Home.tsx";
 import Measurements from "./measurements/Measurements.tsx";
 import Vessels from "./vessels/Vessels.tsx";
-import Models from "./models/Models.tsx";
+import Equations from "./models/Equations.tsx";
 import Proteins from "./proteins/Proteins.tsx";
 import Reactions from "./reactions/Reactions.tsx";
 import useAppStore, {AvailablePaths} from "./stores/appstore.ts";
@@ -15,7 +15,16 @@ import MainMenu from "./components/MainMenu.tsx";
 import CollectionNav from "./components/CollectionNav.tsx";
 import SubMenu from "./components/SubMenu.tsx";
 
+interface AppContext {
+    selectedId: string | null;
+    setSelectedId: (id: string) => void;
+}
 
+export const AppContext = React.createContext<AppContext>({
+    selectedId: null,
+    setSelectedId: () => {
+    },
+});
 const {Content, Sider} = Layout;
 
 function App() {
@@ -26,6 +35,7 @@ function App() {
 
     // Actions
     const setCurrentPath = useAppStore((state) => state.setCurrentPath);
+    const setSelectedId = useAppStore((state) => state.setSelectedId);
 
     useEffect(() => {
         const pathName = location.pathname;
@@ -75,15 +85,17 @@ function App() {
             <Layout>
                 <Content className={"mx-2 h-full overflow-y-scroll scrollbar-hide"}>
                     <div>
-                        <Routes>
-                            <Route path="/" element={<Home/>}/>
-                            <Route path="/vessels" element={<Vessels/>}/>
-                            <Route path="/small-molecules" element={<SmallMolecules/>}/>
-                            <Route path="/proteins" element={<Proteins/>}/>
-                            <Route path="/reactions" element={<Reactions/>}/>
-                            <Route path="/measurements" element={<Measurements/>}/>
-                            <Route path="/models" element={<Models/>}/>
-                        </Routes>
+                        <AppContext.Provider value={{selectedId: null, setSelectedId: setSelectedId}}>
+                            <Routes>
+                                <Route path="/" element={<Home/>}/>
+                                <Route path="/vessels" element={<Vessels/>}/>
+                                <Route path="/small-molecules" element={<SmallMolecules/>}/>
+                                <Route path="/proteins" element={<Proteins/>}/>
+                                <Route path="/reactions" element={<Reactions/>}/>
+                                <Route path="/measurements" element={<Measurements/>}/>
+                                <Route path="/models" element={<Equations/>}/>
+                            </Routes>
+                        </AppContext.Provider>
                     </div>
                 </Content>
             </Layout>

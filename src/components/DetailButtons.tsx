@@ -20,10 +20,6 @@ export default function DetailButtons(
         onDelete ? onDelete() : null;
     };
 
-    const cancel = () => {
-        console.log("Delete action cancelled");
-    };
-
     const toggleLock = () => {
         setIsLocked(!isLocked);
     };
@@ -47,7 +43,6 @@ export default function DetailButtons(
                 title="Delete Item"
                 description="Are you sure to delete this item?"
                 onConfirm={confirm}
-                onCancel={cancel}
                 okText="Yes"
                 cancelText="No"
             >

@@ -20,6 +20,8 @@ export default function DetailHeader(
         setLocked,
     }: DetailHeaderProps
 ) {
+    // States
+    const selectedId = useAppStore(state => state.selectedId);
 
     // Actions
     const setSelectedId = useAppStore(state => state.setSelectedId);
@@ -27,7 +29,13 @@ export default function DetailHeader(
     return (
         <div className={"flex flex-row justify-between cursor-pointer"}>
             <div className={"h-full w-full"}
-                 onClick={() => setSelectedId(id)}>
+                 onClick={() => {
+                     if (id !== selectedId) {
+                         setSelectedId(id)
+                     } else {
+                         setSelectedId(null)
+                     }
+                 }}>
                 <CardHeader id={id}
                             name={speciesName}
                             placeholder={placeholder}/>

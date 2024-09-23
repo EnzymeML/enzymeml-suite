@@ -16,7 +16,9 @@ export default function SpeciesReference(
 
     return (
         <div className={"flex flex-row gap-1 place-items-center justify-between"}>
-            <span>{name}</span>
+            <span>{
+                name.length > 20 ? `${name.slice(0, 20)}...` : name
+            }</span>
             <Badge count={id}
                    size={"small"}
                    color={badgeColor}

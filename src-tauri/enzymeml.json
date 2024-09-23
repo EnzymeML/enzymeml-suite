@@ -1,202 +1,225 @@
 {
-  "name": "Test",
-  "references": [
-    "https://enzymeml.org"
-  ],
-  "creators": [
-    {
-      "given_name": "John",
-      "family_name": "Doe",
-      "mail": "john@doe.com"
-    }
-  ],
+  "name": "New document",
+  "references": null,
+  "creators": [],
   "vessels": [
     {
-      "id": "vessel_1",
+      "id": "v1",
       "name": "Vessel 1",
-      "volume": 10.0,
+      "volume": 1.0,
       "unit": {
-        "name": "ml",
-        "base_units": [
-          {
-            "kind": "litre",
-            "exponent": 1,
-            "scale": -3.0
-          }
-        ]
+        "name": "litre",
+        "base_units": []
       },
-      "constant": false
+      "constant": true
     }
   ],
-  "proteins": [],
+  "proteins": [
+    {
+      "id": "p1",
+      "name": "Alcohol dehydrogenase 6",
+      "constant": true,
+      "sequence": "MSTTGQVIRCKAAILWKPGAPFSIEEVEVAPPKAKEVRIKVVATGLCGTEMKVLGSKHLDLLYPTILGHEGAGIVESIGEGVSTVKPGDKVITLFLPQCGECTSCLNSEGNFCIQFKQSKTQLMSDGTSRFTCKGKSIYHFGNTSTFCEYTVIKEISVAKIDAVAPLEKVCLISCGFSTGFGAAINTAKVTPGSTCAVFGLGGVGLSVVMGCKAAGAARIIGVDVNKEKFKKAQELGATECLNPQDLKKPIQEVLFDMTDAGIDFCFEAIGNLDVLAAALASCNESYGVCVVVGVLPASVQLKISGQLFFSGRSLKGSVFGGWKSRQHIPKLVADYMAEKLNLDPLITHTLNLDKINEAVELMKTGKW",
+      "vessel_id": "v1",
+      "ecnumber": "1.1.1.1",
+      "organism": "Homo sapiens",
+      "organism_tax_id": "9606",
+      "references": [
+        "https://www.uniprot.org/uniprot/P28332"
+      ]
+    }
+  ],
   "complexes": [],
   "small_molecules": [
     {
-      "id": "substrate",
-      "name": "substrate",
+      "id": "s1",
+      "name": "Acetylacetone",
       "constant": false,
-      "canonical_smiles": "C",
-      "references": null
+      "vessel_id": "v1",
+      "canonical_smiles": "CC(=O)CC(=O)C",
+      "inchikey": "InChI=1S/C5H8O2/c1-4(6)3-5(2)7/h3H2,1-2H3",
+      "references": [
+        "https://pubchem.ncbi.nlm.nih.gov/compound/31261"
+      ]
     },
     {
-      "id": "product",
-      "name": "product",
+      "id": "s2",
+      "name": "Ethanolamine",
       "constant": false,
-      "canonical_smiles": "O",
-      "references": null
+      "canonical_smiles": "C(CO)N",
+      "inchikey": "InChI=1S/C2H7NO/c3-1-2-4/h4H,1-3H2",
+      "references": [
+        "https://pubchem.ncbi.nlm.nih.gov/compound/700"
+      ]
     }
   ],
   "reactions": [
     {
-      "id": "reaction_1",
-      "name": "Reaction 1",
-      "reversible": true,
+      "id": "r1",
+      "name": "My Reaction",
+      "reversible": false,
+      "kinetic_law": {
+        "equation": "(v_max*s1)/(K_m+s1)",
+        "equation_type": "rateLaw",
+        "variables": []
+      },
       "species": [
         {
-          "species_id": "substrate.id.clone()",
+          "species_id": "s1",
           "stoichiometry": -1.0
         },
         {
-          "species_id": "product",
+          "species_id": "s2",
           "stoichiometry": 1.0
         }
       ],
-      "modifiers": null
+      "modifiers": [
+        "p1"
+      ]
     }
   ],
   "measurements": [
     {
-      "id": "measurement_1",
+      "id": "m1",
       "name": "Measurement 1",
-      "species": [
+      "species_data": [
         {
-          "species_id": "substrate",
-          "init_conc": 1.0,
-          "data_type": "abs",
+          "species_id": "p1",
+          "initial": 10.0,
           "data_unit": {
-            "name": "mmol / l",
-            "base_units": [
-              {
-                "kind": "mole",
-                "exponent": 1,
-                "scale": -3.0
-              },
-              {
-                "kind": "mole",
-                "exponent": -1,
-                "scale": -3.0
-              }
-            ]
+            "base_units": []
           },
+          "data": [],
+          "time": [],
           "time_unit": {
-            "name": "s",
-            "base_units": [
-              {
-                "kind": "second",
-                "exponent": 1,
-                "scale": 1.0
-              }
-            ]
+            "base_units": []
           },
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
+        },
+        {
+          "species_id": "s1",
+          "initial": 100.0,
+          "data_unit": {
+            "base_units": []
+          },
+          "data": [
+            100.0,
+            60.653065,
+            36.787945,
+            22.313017,
+            13.533528,
+            8.2085,
+            4.978707,
+            3.0197384,
+            1.8315638,
+            1.1108997,
+            0.6737947,
+            0.40867713,
+            0.24787521,
+            0.15034392,
+            0.0911882,
+            0.05530844,
+            0.03354626,
+            0.020346837
+          ],
           "time": [
             0.0,
             1.0,
-            2.0
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+            17.0
           ],
+          "time_unit": {
+            "base_units": []
+          },
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "name": "Measurement 2",
+      "species_data": [
+        {
+          "species_id": "p1",
+          "initial": 10.0,
+          "data_unit": {
+            "base_units": []
+          },
+          "data": [],
+          "time": [],
+          "time_unit": {
+            "base_units": []
+          },
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
+        },
+        {
+          "species_id": "s1",
+          "initial": 100.0,
+          "data_unit": {
+            "base_units": []
+          },
           "data": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ],
+          "time": [
+            0.0,
             1.0,
             2.0,
             3.0
           ],
-          "is_calculated": false
-        },
-        {
-          "species_id": "product___",
-          "init_conc": 0.0,
-          "data_type": "abs",
-          "data_unit": {
-            "name": "mmol / l",
-            "base_units": [
-              {
-                "kind": "mole",
-                "exponent": 1,
-                "scale": -3.0
-              },
-              {
-                "kind": "mole",
-                "exponent": -1,
-                "scale": -3.0
-              }
-            ]
-          },
           "time_unit": {
-            "name": "s",
-            "base_units": [
-              {
-                "kind": "second",
-                "exponent": 1,
-                "scale": 1.0
-              }
-            ]
+            "base_units": []
           },
-          "time": [],
-          "data": [],
-          "is_calculated": false
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
         }
       ]
     }
   ],
   "equations": [
     {
-      "species_id": "substrate",
-      "unit": {
-        "name": "mmol / l",
-        "base_units": [
-          {
-            "kind": "mole",
-            "exponent": 1,
-            "scale": -3.0
-          },
-          {
-            "kind": "mole",
-            "exponent": -1,
-            "scale": -3.0
-          }
-        ]
-      },
+      "species_id": "s1",
+      "equation": "(v_max*s1)/(K_m+s1)",
       "equation_type": "ode",
-      "equation": "substrate * something",
-      "variables": [
-        {
-          "id": "substrate",
-          "name": "substrate",
-          "symbol": "substrate"
-        },
-        {
-          "id": "something",
-          "name": "something",
-          "symbol": "something"
-        }
-      ],
-      "parameters": [
-        {
-          "id": "substrate",
-          "name": "substrate",
-          "symbol": "substrate"
-        },
-        {
-          "id": "something",
-          "name": "something",
-          "symbol": "something"
-        }
-      ]
+      "variables": []
+    },
+    {
+      "species_id": "s2",
+      "equation": "-(v_max*s1)/(K_m+s1)",
+      "equation_type": "ode",
+      "variables": []
     }
   ],
   "parameters": [
     {
-      "id": "parameter_1",
-      "name": "Parameter 1",
-      "value": 1.0
+      "id": "v_max",
+      "name": "v_max",
+      "symbol": "v_max"
+    },
+    {
+      "id": "K_m",
+      "name": "K_m",
+      "symbol": "K_m"
     }
   ]
 }

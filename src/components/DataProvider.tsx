@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {Form} from "antd";
 import {ChildProps, Identifiable} from "../types.ts";
-import {listen} from "@tauri-apps/api/event";
 import Reveal from "../animations/Reveal.tsx";
 import NotificationProvider from "./NotificationProvider.tsx";
+import {ListenToEvent} from "../tauri/listener.ts";
 
 export type AlternativeStringCol<T, K extends keyof T> = T[K] extends string ? K : never;
 
@@ -45,35 +45,24 @@ export default function DataProvider<T extends Identifiable>(
         deleteObject = () => Promise.resolve();
     }
 
+    // State handler
+    const fetchAndSetData = () => {
+        fetchObject(id).then(
+            (data: T | undefined) => {
+                if (data) {
+                    setData(data);
+                    setIsLoading(false);
+                }
+            }
+        ).catch(
+            (error) => {
+                setError(error);
+            }
+        )
+    }
+
     // Effects
-    useEffect(() => {
-        // Function to fetch and set
-        const fetchAndSetData = () => {
-            fetchObject(id).then(
-                (data: T | undefined) => {
-                    if (data) {
-                        setData(data);
-                        setIsLoading(false);
-                    }
-                }
-            ).catch(
-                (error) => {
-                    setError(error);
-                }
-            )
-        }
-
-        // Call the function on mount
-        fetchAndSetData();
-
-        // Re-render upon event
-        const unlisten = listen(id, () => fetchAndSetData());
-
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, []);
+    useEffect(() => ListenToEvent(id, fetchAndSetData), []);
 
     // Generic function to update the data
     const handleUpdateObject = () => {
@@ -103,9 +92,9 @@ export default function DataProvider<T extends Identifiable>(
         if (data) {
             if (alternativeIdCol) {
                 // @ts-ignore
-                deleteObject(data[alternativeIdCol as string]).then(
-                    () => {
-                        console.log('Object deleted');
+                deleteObject(data[alternativeIdCol as string]).catch(
+                    (e) => {
+                        console.log("Error deleting object: ", e)
                     }
                 )
             } else {
@@ -113,9 +102,9 @@ export default function DataProvider<T extends Identifiable>(
                     throw new Error(`No ID found in data: ${JSON.stringify(data, null, 2)}`);
                 }
 
-                deleteObject(data.id).then(
-                    () => {
-                        console.log('Object deleted');
+                deleteObject(data.id).catch(
+                    (e) => {
+                        console.log("Error deleting object: ", e)
                     }
                 )
             }

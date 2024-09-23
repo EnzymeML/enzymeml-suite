@@ -1,0 +1,56 @@
+{
+  "name": "New document",
+  "references": null,
+  "creators": [],
+  "vessels": [],
+  "proteins": [],
+  "complexes": [],
+  "small_molecules": [],
+  "reactions": [],
+  "measurements": [
+    {
+      "id": "m1",
+      "name": "Measurement 1",
+      "species_data": [
+        {
+          "species_id": "s1",
+          "initial": 100.0,
+          "data_unit": {
+            "base_units": []
+          },
+          "data": [
+            100.0,
+            90.0,
+            80.0
+          ],
+          "time": [
+            0.0,
+            10.0,
+            20.0
+          ],
+          "time_unit": {
+            "base_units": []
+          },
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
+        },
+        {
+          "species_id": "p1",
+          "initial": 10.0,
+          "data_unit": {
+            "base_units": []
+          },
+          "data": [],
+          "time": [],
+          "time_unit": {
+            "base_units": []
+          },
+          "is_simulated": false,
+          "data_type": "http://purl.allotrope.org/ontologies/quality#AFQ_0000061"
+        }
+      ]
+    }
+  ],
+  "equations": [],
+  "parameters": []
+}

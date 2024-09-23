@@ -6,8 +6,7 @@ import {
     listSmallMolecules,
     updateSmallMolecule
 } from "../commands/smallmols.ts";
-import React, {useEffect, useState} from "react";
-import {listen} from "@tauri-apps/api/event";
+import React, {useCallback, useEffect, useState} from "react";
 import DataProvider from "../components/DataProvider.tsx";
 import {ChildProps} from "../types.ts";
 import {SmallMolecule} from "../../../enzymeml-ts/src";
@@ -15,6 +14,7 @@ import EmptyPage from "../components/EmptyPage.tsx";
 import Collection from "../components/Collection.tsx";
 import DetailView from "../components/DetailView.tsx";
 import SmallMoleculeForm from "./SmallMoleculeForm.tsx";
+import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
 import useAppStore from "../stores/appstore.ts";
 
 // @ts-ignore
@@ -24,47 +24,16 @@ export default function SmallMolecules() {
 
     // States
     const [smallMolecules, setSmallMolecules] = useState<[string, string][]>([]);
+    const selectedId = useAppStore(state => state.selectedId);
 
-    // Actions
-    const setSelectedId = useAppStore(state => state.setSelectedId);
+    // State handlers
+    const setState = useCallback(() => {
+        setCollectionIds(listSmallMolecules, setSmallMolecules);
+    }, [listSmallMolecules, setSmallMolecules]);
 
-    // Fetch small molecules on load
-    useEffect(() => {
-        // Fetch small molecule IDs
-        listSmallMolecules().then(
-            (data) => {
-                setSmallMolecules(data);
-
-                if (data.length > 0) {
-                    setSelectedId(data[0][0]);
-                }
-            }
-        ).catch(
-            (error) => {
-                console.error('Error:', error);
-            }
-        )
-    }, []);
-
-    // Re-fetch small molecules on update
-    useEffect(() => {
-        const unlisten = listen('update_small_mols', () => {
-            listSmallMolecules().then(
-                (data) => {
-                    setSmallMolecules(data);
-                }
-            ).catch(
-                (error) => {
-                    console.error('Error:', error);
-                }
-            )
-        });
-
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, []);
+    // Fetch items on mount
+    useEffect(() => setState(), [selectedId]);
+    useEffect(() => ListenToEvent("update_small_mols", setState), []);
 
     // Create the items for the Collapsible component
     const items = smallMolecules.map(([id]) => {
@@ -82,7 +51,9 @@ export default function SmallMolecules() {
                     <DetailView context={SmallMoleculeContext}
                                 placeholder={"Small Molecule"}
                                 nameKey={"name"}
-                                FormComponent={SmallMoleculeForm}/>
+                                FormComponent={SmallMoleculeForm}
+                                listOfIds={smallMolecules}
+                    />
                 </div>
             </DataProvider>
         );

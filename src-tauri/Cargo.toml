@@ -11,10 +11,10 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "macos-private-api", "window-close", "window-unmaximize", "window-maximize", "window-start-dragging", "window-minimize", "http-all", "dialog", "devtools", "shell-open"] }
+tauri = { version = "1", features = ["macos-private-api", "window-close", "window-unmaximize", "window-maximize", "window-start-dragging", "window-minimize", "http-all", "dialog", "devtools", "shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-enzymeml-rs = { path = "../../enzymeml-rs" }
+enzymeml = { path = "../../enzymeml-rs" }
 derive_builder = "0.20.0"
 schemars = "0.8.21"
 diesel = { version = "2.1.0", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
@@ -28,6 +28,7 @@ rocket_cors = "0.6.0"
 simplelog = "0.12.2"
 log = "0.4.22"
 meval = "0.2.0"
+open = "5.3.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

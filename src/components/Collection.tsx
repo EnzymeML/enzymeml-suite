@@ -29,6 +29,7 @@ export default function Collection(
         handleCreateObject().then(
             (id) => {
                 setSelectedId(id);
+                console.log("Created from Collection. Setted selectedId to: ", id)
             }
         ).catch(
             (error) => {

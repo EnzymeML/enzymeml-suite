@@ -6,6 +6,7 @@ interface CardHeaderProps {
     id: string,
     name: string,
     placeholder: string,
+    switchDir?: boolean,
 }
 
 export function getBadgeColor(darkMode: boolean) {
@@ -17,6 +18,7 @@ export default function CardHeader(
         id,
         name,
         placeholder,
+        switchDir,
     }: CardHeaderProps
 ): React.ReactElement {
 
@@ -36,8 +38,21 @@ export default function CardHeader(
 
     return (
         <div className="flex flex-row gap-2 place-items-center">
-            <h2 className={headingStyle}>{displayName}</h2>
-            <Badge count={id} size={"small"} color={getBadgeColor(darkMode)}/>
+            {
+                !switchDir ? (
+                    <>
+                        <h2 className={headingStyle}>{displayName}</h2>
+                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)}/>
+                    </>
+                ) : (
+                    <>
+                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)}/>
+                        <h2 className={headingStyle}>{displayName}</h2>
+                    </>
+
+                )
+            }
         </div>
-    );
+    )
+        ;
 }

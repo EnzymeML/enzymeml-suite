@@ -1,4 +1,4 @@
-import {AutoComplete, Col, Form, Input, Row, Select, Switch} from "antd";
+import {AutoComplete, Col, Form, Input, Radio, Row, Select} from "antd";
 import {RiExternalLinkLine} from "react-icons/ri";
 import capitalize from "antd/lib/_util/capitalize";
 import DBEntryRow from "../components/DBEntryRow.tsx";
@@ -131,8 +131,21 @@ export default function SmallMoleculeForm(
                     <Form.Item label="Vessel" name="vessel_id">
                         <Select options={vesselOptions}/>
                     </Form.Item>
-                    <Form.Item label="Is constant" name="constant" valuePropName="checked">
-                        <Switch/>
+                    <Form.Item label={"Constant"} name={"constant"}>
+                        <Radio.Group defaultValue={true} className={"flex flex-row w-full"}>
+                            <Radio.Button
+                                className={"flex-1"}
+                                value={true}
+                            >
+                                Constant
+                            </Radio.Button>
+                            <Radio.Button
+                                className={"flex-1"}
+                                value={false}
+                            >
+                                Not Constant
+                            </Radio.Button>
+                        </Radio.Group>
                     </Form.Item>
                     <Form.Item label="SMILES" name="canonical_smiles">
                         <Input.TextArea/>

@@ -4,7 +4,7 @@ import SmilesDrawer from "smiles-drawer"
 import {theme} from "antd";
 import useAppStore from "../../stores/appstore.ts";
 
-const WIDTH = 200;
+export const WIDTH = 200;
 
 interface SmileDrawerContainerProps {
     smilesStr: string

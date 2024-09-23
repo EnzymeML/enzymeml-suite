@@ -27,6 +27,7 @@ export default function EmptyPage(
         handleCreate().then(
             (id) => {
                 setSelectedId(id);
+                console.log("Created from EmptyPage. Setted selectedId to: ", id)
             }
         ).catch(
             (error) => {

@@ -27,6 +27,7 @@ export async function getMeasurement(id: string): Promise<Measurement> {
 }
 
 export async function updateMeasurement(id: string, data: Measurement): Promise<void> {
+    console.log('Updating measurement:', id, data)
     try {
         await invoke('update_measurement', {id: id, data: data});
     } catch (error) {

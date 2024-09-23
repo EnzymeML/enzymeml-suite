@@ -1,0 +1,25 @@
+math-field::part(virtual-keyboard-toggle) {
+    display: none;
+}
+
+math-field::part(menu-toggle) {
+    display: none;
+}
+
+math-field {
+    display: flex;
+    place-items: center;
+    font-size: 1.6em;
+    min-height: 8vh;
+    margin-bottom: 2vh;
+}
+
+#static-math-field {
+    padding-left: 1.05vh;
+    margin-bottom: 0;
+}
+
+#dynamic-math-field {
+    width: 100%;
+    margin-bottom: 0;
+}

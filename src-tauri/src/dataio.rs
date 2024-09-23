@@ -23,18 +23,20 @@ pub fn get_state(state: State<'_, Arc<EnzymeMLState>>) -> ExposedEnzymeMLState {
 }
 
 #[tauri::command]
-pub async fn export_meas_template(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
+pub async fn export_measurements(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
     let dialog_result = FileDialogBuilder::new()
         .set_title("Save File")
-        .set_file_name("measurement_template.xlsx")
+        .set_file_name("measurements.xlsx")
         .save_file();
 
     match dialog_result {
         Some(path) => {
             let state_doc = state.doc.lock().unwrap();
             state_doc
-                .to_excel(path.clone(), true)
+                .to_excel(path.clone(), false)
                 .expect("Failed to export to Excel");
+
+            open::that(path.clone()).map_err(|err| err.to_string())?;
             Ok(path)
         }
         None => Err("No file selected".to_string()),
@@ -56,7 +58,7 @@ pub async fn import_excel_meas(
             let mut state_doc = state.doc.lock().unwrap();
             let prev_amnt_meas = state_doc.measurements.len();
             state_doc
-                .add_from_excel(path)
+                .add_from_excel(path, true)
                 .map_err(|err| err.to_string())?;
 
             update_event!(app_handle, "update_measurements");
@@ -71,7 +73,7 @@ pub async fn import_excel_meas(
 pub async fn export_to_json(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
     let dialog_result = FileDialogBuilder::new()
         .set_title("Save File")
-        .set_file_name("enzmldoc.json")
+        .set_file_name("enzmldoc_test.json")
         .save_file();
 
     match dialog_result {

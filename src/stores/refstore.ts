@@ -20,7 +20,6 @@ const useRefStore = create<RefState>()(
                 }),
                 getRef: (id) => {
                     const refs = get().refs;
-                    console.log(refs)
                     return refs[id]
                 },
                 removeRef: (id) => set((state) => {

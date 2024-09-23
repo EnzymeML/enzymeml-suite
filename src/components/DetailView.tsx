@@ -5,12 +5,14 @@ import {AnimatePresence, motion} from "framer-motion";
 import {ChildProps, Identifiable} from "../types.ts";
 import useAppStore from "../stores/appstore.ts";
 import DetailHeader from "./DetailHeader.tsx";
+import {handleDelete} from "../tauri/listener.ts";
 
 interface DetailViewProps<T extends Identifiable> {
     placeholder: string,
     context: React.Context<ChildProps<T>>,
     nameKey: string,
     FormComponent: React.ComponentType<{ context: React.Context<ChildProps<T>> }>
+    listOfIds: [string, string][]
 }
 
 export default function DetailView<T extends Identifiable>(
@@ -19,6 +21,7 @@ export default function DetailView<T extends Identifiable>(
         context,
         nameKey,
         FormComponent,
+        listOfIds,
     }: DetailViewProps<T>
 ): React.ReactElement {
 
@@ -31,6 +34,9 @@ export default function DetailView<T extends Identifiable>(
     // States
     const darkMode = useAppStore(state => state.darkMode);
     const selectedId = useAppStore(state => state.selectedId);
+
+    // Actions
+    const setSelectedId = useAppStore(state => state.setSelectedId);
 
     if (!props) {
         return <h1>No context given. Please contact support.</h1>
@@ -45,6 +51,11 @@ export default function DetailView<T extends Identifiable>(
         id = props.data[props.alternativeIdCol]
     } else {
         return <h1>No ID available. Please contact support</h1>
+    }
+
+    // Handlers
+    const handleDeleteObject = () => {
+        handleDelete(id, selectedId, setSelectedId, listOfIds, props.handleDeleteObject)
     }
 
     return (
@@ -65,19 +76,21 @@ export default function DetailView<T extends Identifiable>(
                             id={id}
                             speciesName={props.data[nameKey]}
                             placeholder={placeholder}
-                            handleDeleteObject={props.handleDeleteObject}
+                            handleDeleteObject={handleDeleteObject}
                             setLocked={props.setLocked}
                         />
                         <AnimatePresence initial={false}>
                             {selectedId === id && (
                                 <motion.div
+                                    className={"flex flex-col"}
                                     key={id}
-                                    initial={{opacity: 0.0, height: 0}}
-                                    animate={{opacity: 1, height: 'auto'}}
-                                    exit={{opacity: 0, height: 0}}
+                                    initial={{opacity: 0.0, height: 0, y: -30}}
+                                    animate={{opacity: 1, height: 'auto', y: 0}}
+                                    exit={{opacity: 0, height: 0, y: -30}}
                                     transition={{
                                         opacity: {duration: 0.0},
-                                        height: {duration: 0.20}
+                                        height: {duration: 0.20},
+                                        y: {duration: 0.20, ease: 'easeInOut'}
                                     }}
                                     style={{overflow: 'hidden'}} // to prevent content from overflowing while collapsing
                                 >

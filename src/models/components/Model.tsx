@@ -58,7 +58,7 @@ export default function Model(
 
     // Effects
     useEffect(() => {
-        // Convert IDs to underscores in the equation
+        // Convert IDs to underscores in the equation.css
         convertSpeciesIDsToUnderscore(data.equation)
             .then((converted) => {
                     setLatexEquation(asciiToLatex(converted));

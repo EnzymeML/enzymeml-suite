@@ -81,17 +81,17 @@ export default function Home() {
     }
 
     const handleNewEntry = () => {
-        newEntry().then(
-            () => {
-                console.log('New entry created');
+        newEntry().catch(
+            (error) => {
+                console.log("Error creating new entry: ", error);
             }
         )
     }
 
     const handleDownload = () => {
-        exportToJSON().then(
-            (response) => {
-                console.log('Downloaded:', response);
+        exportToJSON().catch(
+            (error) => {
+                console.log('Error upon download: ', error);
             }
         )
     }

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tauri::async_runtime::spawn;
 use tauri::Manager;
 
-use crate::actions::{enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols, vessels, windows};
+use crate::actions::{enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols, units, vessels, windows};
 use crate::api::create_rocket;
 use crate::states::EnzymeMLState;
 
@@ -19,6 +19,7 @@ mod docutils;
 mod models;
 mod schema;
 pub mod states;
+pub mod unit;
 
 pub mod actions {
     pub mod enzmldoc;
@@ -33,23 +34,29 @@ pub mod actions {
     pub mod utils;
     pub mod vessels;
     pub mod windows;
+    pub mod units;
 }
 
 #[tokio::main]
 async fn main() {
     // Initialize state and clone for both tauri and warp
-    let app_state = Arc::new(EnzymeMLState::default());
+    // Fetch env variable TESTING to determine if we are in testing mode
+
+    let app_state = match std::env::var("TESTING") {
+        Ok(_) => Arc::new(EnzymeMLState::testing()),
+        Err(_) => Arc::new(EnzymeMLState::default()),
+    };
     let rocket_state = Arc::clone(&app_state);
     let tauri_state = Arc::clone(&app_state);
 
     tauri::Builder::default()
         .setup(|app| {
-            #[cfg(debug_assertions)] // only include this code on debug builds
-            {
-                let window = app.get_window("main").unwrap();
-                window.open_devtools();
-                window.close_devtools();
-            }
+            // #[cfg(debug_assertions)] // only include this code on debug builds
+            // {
+            //     let window = app.get_window("main").unwrap();
+            //     window.open_devtools();
+            //     window.close_devtools();
+            // }
             // Initialize the database.
             db::init();
 
@@ -73,13 +80,18 @@ async fn main() {
             dataio::new_document,
             dataio::export_to_json,
             dataio::get_state,
-            dataio::export_meas_template,
+            dataio::export_measurements,
             dataio::import_excel_meas,
             // EnzymeML Document
             enzmldoc::get_all_species_ids,
             enzmldoc::get_all_non_constant_species_ids,
             enzmldoc::get_species_name,
             enzmldoc::set_title,
+            enzmldoc::get_all_species,
+            // Units
+            units::get_unit,
+            units::get_unit_group,
+            units::get_unit_groups,
             // Small Molecules
             smallmols::create_small_mol,
             smallmols::get_small_mol,
@@ -110,6 +122,7 @@ async fn main() {
             equations::delete_equation,
             equations::create_equation,
             equations::list_equations,
+            equations::derive_from_reactions,
             // Parameters
             parameters::list_parameters,
             parameters::create_parameter,
@@ -121,7 +134,7 @@ async fn main() {
             // Measurements
             measurements::create_measurement,
             measurements::get_measurement,
-            measurements::get_measurement_hashmap,
+            measurements::get_datapoints,
             measurements::update_measurement,
             measurements::delete_measurement,
             measurements::list_measurements,

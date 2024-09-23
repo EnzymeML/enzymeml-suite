@@ -50,9 +50,9 @@ export async function getState(): Promise<EnzymeMLState> {
     }
 }
 
-export async function exportMeasurementTemplate(): Promise<string> {
+export async function exportMeasurements(): Promise<string> {
     try {
-        return await invoke<string>('export_meas_template');
+        return await invoke<string>('export_measurements');
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

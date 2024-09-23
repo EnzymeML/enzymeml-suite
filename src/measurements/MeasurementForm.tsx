@@ -1,64 +1,45 @@
-import {Button, Form, Input, InputNumber, Table} from "antd";
+import {Button, Form, Input, InputNumber, SelectProps} from "antd";
 import {FormViewProps} from "../types.ts";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import FormBase from "../components/FormBase.tsx";
 import {Measurement} from "../../../enzymeml-ts/src";
-import {PlusOutlined} from "@ant-design/icons";
+import {listAllSpeciesIdsNames} from "../commands/enzmldoc.ts";
+import {AutoCompleteProps} from "antd/lib";
+import SpeciesReference from "../components/SpeciesReference.tsx";
+import {UnitTypes} from "../commands/units.ts";
+import QuantityForm from "../components/QuantityForm.tsx";
+import InitialsField from "./components/InitialsField.tsx";
 
-export default function Component({context}: FormViewProps<Measurement>) {
+export const mapSpeciesToOption = (species: [string, string][]): AutoCompleteProps["options"] => {
+    const options = species.map(
+        ([id, name]) => {
+            return {value: id, label: <SpeciesReference name={name} id={id}/>}
+        }
+    )
+
+    return options.filter(
+        (option) => option !== null
+    ) as AutoCompleteProps["options"]
+}
+
+export default function MeasurementForm({context}: FormViewProps<Measurement>) {
+    // States
+    const [availableSpecies, setAvailableSpecies] = useState<SelectProps["options"]>([])
+
     // Context
     const {handleUpdateObject, form, data, locked} = React.useContext(context);
 
-    const columns = [
-        {
-            title: 'Species ID',
-            dataIndex: 'species_id',
-            key: 'species_id',
-            render: (text, record, index) => (
-                <Form.Item
-                    name={[index, "species_id"]}
-                    noStyle
-                >
-                    <Input
-                        placeholder="Species"
-                        variant={"borderless"}
-                    />
-                </Form.Item>
-            ),
-        },
-        {
-            title: 'Initial Concentration',
-            dataIndex: 'initial',
-            key: 'initial',
-            render: (text, record, index) => (
-                <Form.Item
-                    name={[index, "initial"]}
-                    noStyle
-                >
-                    <InputNumber
-                        placeholder="Concentration"
-                        variant={"borderless"}
-                    />
-                </Form.Item>
-            ),
-        },
-        {
-            title: 'Prepared Concentration',
-            dataIndex: 'initial',
-            key: 'initial',
-            render: (text, record, index) => (
-                <Form.Item
-                    name={[index, "prepared"]}
-                    noStyle
-                >
-                    <InputNumber
-                        placeholder="Prepared Concentration"
-                        variant={"borderless"}
-                    />
-                </Form.Item>
-            ),
-        },
-    ];
+    // Effects
+    useEffect(() => {
+        listAllSpeciesIdsNames().then(
+            (data) => {
+                setAvailableSpecies(mapSpeciesToOption(data));
+            }
+        ).catch(
+            (e) => console.log("Failed to fetch species: ", e)
+        )
+    }, []);
+
 
     return (
         <FormBase
@@ -88,32 +69,34 @@ export default function Component({context}: FormViewProps<Measurement>) {
                     placeholder="pH value"
                 />
             </Form.Item>
-            <Form.Item label="Temperature" name="temperature">
-                <InputNumber
-                    className="w-full"
-                    type="number"
-                    placeholder="temperature value"
+            <Form.Item label={"Temperature"}>
+                <QuantityForm name={"temperature"}
+                              unitPath={"temperature_unit"}
+                              label={"Temperature"}
+                              unitTypes={[UnitTypes.TEMPERATURE]}
+                              required={false}
+                              handleUpdateObject={handleUpdateObject}
                 />
             </Form.Item>
-            <div className={"flex flex-row justify-center"}>
+            <Form.Item label={"Initials"}>
                 <Form.List name="species_data">
-                    {(fields, {add, remove}) => (
-                        <Table
-                            className={"m-5"}
-                            dataSource={fields}
-                            size={"small"}
-                            columns={columns}
-                            pagination={false}
-                            rowKey={record => record.key}
-                            footer={() => (
-                                <Button size={"small"} onClick={() => add()}>
-                                    <PlusOutlined/>
-                                </Button>
+                    {(fields, subOpt) => (
+                        <div style={{display: 'flex', flexDirection: 'column', rowGap: 16}}>
+                            {fields.map((field) => (
+                                    <InitialsField field={field}
+                                                   subOpt={subOpt}
+                                                   availableSpecies={availableSpecies}
+                                                   handleUpdateObject={handleUpdateObject}
+                                    />
+                                )
                             )}
-                        />
+                            <Button type="dashed" onClick={() => subOpt.add()} block>
+                                + Add Species
+                            </Button>
+                        </div>
                     )}
                 </Form.List>
-            </div>
+            </Form.Item>
         </FormBase>
     );
 }

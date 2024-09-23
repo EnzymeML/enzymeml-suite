@@ -1,5 +1,5 @@
 import useAppStore from "../stores/appstore.ts";
-import {ConfigProvider, Layout, theme} from "antd";
+import {Layout, theme} from "antd";
 import React, {useEffect} from "react";
 import WindowFrame from "./WindowFrame.tsx";
 import {listen} from "@tauri-apps/api/event";
@@ -36,21 +36,20 @@ export default function WindowBase(
         };
     }, [setDarkMode]);
 
+
     return (
-        <ConfigProvider theme={{algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
-            <WindowFrame useButtons={false}>
-                <Layout className={"pl-2 h-full antialiased"}
-                        style={{
-                            background: darkMode ? token.colorBgBase : token.colorBgLayout,
-                            borderColor: token.colorBorder,
-                            borderLeftWidth: 1,
-                            borderRightWidth: 1,
-                            borderStyle: 'solid',
-                        }}
-                >
-                    {children}
-                </Layout>
-            </WindowFrame>
-        </ConfigProvider>
+        <WindowFrame useButtons={false}>
+            <Layout className={"pl-2 w-full h-full antialiased"}
+                    style={{
+                        background: darkMode ? token.colorBgBase : token.colorBgLayout,
+                        borderColor: token.colorBorder,
+                        borderLeftWidth: 1,
+                        borderRightWidth: 1,
+                        borderStyle: 'solid',
+                    }}
+            >
+                {children}
+            </Layout>
+        </WindowFrame>
     );
 }

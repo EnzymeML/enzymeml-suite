@@ -1,6 +1,6 @@
 import './style.css';
 import useAppStore from "../stores/appstore.ts";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     createMeasurement,
     deleteMeasurement,
@@ -8,13 +8,13 @@ import {
     listMeasurements,
     updateMeasurement
 } from "../commands/measurements.ts";
-import {listen} from "@tauri-apps/api/event";
 import DataProvider from "../components/DataProvider.tsx";
 import {Measurement} from "../../../enzymeml-ts/src";
 import DetailView from "../components/DetailView.tsx";
 import Collection from "../components/Collection.tsx";
 import EmptyPage from "../components/EmptyPage.tsx";
 import MeasurementForm from "./MeasurementForm.tsx";
+import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
 
 // @ts-ignore
 const MeasurementContext = React.createContext<ChildProps<Measurement>>({})
@@ -23,47 +23,16 @@ export default function Measurements() {
 
     // States
     const [measurements, setMeasurements] = useState<[string, string][]>([]);
+    const selectedId = useAppStore(state => state.selectedId);
 
-    // Actions
-    const setSelectedId = useAppStore(state => state.setSelectedId);
+    // State handlers
+    const setState = useCallback(() => {
+        setCollectionIds(listMeasurements, setMeasurements);
+    }, [listMeasurements, setMeasurements]);
 
-    // Fetch small molecules on load
-    useEffect(() => {
-        // Fetch small molecule IDs
-        listMeasurements().then(
-            (data) => {
-                setMeasurements(data);
-
-                if (data.length > 0) {
-                    setSelectedId(data[0][0]);
-                }
-            }
-        ).catch(
-            (error) => {
-                console.error('Error:', error);
-            }
-        )
-    }, []);
-
-    // Re-fetch small molecules on update
-    useEffect(() => {
-        const unlisten = listen('update_measurements', () => {
-            listMeasurements().then(
-                (data) => {
-                    setMeasurements(data);
-                }
-            ).catch(
-                (error) => {
-                    console.error('Error:', error);
-                }
-            )
-        });
-
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, []);
+    // Fetch items on mount
+    useEffect(() => setState(), [selectedId]);
+    useEffect(() => ListenToEvent("update_measurements", setState), []);
 
     // Create the items for the Collapsible component
     const items = measurements.map(([id]) => {
@@ -82,6 +51,7 @@ export default function Measurements() {
                                 placeholder={"Measurement"}
                                 nameKey={"name"}
                                 FormComponent={MeasurementForm}
+                                listOfIds={measurements}
                     />
                 </div>
             </DataProvider>
