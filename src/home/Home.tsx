@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {listen} from '@tauri-apps/api/event'
+import {emit, listen} from '@tauri-apps/api/event'
 import {allExpanded, defaultStyles, JsonView} from 'react-json-view-lite';
 import 'react-json-view-lite/dist/index.css';
 import {
@@ -8,6 +8,7 @@ import {
     exportToJSON,
     getState,
     listEntries,
+    loadEntry,
     loadJSON,
     newEntry,
     saveEntry
@@ -114,6 +115,19 @@ export default function Home() {
             )
     }
 
+    const handleDBChange = (value: number) => {
+        loadEntry(value).then(
+            () => {
+                emit('update_document').then(() => null);
+                openNotification('Success', NotificationType.SUCCESS, 'Entry has been loaded.');
+            }
+        ).catch(
+            (error) => {
+                openNotification('Error', NotificationType.ERROR, error.message);
+            }
+        )
+    }
+
     return (
         <NotificationProvider>
             <div className={"h-screen"}
@@ -135,12 +149,13 @@ export default function Home() {
                     <Button onClick={handleLoadEntry}>Load Entry</Button>
                     <Button onClick={handleDownload}>Download</Button>
                     <Select placeholder={"Select a document"}
+                            onChange={handleDBChange}
                             options={
                                 documents?.map(
-                                    ([id, title]) => (
+                                    ([title, id]) => (
                                         {
-                                            label: id,
-                                            value: title
+                                            label: title,
+                                            value: id
                                         }
                                     )
                                 )

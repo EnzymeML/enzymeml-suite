@@ -70,6 +70,9 @@ export default function LineChart(
                         text: {
                             fill: token.colorTextLabel,
                             fontSize: 12,
+                            whiteSpace: 'pre-wrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
                         },
                     },
                     tooltip: {
@@ -128,9 +131,9 @@ export default function LineChart(
                 // @ts-ignore
                 data={data}
                 theme={chartTheme}
-                lineWidth={useLines ? 1 : 0}
+                lineWidth={useLines ? 1.5 : 0}
                 animate={false}
-                margin={{top: 30, right: 140, bottom: 110, left: 80}}
+                margin={{top: 30, right: 170, bottom: 110, left: 80}}
                 xScale={{type: 'point'}}
                 yScale={{
                     type: 'linear',
@@ -173,7 +176,7 @@ export default function LineChart(
                 useMesh={true}
                 legends={[
                     {
-                        anchor: 'bottom-right',
+                        anchor: 'top-right',
                         direction: 'column',
                         justify: false,
                         translateX: 100,

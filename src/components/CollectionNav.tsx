@@ -168,7 +168,7 @@ export default function CollectionNav() {
 
     return (
         <Grow>
-            <List className={"max-h-64 py-2 shadow-sm 2-full overflow-auto scrollbar-hide"}
+            <List className={"max-h-60 py-2 shadow-sm 2-full overflow-auto scrollbar-hide"}
                   style={{
                       background: token.colorBgContainer,
                       borderRadius: token.borderRadiusLG,

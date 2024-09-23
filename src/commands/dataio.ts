@@ -26,6 +26,14 @@ export async function saveEntry(): Promise<void> {
     }
 }
 
+export async function loadEntry(id: number): Promise<void> {
+    try {
+        await invoke('load', {id: id});
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
 export async function newEntry(): Promise<void> {
     try {
         await invoke('new_document');

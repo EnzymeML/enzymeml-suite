@@ -1,4 +1,4 @@
-import {AutoComplete, Form, Input, Select, Switch} from "antd";
+import {AutoComplete, Form, Input, Radio, Select} from "antd";
 import {FormViewProps} from "../types.ts";
 import {Protein} from "enzymeml/src";
 import React, {ChangeEvent, useEffect, useState} from "react";
@@ -179,8 +179,21 @@ export default function ProteinForm(
             <Form.Item label="Vessel" name="vessel_id">
                 <Select options={vesselOptions}/>
             </Form.Item>
-            <Form.Item label="Is constant" name="constant" valuePropName="checked">
-                <Switch/>
+            <Form.Item label={"Constant"} name={"constant"}>
+                <Radio.Group defaultValue={true} className={"flex flex-row w-full"}>
+                    <Radio.Button
+                        className={"flex-1"}
+                        value={true}
+                    >
+                        Constant
+                    </Radio.Button>
+                    <Radio.Button
+                        className={"flex-1"}
+                        value={false}
+                    >
+                        Not Constant
+                    </Radio.Button>
+                </Radio.Group>
             </Form.Item>
             <Form.Item label="Sequence" name="sequence">
                 <Input.TextArea/>

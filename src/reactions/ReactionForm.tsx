@@ -116,7 +116,7 @@ export default function ReactionForm(
                 <Input/>
             </Form.Item>
             <Form.Item label="Reversible" name="reversible">
-                <Radio.Group defaultValue={true} className={"flex flex-row w-full"}>
+                <Radio.Group defaultValue={false} className={"flex flex-row w-full"}>
                     <Radio.Button
                         className={"flex-1 text-center"}
                         value={true}
