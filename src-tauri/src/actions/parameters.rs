@@ -1,6 +1,5 @@
+use enzymeml::prelude::{Parameter, ParameterBuilder};
 use std::sync::Arc;
-
-use enzymeml_rs::prelude::{Parameter, ParameterBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::states::EnzymeMLState;

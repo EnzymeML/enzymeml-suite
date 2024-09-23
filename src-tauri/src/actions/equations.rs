@@ -1,14 +1,13 @@
+use enzymeml::enzyme_ml::{EnzymeMLDocument, Equation, Parameter, Reaction};
+use enzymeml::equation::extract_symbols;
+use enzymeml::prelude::{EquationBuilder, EquationType, ParameterBuilder};
 use std::collections::HashSet;
 use std::sync::{Arc, MutexGuard};
-
-use enzymeml_rs::enzyme_ml::{EnzymeMLDocument, Equation, Parameter, Reaction};
-use enzymeml_rs::equation::extract_symbols;
-use enzymeml_rs::prelude::{EquationBuilder, EquationType, ParameterBuilder};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{delete_object, get_object, update_event, update_object};
 use crate::actions::enzmldoc::extract_species_ids;
 use crate::states::EnzymeMLState;
+use crate::{delete_object, get_object, update_event, update_object};
 
 #[derive(Debug, Clone)]
 pub struct EquationPart {
@@ -114,7 +113,8 @@ pub fn derive_from_reactions(
 ) -> Result<(), String> {
     let reactions;
 
-    { // Extract the guarded state values
+    {
+        // Extract the guarded state values
         let state_doc = state.doc.lock().unwrap();
         reactions = state_doc.reactions.clone();
     }
@@ -129,7 +129,8 @@ pub fn derive_from_reactions(
         }
     }
 
-    { // Process the equations
+    {
+        // Process the equations
         let mut state_doc = state.doc.lock().unwrap();
         for equation in state_doc.equations.iter_mut() {
             if equation.equation_type.clone() != EquationType::Ode {
@@ -149,12 +150,17 @@ pub fn derive_from_reactions(
             equation.equation = assemble_equation(&mut parts);
         }
     }
-    
+
     let equations_to_process: Vec<Equation> = {
         let state_doc = state.doc.lock().unwrap();
-        state_doc.equations.iter().filter(|e| e.equation_type == EquationType::Ode).cloned().collect()
+        state_doc
+            .equations
+            .iter()
+            .filter(|e| e.equation_type == EquationType::Ode)
+            .cloned()
+            .collect()
     };
-    
+
     for equation in equations_to_process.iter() {
         process_equation(&state, equation)?;
     }
@@ -163,7 +169,9 @@ pub fn derive_from_reactions(
         cleanup_parameters(&state);
     }
 
-    app_handle.emit_all("update_equations", ()).map_err(|e| e.to_string())?;
+    app_handle
+        .emit_all("update_equations", ())
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -198,7 +206,11 @@ fn assemble_equation(parts: &mut [EquationPart]) -> String {
     equation_str
 }
 
-fn derive_part_from_reac(equation: &mut Equation, parts: &mut Vec<EquationPart>, reaction: &Reaction) {
+fn derive_part_from_reac(
+    equation: &mut Equation,
+    parts: &mut Vec<EquationPart>,
+    reaction: &Reaction,
+) {
     let stoichiometry = reaction
         .species
         .iter()
@@ -207,18 +219,19 @@ fn derive_part_from_reac(equation: &mut Equation, parts: &mut Vec<EquationPart>,
         .stoichiometry;
 
     if let Some(ref law) = reaction.kinetic_law {
-        parts.push(
-            EquationPart {
-                negative: stoichiometry < 0.0,
-                stoichiometry: stoichiometry.into(),
-                equation: law.equation.clone(),
-            }
-        );
+        parts.push(EquationPart {
+            negative: stoichiometry < 0.0,
+            stoichiometry: stoichiometry.into(),
+            equation: law.equation.clone(),
+        });
     }
 }
 
 fn has_species_id(equation: &mut Equation, reaction: &Reaction) -> bool {
-    reaction.species.iter().any(|s| *s.species_id == equation.clone().species_id.unwrap_or("".to_string()))
+    reaction
+        .species
+        .iter()
+        .any(|s| *s.species_id == equation.clone().species_id.unwrap_or("".to_string()))
 }
 
 fn process_equation(state: &State<Arc<EnzymeMLState>>, equation: &Equation) -> Result<(), String> {

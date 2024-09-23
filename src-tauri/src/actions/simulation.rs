@@ -1,8 +1,7 @@
+use enzymeml::prelude::result::SimulationResult;
+use enzymeml::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
-
-use enzymeml_rs::prelude::result::SimulationResult;
-use enzymeml_rs::prelude::*;
 use tauri::State;
 
 use crate::states::EnzymeMLState;

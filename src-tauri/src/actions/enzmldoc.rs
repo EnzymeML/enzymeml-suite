@@ -1,8 +1,7 @@
+use diesel::RunQueryDsl;
+use enzymeml::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
 use std::error::Error;
 use std::sync::{Arc, MutexGuard};
-
-use diesel::RunQueryDsl;
-use enzymeml_rs::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::db::establish_db_connection;

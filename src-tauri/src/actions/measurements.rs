@@ -1,12 +1,11 @@
-use std::sync::Arc;
-
-use enzymeml_rs::prelude::{Measurement, MeasurementBuilder, MeasurementDataBuilder};
+use enzymeml::prelude::{Measurement, MeasurementBuilder, MeasurementDataBuilder};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 
-use crate::{create_object, delete_object, get_object, update_event, update_object};
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
+use crate::{create_object, delete_object, get_object, update_event, update_object};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VisData {
@@ -21,25 +20,38 @@ pub struct DataPoint {
 }
 
 #[tauri::command]
-pub fn create_measurement(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<String, String> {
+pub fn create_measurement(
+    state: State<Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<String, String> {
     let id = create_object!(state.doc, measurements, MeasurementBuilder, "m", id);
     let mut state_doc = state.doc.lock().unwrap();
 
     // Collect the ids from small molecules and proteins by chaining the iterators
-    let species_ids: Vec<String> = state_doc.small_molecules
-        .iter().map(|s| s.id.clone())
-        .chain(state_doc.proteins.iter().map(|s| s.id.clone())).collect();
+    let species_ids: Vec<String> = state_doc
+        .small_molecules
+        .iter()
+        .map(|s| s.id.clone())
+        .chain(state_doc.proteins.iter().map(|s| s.id.clone()))
+        .collect();
 
-    let meas = state_doc.measurements.iter_mut().find(|m| m.id == id).unwrap();
+    let meas = state_doc
+        .measurements
+        .iter_mut()
+        .find(|m| m.id == id)
+        .unwrap();
 
-    meas.species_data = species_ids.iter().map(|id| {
-        MeasurementDataBuilder::default()
-            .species_id(id.clone())
-            .time(vec![])
-            .data(vec![])
-            .build()
-            .expect("Failed to build species data")
-    }).collect();
+    meas.species_data = species_ids
+        .iter()
+        .map(|id| {
+            MeasurementDataBuilder::default()
+                .species_id(id.clone())
+                .time(vec![])
+                .data(vec![])
+                .build()
+                .expect("Failed to build species data")
+        })
+        .collect();
 
     update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_nav");
@@ -82,10 +94,7 @@ pub fn get_measurement(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Mea
 }
 
 #[tauri::command]
-pub fn get_datapoints(
-    state: State<Arc<EnzymeMLState>>,
-    id: &str,
-) -> Result<Vec<VisData>, String> {
+pub fn get_datapoints(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Vec<VisData>, String> {
     let meas: Measurement = get_object!(state.doc, measurements, id, id)?;
     let mut times = vec![];
 
@@ -108,18 +117,12 @@ pub fn get_datapoints(
         let time = species_data.time.clone().unwrap();
         let data = species_data.data.clone().unwrap();
 
-        let zipped: Vec<(&f32, f32)> = time
-            .iter()
-            .zip(data)
-            .collect();
+        let zipped: Vec<(&f32, f32)> = time.iter().zip(data).collect();
 
         let mut data_points = vec![];
 
         for (time, data) in zipped {
-            data_points.push(DataPoint {
-                y: data,
-                x: *time,
-            });
+            data_points.push(DataPoint { y: data, x: *time });
         }
 
         let vis_data = VisData {

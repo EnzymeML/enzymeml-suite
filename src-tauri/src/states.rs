@@ -1,7 +1,6 @@
+use enzymeml::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
+use enzymeml::prelude::Parameter;
 use std::sync::{Arc, Mutex};
-
-use enzymeml_rs::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
-use enzymeml_rs::prelude::Parameter;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct EnzymeMLState {
@@ -50,7 +49,8 @@ impl From<&Arc<EnzymeMLState>> for ExposedEnzymeMLState {
 
 impl EnzymeMLState {
     pub fn testing() -> Self {
-        let enzmldoc: EnzymeMLDocument = serde_json::from_str(include_str!("../enzymeml.json")).unwrap();
+        let enzmldoc: EnzymeMLDocument =
+            serde_json::from_str(include_str!("../enzymeml.json")).unwrap();
         EnzymeMLState {
             title: Mutex::new("Test Document".to_string()),
             doc: Mutex::new(enzmldoc),

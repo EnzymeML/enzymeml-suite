@@ -1,6 +1,5 @@
+use enzymeml::enzyme_ml::{Vessel, VesselBuilder};
 use std::sync::Arc;
-
-use enzymeml_rs::enzyme_ml::{Vessel, VesselBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::actions::utils::generate_id;

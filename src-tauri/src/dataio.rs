@@ -1,20 +1,19 @@
 #![allow(clippy::needless_pass_by_value)]
 
+use diesel::prelude::*;
+use enzymeml::enzyme_ml::EnzymeMLDocument;
 use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
-
-use diesel::prelude::*;
-use enzymeml_rs::enzyme_ml::EnzymeMLDocument;
-use tauri::{AppHandle, Manager, State};
 use tauri::api::dialog::blocking::FileDialogBuilder;
+use tauri::{AppHandle, Manager, State};
 
-use crate::{models, update_event};
 use crate::db::establish_connection;
 use crate::docutils::{deserialize_doc, serialize_doc};
 use crate::models::Document;
 use crate::schema;
 use crate::states::{EnzymeMLState, ExposedEnzymeMLState};
+use crate::{models, update_event};
 
 // State functions
 #[tauri::command]

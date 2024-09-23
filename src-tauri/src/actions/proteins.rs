@@ -1,6 +1,5 @@
+use enzymeml::prelude::{Protein, ProteinBuilder};
 use std::sync::Arc;
-
-use enzymeml_rs::prelude::{Protein, ProteinBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::actions::utils::generate_id;

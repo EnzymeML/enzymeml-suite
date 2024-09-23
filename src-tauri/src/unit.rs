@@ -1,10 +1,9 @@
+use enzymeml::enzyme_ml;
+use enzymeml::prelude::UnitDefinition;
+use enzymeml::unit;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
-
-use enzymeml_rs::enzyme_ml;
-use enzymeml_rs::prelude::UnitDefinition;
-use enzymeml_rs::unit;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum UnitType {
@@ -44,9 +43,11 @@ pub struct UnitDefinitions {
 }
 
 impl UnitDefinitions {
-    pub fn get_units(unit_type: UnitType) -> Result<HashMap<String, UnitDefinition>, Box<dyn Error>> {
+    pub fn get_units(
+        unit_type: UnitType,
+    ) -> Result<HashMap<String, UnitDefinition>, Box<dyn Error>> {
         let units = UnitDefinitions::default();
-        
+
         match unit_type {
             UnitType::Volume => Ok(units.volume),
             UnitType::Mass => Ok(units.mass),
@@ -59,7 +60,7 @@ impl UnitDefinitions {
     }
     pub fn get_unit(unit: &str) -> Result<UnitDefinition, Box<dyn Error>> {
         let units = UnitDefinitions::default();
-        
+
         if let Some(unit) = units.volume.get(unit) {
             return Ok(unit.clone());
         }
@@ -180,7 +181,6 @@ fn mass_concentration_units() -> HashMap<String, UnitDefinition> {
 
     units
 }
-
 
 // Temperature
 fn temperature_units() -> HashMap<String, UnitDefinition> {

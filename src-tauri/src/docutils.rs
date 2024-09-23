@@ -1,4 +1,4 @@
-use enzymeml_rs::enzyme_ml::EnzymeMLDocument;
+use enzymeml::enzyme_ml::EnzymeMLDocument;
 use serde_json::Error;
 
 pub fn deserialize_doc(json: &str) -> Result<EnzymeMLDocument, Error> {

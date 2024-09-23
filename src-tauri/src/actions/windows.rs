@@ -12,9 +12,9 @@ pub async fn open_simulator(app: tauri::AppHandle) {
         "Simulation", /* the unique window label */
         tauri::WindowUrl::App(file_path.into()),
     )
-        .title("Settings")
-        .build()
-        .unwrap();
+    .title("Settings")
+    .build()
+    .unwrap();
     // #[cfg(debug_assertions)] // only include this code on debug builds
     // {
     //     let window = app.get_window("Simulation").unwrap();
@@ -40,13 +40,13 @@ pub fn open_visualisation(
         "Visualisation", /* the unique window label */
         tauri::WindowUrl::App(file_path.into()),
     )
-        .title("Visualisation")
-        .decorations(false)
-        .transparent(true)
-        .resizable(true)
-        .inner_size(1000_f64, 600_f64)
-        .build()
-        .unwrap();
+    .title("Visualisation")
+    .decorations(false)
+    .transparent(true)
+    .resizable(true)
+    .inner_size(1000_f64, 600_f64)
+    .build()
+    .unwrap();
 
     #[cfg(debug_assertions)] // only include this code on debug builds
     {

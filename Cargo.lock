@@ -1281,33 +1281,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "enzymeml-dashboard"
-version = "0.0.0"
-dependencies = [
- "derive_builder",
- "diesel",
- "diesel_migrations",
- "dirs",
- "dotenvy",
- "enzymeml-rs",
- "libsqlite3-sys",
- "log",
- "meval",
- "open 5.3.0",
- "rocket",
- "rocket_cors",
- "schemars",
- "serde",
- "serde_json",
- "simplelog",
- "tauri",
- "tauri-build",
- "tokio",
-]
-
-[[package]]
-name = "enzymeml-rs"
+name = "enzymeml"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ede0d94a88f15fd096e38e0f15ec540396042888fb50f2b9bd8ccf2ee32fec1"
 dependencies = [
  "calamine",
  "derive_builder",
@@ -1324,6 +1301,31 @@ dependencies = [
  "serde_json",
  "tempfile",
  "xlsxwriter",
+]
+
+[[package]]
+name = "enzymeml-dashboard"
+version = "0.0.0"
+dependencies = [
+ "derive_builder",
+ "diesel",
+ "diesel_migrations",
+ "dirs",
+ "dotenvy",
+ "enzymeml",
+ "libsqlite3-sys",
+ "log",
+ "meval",
+ "open 5.3.0",
+ "rocket",
+ "rocket_cors",
+ "schemars",
+ "serde",
+ "serde_json",
+ "simplelog",
+ "tauri",
+ "tauri-build",
+ "tokio",
 ]
 
 [[package]]

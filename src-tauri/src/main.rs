@@ -6,7 +6,10 @@ use std::sync::Arc;
 use tauri::async_runtime::spawn;
 use tauri::Manager;
 
-use crate::actions::{enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols, units, vessels, windows};
+use crate::actions::{
+    enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols,
+    units, vessels, windows,
+};
 use crate::api::create_rocket;
 use crate::states::EnzymeMLState;
 
@@ -31,10 +34,10 @@ pub mod actions {
     pub mod reactions;
     pub mod simulation;
     pub mod smallmols;
+    pub mod units;
     pub mod utils;
     pub mod vessels;
     pub mod windows;
-    pub mod units;
 }
 
 #[tokio::main]
@@ -51,12 +54,12 @@ async fn main() {
 
     tauri::Builder::default()
         .setup(|app| {
-            // #[cfg(debug_assertions)] // only include this code on debug builds
-            // {
-            //     let window = app.get_window("main").unwrap();
-            //     window.open_devtools();
-            //     window.close_devtools();
-            // }
+            #[cfg(debug_assertions)] // only include this code on debug builds
+            {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+                window.close_devtools();
+            }
             // Initialize the database.
             db::init();
 

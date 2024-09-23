@@ -1,6 +1,5 @@
+use enzymeml::enzyme_ml::{EquationBuilder, EquationType, SmallMolecule, SmallMoleculeBuilder};
 use std::sync::Arc;
-
-use enzymeml_rs::enzyme_ml::{EquationBuilder, EquationType, SmallMolecule, SmallMoleculeBuilder};
 use tauri::{AppHandle, Manager, State};
 
 use crate::actions::utils::generate_id;
