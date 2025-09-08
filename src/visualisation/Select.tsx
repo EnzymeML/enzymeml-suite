@@ -1,12 +1,11 @@
-import {useEffect, useState} from "react";
-import {listMeasurements} from "../commands/measurements.ts";
+import { useEffect, useState } from "react";
+import { listMeasurements } from "../commands/measurements.ts";
 import useVizStore from "../stores/vizstore.ts";
-import {ListenToEvent, setCollectionIds} from "../tauri/listener.ts";
-import {Badge, Menu, theme} from "antd";
+import { ListenToEvent, setCollectionIds } from "../tauri/listener.ts";
+import { Menu, theme } from "antd";
 import Grow from "../animations/Grow.tsx";
 import useAppStore from "../stores/appstore.ts";
-import {MenuItem} from "../components/SubMenu.tsx";
-import {getBadgeColor} from "../components/CardHeader.tsx";
+import { MenuItem } from "../components/SubMenu.tsx";
 
 export default function Select() {
 
@@ -18,7 +17,7 @@ export default function Select() {
     const setSelectedMeasData = useVizStore(state => state.setSelectedMeasurement);
 
     // Styling
-    const {token} = theme.useToken();
+    const { token } = theme.useToken();
 
     // Functions
     const setStates = () => {
@@ -43,30 +42,27 @@ export default function Select() {
         return {
             key: id,
             label: name,
-            icon: <Badge count={id}
-                         size={"small"}
-                         color={getBadgeColor(darkMode)}/>
         }
     })
 
     return (
         <Grow>
-            <Menu className={"h-auto py-2 shadow-sm"}
-                  style={{
-                      background: token.colorBgContainer,
-                      borderRadius: token.borderRadiusLG,
-                      border: 0,
-                      borderBottomLeftRadius: token.borderRadiusLG,
-                      borderBottomRightRadius: token.borderRadiusLG,
-                      borderBottom: 1,
-                      borderStyle: 'solid',
-                      borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
-                  }}
-                  theme={darkMode ? "dark" : "light"}
-                  mode="vertical"
-                  items={items}
-                  selectedKeys={[]}
-                  onClick={handleClick}
+            <Menu className={"overflow-y-scroll py-2 h-auto shadow-sm scrollbar-hide"}
+                style={{
+                    background: token.colorBgContainer,
+                    borderRadius: token.borderRadiusLG,
+                    border: 0,
+                    borderBottomLeftRadius: token.borderRadiusLG,
+                    borderBottomRightRadius: token.borderRadiusLG,
+                    borderBottom: 1,
+                    borderStyle: 'solid',
+                    borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+                }}
+                theme={darkMode ? "dark" : "light"}
+                mode="vertical"
+                items={items}
+                selectedKeys={[]}
+                onClick={handleClick}
             />
         </Grow>
     )

@@ -1,15 +1,15 @@
 import '../App.css';
-import React, {useCallback, useEffect} from "react";
+import React, { useCallback, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import Visualisation from "./Visualisation.tsx";
-import {ConfigProvider, Layout, theme} from "antd";
+import { ConfigProvider, Layout, theme } from "antd";
 import useAppStore from "../stores/appstore.ts";
 import Select from "./Select.tsx";
 import WindowFrame from "../components/WindowFrame.tsx";
 import Options from "./Options.tsx";
-import {listen} from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 
-const {Content, Sider} = Layout;
+const { Content, Sider } = Layout;
 
 function VisWindow() {
 
@@ -17,33 +17,45 @@ function VisWindow() {
     const darkMode = useAppStore(state => state.darkMode);
 
     // Styling
-    const {token} = theme.useToken();
+    const { token } = theme.useToken();
 
     return (
-        <Layout className={"pl-2 pb-1 h-full antialiased"}
+        <Layout className={"pb-1 pl-2 h-full antialiased"}
+            style={{
+                background: darkMode ? token.colorBgBase : token.colorBgLayout,
+                borderColor: token.colorBorder,
+                borderLeftWidth: 1,
+                borderRightWidth: 1,
+                borderStyle: 'solid',
+            }}
+        >
+            <Sider className={"overflow-y-scroll mr-2 scrollbar-hide"}
                 style={{
                     background: darkMode ? token.colorBgBase : token.colorBgLayout,
-                    borderColor: token.colorBorder,
-                    borderLeftWidth: 1,
-                    borderRightWidth: 1,
-                    borderStyle: 'solid',
+                    borderRadius: token.borderRadiusLG,
+                    borderBottomLeftRadius: token.borderRadiusLG,
+                    borderBottomRightRadius: token.borderRadiusLG,
+                    borderRight: 0,
                 }}
-        >
-            <Content className={"mx-2 w-full h-full overflow-y-scroll scrollbar-hide"}>
-                <Visualisation/>
-            </Content>
-            <Sider className={"mr-2"}
-                   style={{
-                       background: darkMode ? token.colorBgBase : token.colorBgLayout,
-                       borderRadius: token.borderRadiusLG,
-                       borderBottomLeftRadius: token.borderRadiusLG,
-                       borderBottomRightRadius: token.borderRadiusLG,
-                       borderRight: 0,
-                   }}
             >
                 <div className={"flex flex-col gap-2"}>
-                    <Select/>
-                    <Options/>
+                    <Select />
+                </div>
+            </Sider>
+            <Content className={"overflow-y-scroll mx-2 w-full h-full scrollbar-hide"}>
+                <Visualisation />
+            </Content>
+            <Sider className={"mr-2"}
+                style={{
+                    background: darkMode ? token.colorBgBase : token.colorBgLayout,
+                    borderRadius: token.borderRadiusLG,
+                    borderBottomLeftRadius: token.borderRadiusLG,
+                    borderBottomRightRadius: token.borderRadiusLG,
+                    borderRight: 0,
+                }}
+            >
+                <div className={"flex flex-col gap-2"}>
+                    <Options />
                 </div>
             </Sider>
         </Layout>
@@ -106,9 +118,9 @@ const WrappedApp: React.FC = () => {
     }, [themePreference, setThemePreference]);
 
     return (
-        <ConfigProvider theme={{algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm}}>
+        <ConfigProvider theme={{ algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
             <WindowFrame useButtons={false}>
-                <VisWindow/>
+                <VisWindow />
             </WindowFrame>
         </ConfigProvider>
     )
@@ -116,6 +128,6 @@ const WrappedApp: React.FC = () => {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-        <WrappedApp/>
+        <WrappedApp />
     </React.StrictMode>,
 );
