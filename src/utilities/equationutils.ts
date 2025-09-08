@@ -1,6 +1,6 @@
-import {parse} from "mathjs";
-import {convertAsciiMathToLatex} from "mathlive";
-import {listAllSpeciesIds} from "../commands/enzmldoc.ts";
+import { parse } from "mathjs";
+import { convertAsciiMathToLatex } from "mathlive";
+import { listAllSpeciesIds } from "../commands/enzmldoc.ts";
 
 export interface RateLawSetup {
     params: string[],
