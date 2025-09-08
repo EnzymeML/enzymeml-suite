@@ -1,6 +1,6 @@
-import {create} from 'zustand'
-import {devtools, persist} from 'zustand/middleware'
-import {NotificationType} from "../components/NotificationProvider.tsx";
+import { create } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
+import { NotificationType } from "../components/NotificationProvider.tsx";
 
 export type openNotificationType = (message: string, type: NotificationType, description: string) => void
 
@@ -11,7 +11,7 @@ export enum AvailablePaths {
     PROTEINS = '/proteins',
     REACTIONS = '/reactions',
     MEASUREMENTS = '/measurements',
-    MODELS = '/models',
+    MODELLING = '/modelling',
 }
 
 interface AppState {
@@ -50,9 +50,9 @@ const useAppStore = create<AppState>()(
                         themePreference: themePreference
                     }
                 }),
-                setCurrentPath: (currentPath: AvailablePaths) => set(() => ({currentPath: currentPath})),
-                setDarkMode: (darkMode) => set(() => ({darkMode: darkMode})),
-                setOpenNotification: (openNotification) => set(() => ({openNotification: openNotification})),
+                setCurrentPath: (currentPath: AvailablePaths) => set(() => ({ currentPath: currentPath })),
+                setDarkMode: (darkMode) => set(() => ({ darkMode: darkMode })),
+                setOpenNotification: (openNotification) => set(() => ({ openNotification: openNotification })),
                 setDatabasesToUse: (databasesToUse) => set(() => {
                     localStorage.setItem('databasesToUse', JSON.stringify(databasesToUse));
                     return {
