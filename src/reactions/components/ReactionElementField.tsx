@@ -1,5 +1,5 @@
-import {Col, Form, FormListFieldData, FormListOperation, InputNumber, Row, Select, SelectProps, Space} from "antd";
-import {CloseOutlined} from "@ant-design/icons";
+import { Col, Form, FormListFieldData, FormListOperation, InputNumber, Row, Select, SelectProps, Space } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
 
 interface ReactionElementFieldProps {
     field: FormListFieldData;
@@ -19,40 +19,40 @@ export default function ReactionElementField(
         <Row align={"middle"}>
             <Col span={22}>
                 <Row gutter={0} align="middle">
-                    <Space.Compact style={{width: "100%"}}>
+                    <Space.Compact style={{ width: "100%" }}>
                         <Col span={3}>
                             <Form.Item
                                 name={[field.name, 'stoichiometry']}
-                                style={{marginBottom: 0}}
+                                style={{ marginBottom: 0 }}
                             >
                                 <InputNumber placeholder={"Stoichiometry"}
-                                             onChange={handleUpdateObject}
-                                             style={{width: '100%'}}
+                                    onChange={handleUpdateObject}
+                                    style={{ width: '100%' }}
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={21}>
                             <Form.Item
                                 name={[field.name, 'species_id']}
-                                style={{marginBottom: 0}}
+                                style={{ marginBottom: 0 }}
                             >
                                 <Select
                                     options={availableSpecies}
                                     placeholder="Species"
                                     onChange={handleUpdateObject}
-                                    style={{width: '100%'}}
+                                    style={{ width: '100%' }}
                                 />
                             </Form.Item>
                         </Col>
                     </Space.Compact>
                 </Row>
             </Col>
-            <Col span={2} style={{textAlign: 'center'}}>
+            <Col span={2} style={{ textAlign: 'center' }}>
                 <CloseOutlined
                     onClick={() => {
                         subOpt.remove(field.name);
                     }}
-                    style={{cursor: 'pointer'}}
+                    style={{ cursor: 'pointer' }}
                 />
             </Col>
         </Row>

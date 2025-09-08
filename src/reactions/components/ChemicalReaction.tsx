@@ -1,10 +1,10 @@
 import Latex from 'react-latex-next'
 import 'katex/dist/katex.css'
-import {EquationDisplayProps} from "../ReactionForm.tsx";
-import {useEffect, useState} from "react";
-import {getSpeciesNameByID} from "../../commands/enzmldoc.ts";
-import {abs} from "mathjs";
-import {ReactionElement} from "enzymeml/src";
+import { EquationDisplayProps } from "../ReactionForm.tsx";
+import { useEffect, useState } from "react";
+import { getSpeciesNameByID } from "../../commands/enzmldoc.ts";
+import { abs } from "mathjs";
+import { ReactionElement } from "enzymeml";
 
 const prepareElementString = async (reactionElement: ReactionElement) => {
     const speciesName = await getSpeciesNameByID(reactionElement.species_id)
@@ -33,8 +33,8 @@ export default function ChemicalReaction(
         const fetchReactantNames = async () => {
             const names = await Promise.all(
                 reactants.map(async (reactionElement) => {
-                        return await prepareElementString(reactionElement)
-                    }
+                    return await prepareElementString(reactionElement)
+                }
                 ))
             setReactantNames(names.join(' + '))
         }
@@ -43,8 +43,8 @@ export default function ChemicalReaction(
         const fetchProductNames = async () => {
             const names = await Promise.all(
                 products.map(async (reactionElement) => {
-                        return await prepareElementString(reactionElement)
-                    }
+                    return await prepareElementString(reactionElement)
+                }
                 ))
             setProductNames(names.join(' + '))
         }
