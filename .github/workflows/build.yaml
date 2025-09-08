@@ -57,5 +57,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-action
-          path: ${{ steps.tauri-action.outputs.artifactPaths }}
+          path: ${{ join(fromJSON(steps.tauri.outputs.artifacts), '\n') }}
           if-no-files-found: error
