@@ -1,50 +1,53 @@
-import {notification, NotificationArgsProps} from "antd";
-import React, {useEffect, useMemo} from "react";
+import { notification, NotificationArgsProps } from "antd";
+import React, { useEffect, useMemo } from "react";
 import useAppStore from "../stores/appstore.ts";
 
-export type NotificationPlacement = NotificationArgsProps['placement'];
+export type NotificationPlacement = NotificationArgsProps["placement"];
 
-const NOTIFICATION_PLACEMENT: NotificationPlacement = 'bottomRight';
-const Context = React.createContext({name: 'Default'});
+const NOTIFICATION_PLACEMENT: NotificationPlacement = "bottomRight";
+const Context = React.createContext({ name: "Default" });
 
 export enum NotificationType {
-    SUCCESS = 'success',
-    INFO = 'info',
-    WARNING = 'warning',
-    ERROR = 'error',
+  SUCCESS = "success",
+  INFO = "info",
+  WARNING = "warning",
+  ERROR = "error",
 }
 
-export default function NotificationProvider(
-    {children}: { children: React.ReactNode }
-) {
-    // Hooks
-    const contextValue = useMemo(() => ({name: 'EnzymeML Suite'}), []);
-    const [api, contextHolder] = notification.useNotification();
+export default function NotificationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Hooks
+  const contextValue = useMemo(() => ({ name: "EnzymeML Suite" }), []);
+  const [api, contextHolder] = notification.useNotification();
 
-    // Actions
-    const setOpenNotification = useAppStore(state => state.setOpenNotification);
+  // Actions
+  const setOpenNotification = useAppStore((state) => state.setOpenNotification);
 
-    // Define the openNotification function to be used all over the app
-    const openNotification = (message: string, type: NotificationType, description: string) => {
-        api[type]({
-            message: message,
-            description: <Context.Consumer>{() => (description)}</Context.Consumer>,
-            // @ts-ignore
-            placement: NOTIFICATION_PLACEMENT,
-            showProgress: true,
-        });
-    };
+  // Memoize the openNotification function
+  const openNotification = useMemo(
+    () => (message: string, type: NotificationType, description: string) => {
+      api[type]({
+        message,
+        description,
+        placement: NOTIFICATION_PLACEMENT,
+        showProgress: true,
+      });
+    },
+    [api]
+  );
 
-    // Effects
-    useEffect(() => {
-        // Set the openNotification function in the store on mount
-        setOpenNotification(openNotification);
-    }, []);
+  // Effects
+  useEffect(() => {
+    setOpenNotification(openNotification);
+  }, [setOpenNotification, openNotification]); // Add proper dependencies
 
-    return (
-        <Context.Provider value={contextValue}>
-            {contextHolder}
-            {children}
-        </Context.Provider>
-    )
+  return (
+    <Context.Provider value={contextValue}>
+      {contextHolder}
+      {children}
+    </Context.Provider>
+  );
 }
