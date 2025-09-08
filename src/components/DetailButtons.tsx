@@ -1,15 +1,19 @@
-import {useState} from 'react';
-import {Button, Popconfirm, Tooltip} from 'antd';
-import {DeleteOutlined, LockOutlined, UnlockOutlined} from '@ant-design/icons';
+import { useState } from 'react';
+import { Button, Popconfirm, Tooltip } from 'antd';
+import { DeleteOutlined, LockOutlined, SaveOutlined, UnlockOutlined } from '@ant-design/icons';
+
+interface DetailButtonsProps {
+    onLock: () => void,
+    onDelete?: () => void,
+    saveObject: () => void,
+}
 
 export default function DetailButtons(
     {
         onLock,
         onDelete,
-    }: {
-        onLock: () => void,
-        onDelete?: () => void,
-    }
+        saveObject,
+    }: DetailButtonsProps
 ) {
 
     // States
@@ -27,13 +31,26 @@ export default function DetailButtons(
     return (
         <Button.Group>
             <Tooltip placement="left"
-                     title={"Lock Form"}
+                title={"Lock Form"}
             >
                 <Button
-                    icon={isLocked ? <LockOutlined style={{color: "orangered"}}/> : <UnlockOutlined/>}
+                    icon={isLocked ? <LockOutlined style={{ color: "orangered" }} /> : <UnlockOutlined />}
                     onClick={() => {
                         onLock();
                         toggleLock();
+                    }}
+                />
+            </Tooltip>
+
+            <Tooltip placement="bottom"
+                title={"Save to Database"}
+            >
+                <Button
+                    icon={<SaveOutlined />}
+                    onClick={() => {
+                        if (saveObject) {
+                            saveObject();
+                        }
                     }}
                 />
             </Tooltip>
@@ -46,11 +63,15 @@ export default function DetailButtons(
                 okText="Yes"
                 cancelText="No"
             >
-                <Button
-                    icon={<DeleteOutlined/>}
-                    onClick={() => {
-                    }}
-                />
+                <Tooltip placement="bottom"
+                    title={"Delete Item"}
+                >
+                    <Button
+                        icon={<DeleteOutlined />}
+                        onClick={() => {
+                        }}
+                    />
+                </Tooltip>
             </Popconfirm>
         </Button.Group>
     );

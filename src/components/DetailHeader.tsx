@@ -1,49 +1,64 @@
 import CardHeader from "./CardHeader.tsx";
 import DetailButtons from "./DetailButtons.tsx";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import useAppStore from "../stores/appstore.ts";
 
 export interface DetailHeaderProps {
-    id: string;
-    speciesName: string;
-    placeholder: string;
-    handleDeleteObject: (id: string) => void;
-    setLocked: React.Dispatch<React.SetStateAction<boolean>>;
+  id: string;
+  speciesName: string;
+  placeholder: string;
+  handleDeleteObject: (id: string) => void;
+  setLocked: React.Dispatch<React.SetStateAction<boolean>>;
+  saveObject?: (id: string) => Promise<void>;
 }
 
-export default function DetailHeader(
-    {
-        id,
-        speciesName,
-        placeholder,
-        handleDeleteObject,
-        setLocked,
-    }: DetailHeaderProps
-) {
-    // States
-    const selectedId = useAppStore(state => state.selectedId);
-
-    // Actions
-    const setSelectedId = useAppStore(state => state.setSelectedId);
-
-    return (
-        <div className={"flex flex-row justify-between cursor-pointer"}>
-            <div className={"h-full w-full"}
-                 onClick={() => {
-                     if (id !== selectedId) {
-                         setSelectedId(id)
-                     } else {
-                         setSelectedId(null)
-                     }
-                 }}>
-                <CardHeader id={id}
-                            name={speciesName}
-                            placeholder={placeholder}/>
-
-            </div>
-            <DetailButtons onLock={() => setLocked((locked) => !locked)}
-                           onDelete={() => handleDeleteObject(id)}
-            />
-        </div>
+export default React.memo(function DetailHeader({
+  id,
+  speciesName,
+  placeholder,
+  handleDeleteObject,
+  setLocked,
+  saveObject,
+}: DetailHeaderProps) {
+  // Combine selectors into one to reduce potential re-renders
+  const { selectedId, setSelectedId } = useAppStore(
+    useMemo(
+      () => (state) => ({
+        selectedId: state.selectedId,
+        setSelectedId: state.setSelectedId,
+      }),
+      []
     )
-}
+  );
+
+  // Memoize click handler
+  const handleClick = useCallback(() => {
+    setSelectedId(id !== selectedId ? id : null);
+  }, [id, selectedId, setSelectedId]);
+
+  // Memoize lock handler
+  const handleLock = useCallback(() => {
+    setLocked((locked) => !locked);
+  }, [setLocked]);
+
+  // Memoize delete handler
+  const handleDelete = useCallback(() => {
+    handleDeleteObject(id);
+  }, [handleDeleteObject, id]);
+
+  // Save to db handler
+  const handleSave = () => {
+    if (saveObject) {
+      saveObject(id);
+    }
+  };
+
+  return (
+    <div className={"flex flex-row justify-between cursor-pointer"}>
+      <div className={"h-full w-full"} onClick={handleClick}>
+        <CardHeader id={id} name={speciesName} placeholder={placeholder} />
+      </div>
+      <DetailButtons onLock={handleLock} onDelete={handleDelete} saveObject={handleSave} />
+    </div>
+  );
+});
