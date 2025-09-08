@@ -45,18 +45,14 @@ jobs:
         with:
           args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
 
-      - name: Show artifacts
-        run: |
-          echo ${{ steps.tauri-action.outputs.artifactPaths }}
-
-          - uses: actions/upload-artifact@v4
-          if: matrix.platform == 'ubuntu-22.04'
-          with:
-            name: binaries-linux
-            path: |
-              ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.deb
-              ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.rpm
-              ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'ubuntu-22.04'
+        with:
+          name: binaries-linux
+          path: |
+            ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.deb
+            ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.rpm
+            ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage
 
       - uses: actions/upload-artifact@v4
         if: matrix.platform == 'macos-latest'
