@@ -1,4 +1,3 @@
-use enzymeml::enzyme_ml;
 use enzymeml::prelude::UnitDefinition;
 use enzymeml::unit;
 use serde::{Deserialize, Serialize};
@@ -107,7 +106,7 @@ fn volumetric_units() -> HashMap<String, UnitDefinition> {
 
     units.insert("l".to_string(), unit!([_ litre]));
     units.insert("ml".to_string(), unit!([m litre]));
-    units.insert("ul".to_string(), unit!([u litre]));
+    units.insert("μl".to_string(), unit!([u litre]));
     units.insert("nl".to_string(), unit!([n litre]));
     units.insert("pl".to_string(), unit!([p litre]));
 
@@ -120,7 +119,7 @@ fn mass_units() -> HashMap<String, UnitDefinition> {
 
     units.insert("g".to_string(), unit!([_ gram]));
     units.insert("mg".to_string(), unit!([m gram]));
-    units.insert("ug".to_string(), unit!([u gram]));
+    units.insert("μg".to_string(), unit!([u gram]));
     units.insert("ng".to_string(), unit!([n gram]));
     units.insert("pg".to_string(), unit!([p gram]));
 
@@ -133,10 +132,10 @@ fn time_units() -> HashMap<String, UnitDefinition> {
 
     units.insert("days".to_string(), unit!([_ hours]));
     units.insert("hours".to_string(), unit!([_ hours]));
-    units.insert("mins".to_string(), unit!([_ minutes]));
-    units.insert("s".to_string(), unit!([_ second]));
+    units.insert("minutes".to_string(), unit!([_ minutes]));
+    units.insert("seconds".to_string(), unit!([_ second]));
     units.insert("ms".to_string(), unit!([m second]));
-    units.insert("us".to_string(), unit!([u second]));
+    units.insert("μs".to_string(), unit!([u second]));
     units.insert("ns".to_string(), unit!([n second]));
     units.insert("ps".to_string(), unit!([p second]));
 
@@ -149,7 +148,7 @@ fn moles_units() -> HashMap<String, UnitDefinition> {
 
     units.insert("mol".to_string(), unit!([_ mole]));
     units.insert("mmol".to_string(), unit!([m mole]));
-    units.insert("umol".to_string(), unit!([u mole]));
+    units.insert("μmol".to_string(), unit!([u mole]));
     units.insert("nmol".to_string(), unit!([n mole]));
     units.insert("pmol".to_string(), unit!([p mole]));
 
@@ -162,7 +161,7 @@ fn concentration_units() -> HashMap<String, UnitDefinition> {
 
     units.insert("M".to_string(), unit!([_ mole] / [_ litre]));
     units.insert("mM".to_string(), unit!([m mole] / [_ litre]));
-    units.insert("uM".to_string(), unit!([u mole] / [_ litre]));
+    units.insert("μM".to_string(), unit!([u mole] / [_ litre]));
     units.insert("nM".to_string(), unit!([n mole] / [_ litre]));
     units.insert("pM".to_string(), unit!([p mole] / [_ litre]));
 
