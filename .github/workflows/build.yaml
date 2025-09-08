@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-tauri:
+  build-tauri:
     permissions:
       contents: write
     strategy:
@@ -53,9 +53,13 @@ jobs:
         with:
           args: ${{ matrix.args }}
 
+      - name: Show artifacts
+        run: |
+          echo ${{ steps.tauri-action.outputs.artifacts }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-action
-          path: ${{ join(fromJSON(steps.tauri.outputs.artifacts), '\n') }}
+          path: ${{ join(fromJSON(steps.tauri-action.outputs.artifacts), '\n') }}
           if-no-files-found: error
