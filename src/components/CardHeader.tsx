@@ -1,5 +1,5 @@
 import React from "react";
-import {Badge} from "antd";
+import { Badge } from "antd";
 import useAppStore from "../stores/appstore.ts";
 
 interface CardHeaderProps {
@@ -42,11 +42,11 @@ export default function CardHeader(
                 !switchDir ? (
                     <>
                         <h2 className={headingStyle}>{displayName}</h2>
-                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)}/>
+                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)} />
                     </>
                 ) : (
                     <>
-                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)}/>
+                        <Badge count={id} size={"small"} color={getBadgeColor(darkMode)} />
                         <h2 className={headingStyle}>{displayName}</h2>
                     </>
 
