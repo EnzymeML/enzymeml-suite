@@ -24,12 +24,12 @@ const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 /// * If the database directory cannot be created
 /// * If migrations fail to run
 pub fn init() {
+    println!("Initializing database");
     if !db_file_exists() {
+        println!("Database file does not exist, creating it");
         create_db_file();
+        run_migrations();
     }
-    create_db_file();
-
-    run_migrations();
 }
 
 /// Establishes a connection to the SQLite database.
