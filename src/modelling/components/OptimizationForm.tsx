@@ -18,7 +18,8 @@ interface OptimizationFormProps {
     onFormChange?: (values: OptimizationFormValues) => void
 }
 
-const OptimizationForm: React.FC<OptimizationFormProps> = ({ onSubmit, onSave, loading, onFormChange }) => {
+const OptimizationForm: React.FC<OptimizationFormProps> = (
+    { onFormChange }) => {
     const [form] = Form.useForm<OptimizationFormValues>()
     const [algorithm, setAlgorithm] = useState<AlgorithmType>("EffGlobalOpt")
     const [fields, setFields] = useState(getAlgorithmFields(algorithm))
@@ -51,17 +52,17 @@ const OptimizationForm: React.FC<OptimizationFormProps> = ({ onSubmit, onSave, l
         }
     }
 
-    const handleSubmit = () => {
-        form.validateFields().then((values) => {
-            onSubmit(values)
-        })
-    }
+    // const handleSubmit = () => {
+    //     form.validateFields().then((values) => {
+    //         onSubmit(values)
+    //     })
+    // }
 
-    const handleSave = () => {
-        form.validateFields().then((values) => {
-            onSave(values)
-        })
-    }
+    // const handleSave = () => {
+    //     form.validateFields().then((values) => {
+    //         onSave(values)
+    //     })
+    // }
 
     const openParametersModal = () => {
         setModalOpen(true)
