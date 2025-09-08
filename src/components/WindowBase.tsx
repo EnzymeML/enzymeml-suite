@@ -1,55 +1,69 @@
 import useAppStore from "../stores/appstore.ts";
-import {Layout, theme} from "antd";
-import React, {useEffect} from "react";
+import { Layout, theme } from "antd";
+import React, { useEffect, useCallback, useMemo } from "react";
 import WindowFrame from "./WindowFrame.tsx";
-import {listen} from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 
-export default function WindowBase(
-    {children}: { children: React.ReactNode }
-) {
-    // States
-    const darkMode = useAppStore(state => state.darkMode);
+// Move style creation outside component
+const getLayoutStyle = (darkMode: boolean, token: any) => ({
+  background: darkMode ? token.colorBgBase : token.colorBgLayout,
+  borderColor: token.colorBorder,
+  borderLeftWidth: 1,
+  borderRightWidth: 1,
+  borderStyle: "solid",
+});
 
-    // Actions
-    const setDarkMode = useAppStore(state => state.setDarkMode);
+export default function WindowBase({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // States
+  const darkMode = useAppStore((state) => state.darkMode);
 
-    // Styling
-    const {token} = theme.useToken();
+  // Actions
+  const setDarkMode = useAppStore((state) => state.setDarkMode);
 
-    // Tauri listens for changes in the system theme
-    useEffect(() => {
-        const unlisten = listen<{ theme: string }>('theme-change', (event) => {
-            const {theme} = event.payload;
+  // Styling
+  const { token } = theme.useToken();
 
-            if (theme === 'dark') {
-                setDarkMode(true);
-            } else if (theme === 'light') {
-                setDarkMode(false);
-            } else if (theme === 'system') {
-                setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
-            }
-        });
+  // Memoize theme change handler
+  const handleThemeChange = useCallback(
+    (event: { payload: { theme: string } }) => {
+      const { theme } = event.payload;
 
-        // Clean up the event listener on component unmount
-        return () => {
-            unlisten.then((fn) => fn());
-        };
-    }, [setDarkMode]);
+      if (theme === "dark") {
+        setDarkMode(true);
+      } else if (theme === "light") {
+        setDarkMode(false);
+      } else if (theme === "system") {
+        setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+      }
+    },
+    [setDarkMode]
+  );
 
-
-    return (
-        <WindowFrame useButtons={false}>
-            <Layout className={"pl-2 w-full h-full antialiased"}
-                    style={{
-                        background: darkMode ? token.colorBgBase : token.colorBgLayout,
-                        borderColor: token.colorBorder,
-                        borderLeftWidth: 1,
-                        borderRightWidth: 1,
-                        borderStyle: 'solid',
-                    }}
-            >
-                {children}
-            </Layout>
-        </WindowFrame>
+  useEffect(() => {
+    const unlisten = listen<{ theme: string }>(
+      "theme-change",
+      handleThemeChange
     );
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [handleThemeChange]);
+
+  // Memoize layout style
+  const layoutStyle = useMemo(
+    () => getLayoutStyle(darkMode, token),
+    [darkMode, token]
+  );
+
+  return (
+    <WindowFrame useButtons={false}>
+      <Layout className={"pl-2 w-full h-full antialiased"} style={layoutStyle}>
+        {children}
+      </Layout>
+    </WindowFrame>
+  );
 }
