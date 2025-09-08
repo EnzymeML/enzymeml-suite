@@ -30,7 +30,7 @@ const pathMapping: { [key in AvailablePaths]: Collection } = {
   [AvailablePaths.MEASUREMENTS]: {
     fetchFun: listMeasurements,
   },
-  [AvailablePaths.MODELS]: {
+  [AvailablePaths.MODELLING]: {
     fetchFun: async () => [],
   },
 };
@@ -70,7 +70,7 @@ function CollectionItem({ name, id }: { name: string; id: string }) {
   }
 
   return (
-    <List.Item className={"cursor-pointer w-full"} onClick={onClick}>
+    <List.Item className={"w-full cursor-pointer"} onClick={onClick}>
       <Row align={"top"} gutter={16} className={"w-full"}>
         <Col span={5}>
           <Badge count={id} size={"small"} color={getBadgeColor(darkMode)} />
@@ -126,7 +126,7 @@ export default function CollectionNav() {
     <div>
       <List
         className={
-          "max-h-60 py-2 shadow-sm 2-full overflow-auto scrollbar-hide"
+          "overflow-auto py-2 max-h-60 shadow-sm 2-full scrollbar-hide"
         }
         style={{
           background: token.colorBgContainer,
