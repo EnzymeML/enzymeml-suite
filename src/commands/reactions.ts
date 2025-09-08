@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api/tauri";
-import {Reaction} from "enzymeml/src";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Reaction } from "enzymeml";
 
 export async function createReaction(): Promise<string> {
     try {
@@ -20,7 +20,7 @@ export async function listReactions(): Promise<[string, string][]> {
 
 export async function getReaction(id: string): Promise<Reaction> {
     try {
-        return await invoke('get_reaction', {id});
+        return await invoke('get_reaction', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -34,7 +34,7 @@ export async function updateReaction(id: string, data: Reaction): Promise<void> 
             data.kinetic_law = null
         }
 
-        await invoke('update_reaction', {id: id, data: data});
+        await invoke('update_reaction', { id: id, data: data });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -42,7 +42,7 @@ export async function updateReaction(id: string, data: Reaction): Promise<void> 
 
 export async function deleteReaction(id: string): Promise<void> {
     try {
-        await invoke('delete_reaction', {id});
+        await invoke('delete_reaction', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

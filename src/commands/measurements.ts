@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api/tauri";
-import {Measurement} from "enzymeml/src";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Measurement } from "enzymeml";
 
 export async function createMeasurement(): Promise<string> {
     try {
@@ -20,7 +20,7 @@ export async function listMeasurements(): Promise<[string, string][]> {
 
 export async function getMeasurement(id: string): Promise<Measurement> {
     try {
-        return await invoke('get_measurement', {id});
+        return await invoke('get_measurement', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -40,7 +40,7 @@ export async function updateMeasurement(id: string, data: Measurement): Promise<
     console.log('data', data)
 
     try {
-        await invoke('update_measurement', {id: id, data: data});
+        await invoke('update_measurement', { id: id, data: data });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -48,7 +48,7 @@ export async function updateMeasurement(id: string, data: Measurement): Promise<
 
 export async function deleteMeasurement(id: string): Promise<void> {
     try {
-        await invoke('delete_measurement', {id});
+        await invoke('delete_measurement', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

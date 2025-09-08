@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api/tauri";
-import {SmallMolecule} from "enzymeml/src";
+import { invoke } from "@tauri-apps/api/tauri";
+import { SmallMolecule } from "enzymeml";
 
 export async function createSmallMolecule(): Promise<string> {
     try {
@@ -20,7 +20,7 @@ export async function listSmallMolecules(): Promise<[string, string][]> {
 
 export async function getSmallMolecule(id: string): Promise<SmallMolecule> {
     try {
-        return await invoke('get_small_mol', {id});
+        return await invoke('get_small_mol', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -28,7 +28,9 @@ export async function getSmallMolecule(id: string): Promise<SmallMolecule> {
 
 export async function updateSmallMolecule(id: string, data: SmallMolecule): Promise<void> {
     try {
-        await invoke('update_small_mol', {id: id, data: data});
+        console.log(data);
+        const res = await invoke('update_small_mol', { id: id, data: data });
+        console.log(res);
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -36,7 +38,7 @@ export async function updateSmallMolecule(id: string, data: SmallMolecule): Prom
 
 export async function deleteSmallMolecule(id: string): Promise<void> {
     try {
-        await invoke('delete_small_mol', {id});
+        await invoke('delete_small_mol', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

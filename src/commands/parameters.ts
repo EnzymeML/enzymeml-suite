@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api/tauri";
-import {Parameter} from "enzymeml/src";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Parameter } from "enzymeml";
 
 export async function listAllParametersIds(): Promise<[string, string][]> {
     try {
@@ -11,7 +11,7 @@ export async function listAllParametersIds(): Promise<[string, string][]> {
 
 export async function createParameter(name: string): Promise<void> {
     try {
-        await invoke('create_parameter', {name: name});
+        await invoke('create_parameter', { name: name });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -20,7 +20,7 @@ export async function createParameter(name: string): Promise<void> {
 
 export async function getParameter(id: string): Promise<Parameter> {
     try {
-        return await invoke('get_parameter', {id: id});
+        return await invoke('get_parameter', { id: id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -28,7 +28,15 @@ export async function getParameter(id: string): Promise<Parameter> {
 
 export async function updateParameter(id: string, data: Parameter): Promise<void> {
     try {
-        await invoke('update_parameter', {id: id, data: data});
+        await invoke('update_parameter', { id: id, data: data });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function partialUpdateParameter(pid: string, key: string, value: number) {
+    try {
+        await invoke('partial_update_parameter', { pid: pid, key: key, value: value });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -36,7 +44,7 @@ export async function updateParameter(id: string, data: Parameter): Promise<void
 
 export async function deleteParameter(id: string): Promise<void> {
     try {
-        await invoke('delete_parameter', {id: id});
+        await invoke('delete_parameter', { id: id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

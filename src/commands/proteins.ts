@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api/tauri";
-import {Protein} from "enzymeml/src";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Protein } from "enzymeml";
 
 export async function createProtein(): Promise<string> {
     try {
@@ -20,7 +20,7 @@ export async function listProteins(): Promise<[string, string][]> {
 
 export async function getProtein(id: string): Promise<Protein> {
     try {
-        return await invoke('get_protein', {id});
+        return await invoke('get_protein', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -28,7 +28,7 @@ export async function getProtein(id: string): Promise<Protein> {
 
 export async function updateProtein(id: string, data: Protein): Promise<void> {
     try {
-        await invoke('update_protein', {id: id, data: data});
+        await invoke('update_protein', { id: id, data: data });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -36,7 +36,7 @@ export async function updateProtein(id: string, data: Protein): Promise<void> {
 
 export async function deleteProtein(id: string): Promise<void> {
     try {
-        await invoke('delete_protein', {id});
+        await invoke('delete_protein', { id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
