@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 // Interface for DBSmallMolecule based on the Rust model
 export interface DBSmallMolecule {

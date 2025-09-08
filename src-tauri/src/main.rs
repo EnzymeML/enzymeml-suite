@@ -13,8 +13,6 @@ use crate::actions::{
 use crate::api::create_rocket;
 use crate::states::EnzymeMLState;
 
-// use tauri::Manager;
-
 pub(crate) mod api;
 mod db;
 mod docutils;
@@ -56,18 +54,34 @@ async fn main() {
     let tauri_state = Arc::clone(&app_state);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             #[cfg(debug_assertions)] // only include this code on debug builds
             {
-                let window = app.get_window("main").unwrap();
+                let window = app.get_webview_window("main").unwrap();
                 window.open_devtools();
                 window.close_devtools();
             }
             // Initialize the database.
             db::init();
 
+            // Initialize the Stronghold plugin.
+            let salt_path = app
+                .path()
+                .app_local_data_dir()
+                .expect("could not resolve app local data path")
+                .join("salt.txt");
+
+            println!("Salt path: {:?}", salt_path);
+
             // Initialize the Rocket server.
             let app_handle = app.handle().clone();
+
+            app_handle.plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+
             spawn(async move {
                 create_rocket(rocket_state, Arc::new(app_handle))
                     .launch()
@@ -77,6 +91,7 @@ async fn main() {
 
             Ok(())
         })
+        .plugin(tauri_plugin_cors_fetch::init())
         .manage(tauri_state)
         .invoke_handler(tauri::generate_handler![
             // Data IO

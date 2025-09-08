@@ -5,8 +5,8 @@ use enzymeml::prelude::EnzymeMLDocument;
 use std::error::Error;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tauri::api::dialog::blocking::FileDialogBuilder;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::db::establish_connection;
 use crate::docutils::{deserialize_doc, serialize_doc};
@@ -46,20 +46,26 @@ pub fn get_state(state: State<'_, Arc<EnzymeMLState>>) -> ExposedEnzymeMLState {
 /// # Returns
 /// Result containing either the saved file path or an error message
 #[tauri::command]
-pub async fn export_measurements(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
-    let dialog_result = FileDialogBuilder::new()
-        .set_title("Save File")
+pub async fn export_measurements(
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<PathBuf, String> {
+    let dialog_result = app_handle
+        .dialog()
+        .file()
         .set_file_name("measurements.xlsx")
-        .save_file();
+        .set_title("Export Measurements")
+        .blocking_save_file();
 
     match dialog_result {
         Some(path) => {
             let state_doc = state.doc.lock().unwrap();
+            let path = PathBuf::from(path.as_path().unwrap());
             state_doc
-                .to_excel(path.clone(), false, true)
+                .to_excel(&path, false, true)
                 .expect("Failed to export to Excel");
 
-            open::that(path.clone()).map_err(|err| err.to_string())?;
+            open::that(&path).map_err(|err| err.to_string())?;
             Ok(path)
         }
         None => Err("No file selected".to_string()),
@@ -84,15 +90,18 @@ pub async fn import_excel_meas(
     state: State<'_, Arc<EnzymeMLState>>,
     app_handle: AppHandle,
 ) -> Result<usize, String> {
-    let dialog_result = FileDialogBuilder::new()
-        .set_title("Open File")
+    let dialog_result = app_handle
+        .dialog()
+        .file()
+        .set_title("Import Measurements")
         .add_filter("Excel Files", &["xlsx"])
-        .pick_file();
+        .blocking_pick_file();
 
     match dialog_result {
         Some(path) => {
             let mut state_doc = state.doc.lock().unwrap();
             let prev_amnt_meas = state_doc.measurements.len();
+            let path = PathBuf::from(path.as_path().unwrap());
             state_doc
                 .add_from_excel(path, true)
                 .map_err(|err| err.to_string())?;
@@ -118,16 +127,24 @@ pub async fn import_excel_meas(
 /// # Returns
 /// Result containing either the saved file path or an error message
 #[tauri::command]
-pub async fn export_to_json(state: State<'_, Arc<EnzymeMLState>>) -> Result<PathBuf, String> {
-    let dialog_result = FileDialogBuilder::new()
-        .set_title("Save File")
-        .set_file_name("enzmldoc_test.json")
-        .save_file();
+pub async fn export_to_json(
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<PathBuf, String> {
+    let state_doc = state.doc.lock().unwrap();
+    let title = state_doc.name.clone().replace(" ", "_").to_lowercase();
+    let dialog_result = app_handle
+        .dialog()
+        .file()
+        .set_title("Save Document")
+        .set_file_name(format!("{}.json", title))
+        .blocking_save_file();
 
     match dialog_result {
         Some(path) => {
             let state_doc = state.doc.lock().unwrap();
             let json = serialize_doc(&state_doc).expect("Failed to serialize document");
+            let path = PathBuf::from(path.as_path().unwrap());
             std::fs::write(&path, json).expect("Failed to write file");
             Ok(path)
         }
@@ -153,14 +170,17 @@ pub async fn load_json(
     state: State<'_, Arc<EnzymeMLState>>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
-    let dialog_result = FileDialogBuilder::new()
-        .set_title("Open File")
-        .add_filter("JSON Files", &["json"])
-        .pick_file();
+    let dialog_result = app_handle
+        .dialog()
+        .file()
+        .set_title("Open EnzymeML Document")
+        .add_filter("EnzymeML Files", &["json"])
+        .blocking_pick_file();
 
     match dialog_result {
         Some(path) => {
             let mut state_doc = state.doc.lock().unwrap();
+            let path = PathBuf::from(path.as_path().unwrap());
             let json = std::fs::read_to_string(path).map_err(|err| err.to_string())?;
             let doc = deserialize_doc(json.as_str()).map_err(|err| err.to_string())?;
             *state_doc = doc;
@@ -197,7 +217,7 @@ pub fn new_document(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) {
 
     // Notify the frontend
     app_handle
-        .emit_all("update_document", ())
+        .emit("update_document", ())
         .expect("Failed to emit event");
 }
 
@@ -223,14 +243,14 @@ pub fn save(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<i
 
     if let Some(id) = *state_id {
         app_handle
-            .emit_all("update_document", ())
+            .emit("update_document", ())
             .expect("Failed to emit event");
         update_document(id, &state_doc).map_err(|err| err.to_string())
     } else {
         let id = insert_document(&state_title, &state_doc).map_err(|err| err.to_string())?;
         *state_id = Some(id);
         app_handle
-            .emit_all("update_document", ())
+            .emit("update_document", ())
             .expect("Failed to emit event");
         Ok(id)
     }

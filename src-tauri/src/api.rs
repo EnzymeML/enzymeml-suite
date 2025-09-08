@@ -6,7 +6,7 @@ use rocket_cors::AllowedOrigins;
 use serde::{Serialize, Serializer};
 use serde_json::Value;
 use std::sync::Arc;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::docutils::deserialize_doc;
 use crate::io::dataio::{retrieve_all_documents, retrieve_document_by_id};
@@ -274,7 +274,7 @@ pub fn update_document(
 /// # Returns
 /// Optional error response if event emission fails, None on success
 fn signal_change_to_frontend(app_handle: &AppHandle) -> Option<(Status, (ContentType, String))> {
-    match app_handle.emit_all("update_document", true) {
+    match app_handle.emit("update_document", true) {
         Ok(_) => {}
         Err(e) => {
             let response = APIResponse {

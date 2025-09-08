@@ -1,6 +1,6 @@
 use enzymeml::prelude::{SmallMolecule, SmallMoleculeBuilder};
 use std::sync::Arc;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;

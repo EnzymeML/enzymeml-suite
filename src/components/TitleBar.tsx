@@ -1,4 +1,4 @@
-import {appWindow} from "@tauri-apps/api/window";
+import {getCurrentWebviewWindow} from "@tauri-apps/api/webviewWindow";
 import {theme} from "antd";
 import Icon, {QuestionCircleOutlined, SaveOutlined} from "@ant-design/icons";
 import EnzymeMLLogoMono from "../icons/enzymeml_logo.svg";
@@ -7,6 +7,7 @@ import useAppStore from "../stores/appstore.ts";
 import {saveEntry} from "../commands/dataio.ts";
 import {NotificationType} from "./NotificationProvider.tsx";
 import UserSettings from "./UserSettings.tsx";
+const appWindow = getCurrentWebviewWindow()
 
 function TitleButtons() {
 

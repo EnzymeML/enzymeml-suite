@@ -2,7 +2,7 @@ use diesel::RunQueryDsl;
 use enzymeml::prelude::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
 use std::error::Error;
 use std::sync::{Arc, MutexGuard};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::db::establish_db_connection;
 use crate::models::NewDocument;
@@ -31,7 +31,7 @@ pub fn set_title(
     *state_title = title.to_string();
 
     app_handle
-        .emit_all("update_document", ())
+        .emit("update_document", ())
         .map_err(|e| e.to_string())?;
 
     Ok(())

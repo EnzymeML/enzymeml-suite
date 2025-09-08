@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use enzymeml::prelude::{Parameter, ParameterBuilder};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;

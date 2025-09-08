@@ -15,12 +15,13 @@
 #[tauri::command]
 pub async fn open_visualisation(app: tauri::AppHandle) -> Result<(), String> {
     let file_path = "viswindow/index.html";
-    let _settings_window = tauri::WindowBuilder::new(
+    let _settings_window = tauri::WebviewWindowBuilder::new(
         &app,
         "visualisation", /* the unique window label */
-        tauri::WindowUrl::App(file_path.into()),
+        tauri::WebviewUrl::App(file_path.into()),
     )
     .title("Visualisation")
+    .closable(true)
     .decorations(false)
     .transparent(true)
     .resizable(true)

@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { SmallMolecule } from "enzymeml";
 
 export async function createSmallMolecule(): Promise<string> {

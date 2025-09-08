@@ -1,5 +1,5 @@
 import { Equation } from "enzymeml";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 export async function listEquations(): Promise<[string, string][]> {
     try {

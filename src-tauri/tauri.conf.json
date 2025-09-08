@@ -2,30 +2,48 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "EnzymeML Suite",
-    "version": "0.1.0"
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
   },
-  "tauri": {
+  "productName": "EnzymeML Suite",
+  "mainBinaryName": "EnzymeML Suite",
+  "version": "0.1.0",
+  "identifier": "enzymeml-suite",
+  "plugins": {},
+  "app": {
     "macOSPrivateApi": true,
-    "allowlist": {
-      "http": {
-        "all": true,
-        "request": true
-      },
-      "shell": {
-        "open": true
-      },
-      "window": {
-        "startDragging": true,
-        "maximize": true,
-        "unmaximize": true,
-        "minimize": true,
-        "close": true
-      }
+    "security": {
+      "csp": null,
+      "capabilities": [
+        {
+          "identifier": "webview-permission",
+          "windows": [
+            "*"
+          ],
+          "permissions": [
+            "core:window:allow-create",
+            "core:window:allow-close",
+            "core:webview:allow-create-webview",
+            "core:webview:allow-webview-close",
+            "core:webview:allow-create-webview-window",
+            "core:event:allow-listen",
+            "core:event:allow-unlisten",
+            "cors-fetch:default",
+            "stronghold:default"
+          ]
+        }
+      ]
     },
     "windows": [
       {
@@ -36,23 +54,9 @@
         "minHeight": 400,
         "decorations": false,
         "resizable": true,
-        "transparent": true
+        "transparent": true,
+        "useHttpsScheme": true
       }
-    ],
-    "security": {
-      "csp": null
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "enzymeml-suite",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    }
+    ]
   }
 }

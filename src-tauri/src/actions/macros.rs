@@ -147,9 +147,7 @@ macro_rules! create_object {
 #[macro_export]
 macro_rules! update_event {
     ($app_handle:expr, $event:expr) => {
-        $app_handle
-            .emit_all($event, ())
-            .expect("Failed to emit event");
+        $app_handle.emit($event, ()).expect("Failed to emit event");
     };
     () => {};
 }

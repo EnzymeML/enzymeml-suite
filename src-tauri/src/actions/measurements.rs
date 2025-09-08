@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use enzymeml::prelude::{DataTypes, Measurement, MeasurementBuilder, MeasurementDataBuilder};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::enzmldoc::get_species_name;
 use crate::actions::utils::generate_id;

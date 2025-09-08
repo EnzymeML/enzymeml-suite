@@ -3,7 +3,7 @@ use enzymeml::prelude::{EnzymeMLDocument, Equation, Parameter, Reaction};
 use enzymeml::prelude::{EquationBuilder, EquationType, ParameterBuilder};
 use std::collections::HashSet;
 use std::sync::{Arc, MutexGuard};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::enzmldoc::extract_species_ids;
 use crate::states::EnzymeMLState;
@@ -208,7 +208,7 @@ pub fn derive_from_reactions(
     }
 
     app_handle
-        .emit_all("update_equations", ())
+        .emit("update_equations", ())
         .map_err(|e| e.to_string())?;
 
     Ok(())
