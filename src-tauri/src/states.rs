@@ -1,5 +1,4 @@
-use enzymeml::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
-use enzymeml::prelude::Parameter;
+use enzymeml::prelude::{EnzymeMLDocument, EnzymeMLDocumentBuilder, Parameter};
 use std::sync::{Arc, Mutex};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
