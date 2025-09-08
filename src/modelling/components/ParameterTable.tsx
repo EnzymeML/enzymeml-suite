@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Table, Card, Typography, Button, theme } from "antd"
+import { Table, Card, Typography, Button } from "antd"
 import type { Parameter } from "enzymeml"
 import CardTitle from "../../components/CardTitle"
 import EditableNumberCell from "./EditableNumberCell"
