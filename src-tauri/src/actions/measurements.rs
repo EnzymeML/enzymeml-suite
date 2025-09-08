@@ -1,33 +1,46 @@
-use std::hash::Hash;
 use std::sync::Arc;
 
-use enzymeml::prelude::{Measurement, MeasurementBuilder, MeasurementDataBuilder};
+use enzymeml::prelude::{DataTypes, Measurement, MeasurementBuilder, MeasurementDataBuilder};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
 
-use crate::{create_object, delete_object, get_object, update_event, update_object};
 use crate::actions::enzmldoc::get_species_name;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
+use crate::{create_object, delete_object, get_object, update_event, update_object};
 
+/// Data structure for visualization containing an ID and data points
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VisData {
     pub id: String,
     pub data: Vec<DataPoint>,
 }
 
+/// Represents a single data point with x and y coordinates
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DataPoint {
     pub x: f32,
     pub y: f32,
 }
 
+/// Creates a new measurement in the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result containing the ID of the created measurement or an error
 #[tauri::command]
 pub fn create_measurement(
     state: State<Arc<EnzymeMLState>>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
-    let id = create_object!(state.doc, measurements, MeasurementBuilder, "m", id);
+    let mut builder = MeasurementBuilder::default();
+    builder.name("New Measurement".to_string());
+
+    let id = create_object!(state.doc, measurements, builder, "m", id);
+
     let mut state_doc = state.doc.lock().unwrap();
 
     // Collect the ids from small molecules and proteins by chaining the iterators
@@ -49,6 +62,7 @@ pub fn create_measurement(
         .map(|id| {
             MeasurementDataBuilder::default()
                 .species_id(id.clone())
+                .data_type(DataTypes::Concentration)
                 .time(vec![])
                 .data(vec![])
                 .build()
@@ -56,13 +70,20 @@ pub fn create_measurement(
         })
         .collect();
 
-    update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_measurements");
 
     Ok(id)
 }
 
+/// Updates an existing measurement in the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `data` - The updated measurement data
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
 #[tauri::command]
 pub fn update_measurement(
     state: State<Arc<EnzymeMLState>>,
@@ -72,14 +93,19 @@ pub fn update_measurement(
     println!("Updating measurement: {:#?}", data);
     let id = update_object!(state.doc, measurements, data, id);
 
-    update_event!(app_handle, "update_document");
     update_event!(app_handle, "update_measurements");
-    update_event!(app_handle, "update_nav");
     update_event!(app_handle, &id);
 
     Ok(())
 }
 
+/// Retrieves a list of all measurements with their IDs and names
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Vector of tuples containing measurement ID and name pairs
 #[tauri::command]
 pub fn list_measurements(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)> {
     // Extract the guarded state values
@@ -92,19 +118,35 @@ pub fn list_measurements(state: State<Arc<EnzymeMLState>>) -> Vec<(String, Strin
         .collect()
 }
 
+/// Retrieves a specific measurement by its ID
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `id` - The ID of the measurement to retrieve
+///
+/// # Returns
+/// Result containing the measurement or an error if not found
 #[tauri::command]
 pub fn get_measurement(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Measurement, String> {
     get_object!(state.doc, measurements, id, id)
 }
 
+/// Retrieves data points for visualization from a measurement
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `id` - The ID of the measurement to get data points from
+///
+/// # Returns
+/// Result containing a vector of visualization data or an error
 #[tauri::command]
 pub fn get_datapoints(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Vec<VisData>, String> {
     let meas: Measurement = get_object!(state.doc, measurements, id, id)?;
     let mut times = vec![];
 
     for data in &meas.species_data {
-        if data.time.is_some() && !data.time.clone().unwrap().is_empty() {
-            times.push(data.time.clone().unwrap());
+        if !data.time.is_empty() {
+            times.push(data.time.clone());
         }
     }
 
@@ -113,20 +155,23 @@ pub fn get_datapoints(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Vec<
     let mut dataset: Vec<VisData> = vec![];
 
     for species_data in &meas.species_data {
-        if species_data.data.is_none() {
+        if species_data.data.is_empty() {
             // When there is no data, we can't create a data point
             continue;
         }
 
-        let time = species_data.time.clone().unwrap();
-        let data = species_data.data.clone().unwrap();
+        let time = species_data.time.clone();
+        let data = species_data.data.clone();
 
-        let zipped: Vec<(&f32, f32)> = time.iter().zip(data).collect();
+        let zipped: Vec<(&f64, f64)> = time.iter().zip(data).collect();
 
         let mut data_points = vec![];
 
         for (time, data) in zipped {
-            data_points.push(DataPoint { y: data, x: *time });
+            data_points.push(DataPoint {
+                y: data as f32,
+                x: *time as f32,
+            });
         }
 
         let vis_data = VisData {
@@ -143,7 +188,14 @@ pub fn get_datapoints(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Vec<
     Ok(dataset)
 }
 
-fn time_arrays_are_same(times: &[Vec<f32>]) -> Result<(), String> {
+/// Validates that all time arrays in a collection are identical
+///
+/// # Arguments
+/// * `times` - Vector of time arrays to validate
+///
+/// # Returns
+/// Result indicating success or an error if arrays differ
+fn time_arrays_are_same(times: &[Vec<f64>]) -> Result<(), String> {
     if times.is_empty() {
         return Err("No time vectors found".to_string());
     } else {
@@ -158,6 +210,15 @@ fn time_arrays_are_same(times: &[Vec<f32>]) -> Result<(), String> {
     Ok(())
 }
 
+/// Deletes a measurement from the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `id` - The ID of the measurement to delete
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
 #[tauri::command]
 pub fn delete_measurement(
     state: State<Arc<EnzymeMLState>>,
@@ -167,8 +228,6 @@ pub fn delete_measurement(
     // Signature: State, Path, ID, ID property
     delete_object!(state.doc, measurements, id, id);
 
-    update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_measurements");
     update_event!(app_handle, "update_vis");
 

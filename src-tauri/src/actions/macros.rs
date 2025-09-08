@@ -1,4 +1,3 @@
-#[macro_export]
 /// Macro to retrieve an item by its ID from a nested collection.
 ///
 /// This macro takes a struct, a path to a nested collection within the struct, and an ID.
@@ -15,6 +14,7 @@
 ///
 /// * `Ok(s.clone())` - If an item with the given ID is found, it returns a clone of the item.
 /// * `Err(format!("{} not found", $id))` - If no item with the given ID is found, it returns an error message.
+#[macro_export]
 macro_rules! get_object {
     ($state:expr, $($path:ident).+, $id:expr, $id_prop:ident) => {{
         let state = $state.lock().unwrap();
@@ -40,9 +40,10 @@ macro_rules! get_object {
 /// * `$id` - The ID of the item to delete.
 /// * `$id_prop` - The property of the item that contains the ID.
 ///
-/// # Panics
+/// # Behavior
 ///
-/// This macro will panic if the item with the given ID is not found in the collection.
+/// If the item with the given ID is found, it is removed from the collection.
+/// If the item is not found, the operation silently succeeds without error.
 #[macro_export]
 macro_rules! delete_object {
     ($state:expr, $($path:ident).+, $id:expr, $id_prop:ident) => {{
@@ -66,6 +67,11 @@ macro_rules! delete_object {
 /// * `$state` - The state containing the nested collection, wrapped in a `Mutex`.
 /// * `$($path).+` - The path to the nested collection within the state.
 /// * `$data` - The new data to update the item with.
+/// * `$id_prop` - The property of the item that contains the ID.
+///
+/// # Returns
+///
+/// Returns the ID of the updated item.
 ///
 /// # Panics
 ///
@@ -94,15 +100,20 @@ macro_rules! update_object {
 /// * `$($path).+` - The path to the nested collection within the state.
 /// * `$builder` - The builder type used to create the new object.
 /// * `$prefix` - The prefix used to generate a unique ID for the new object.
+/// * `$id_prop` - The property of the item that contains the ID.
+///
+/// # Returns
+///
+/// Returns the generated ID of the new object.
 ///
 /// # Panics
 ///
 /// This macro will panic if the object fails to build.
 #[macro_export]
 macro_rules! create_object {
-    ($state:expr, $($path:ident).+, $builder:ty, $prefix:expr, $id_prop:ident) => {{
+    ($state:expr, $($path:ident).+, $builder:expr, $prefix:expr, $id_prop:ident) => {{
         let mut state = $state.lock().unwrap();
-        let mut object = <$builder>::default();
+        let mut object = $builder;
 
         // Get the id and set it
         let ids: Vec<_> = state.$($path).+.iter().map(|s| s.$id_prop.clone()).collect();
@@ -120,6 +131,19 @@ macro_rules! create_object {
     }};
 }
 
+/// Macro to emit an update event to all listeners.
+///
+/// This macro takes an app handle and an event name, and emits the event to all listeners.
+/// It provides a convenient way to notify the frontend about state changes.
+///
+/// # Arguments
+///
+/// * `$app_handle` - The Tauri app handle used to emit events.
+/// * `$event` - The name of the event to emit.
+///
+/// # Panics
+///
+/// This macro will panic if it fails to emit the event.
 #[macro_export]
 macro_rules! update_event {
     ($app_handle:expr, $event:expr) => {

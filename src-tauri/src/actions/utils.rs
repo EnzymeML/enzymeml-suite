@@ -11,14 +11,6 @@
 /// # Returns
 ///
 /// A `String` representing the new unique ID.
-///
-/// # Examples
-///
-/// ```
-/// let ids = vec![String::from("item_1"), String::from("item_2")];
-/// let new_id = generate_id(&ids, "item");
-/// assert_eq!(new_id, "item_3");
-/// ```
 pub fn generate_id(ids: &Vec<String>, prefix: &str) -> String {
     let mut i = 1;
     let mut id = format!("{}{}", prefix, i);

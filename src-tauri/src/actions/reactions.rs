@@ -6,17 +6,36 @@ use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 use crate::{create_object, delete_object, get_object, update_event, update_object};
 
+/// Creates a new reaction in the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// The ID of the created reaction
 #[tauri::command]
 pub fn create_reaction(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> String {
-    let id = create_object!(state.doc, reactions, ReactionBuilder, "r", id);
+    let mut builder = ReactionBuilder::default();
+    builder.name("New Reaction".to_string());
+    builder.reversible(false);
 
-    update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_nav");
+    let id = create_object!(state.doc, reactions, builder, "r", id);
+
     update_event!(app_handle, "update_reactions");
 
     id
 }
 
+/// Updates an existing reaction in the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `data` - The updated reaction data
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
 #[tauri::command]
 pub fn update_reaction(
     state: State<Arc<EnzymeMLState>>,
@@ -25,13 +44,18 @@ pub fn update_reaction(
 ) -> Result<(), String> {
     let id = update_object!(state.doc, reactions, data, id);
 
-    update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_nav");
     update_event!(app_handle, &id);
 
     Ok(())
 }
 
+/// Retrieves all reactions from the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Vector of tuples containing the ID and name of each reaction
 #[tauri::command]
 pub fn list_reactions(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)> {
     // Extract the guarded state values
@@ -44,11 +68,28 @@ pub fn list_reactions(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)>
         .collect()
 }
 
+/// Retrieves a specific reaction by its ID
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `id` - The ID of the reaction to retrieve
+///
+/// # Returns
+/// Result containing the reaction or an error if not found
 #[tauri::command]
 pub fn get_reaction(state: State<Arc<EnzymeMLState>>, id: &str) -> Result<Reaction, String> {
     get_object!(state.doc, reactions, id, id)
 }
 
+/// Deletes a reaction from the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `id` - The ID of the reaction to delete
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
 #[tauri::command]
 pub fn delete_reaction(
     state: State<Arc<EnzymeMLState>>,
@@ -58,8 +99,6 @@ pub fn delete_reaction(
     // Signature: State, Path, ID, ID property
     delete_object!(state.doc, reactions, id, id);
 
-    update_event!(app_handle, "update_document");
-    update_event!(app_handle, "update_nav");
     update_event!(app_handle, "update_reactions");
 
     Ok(())

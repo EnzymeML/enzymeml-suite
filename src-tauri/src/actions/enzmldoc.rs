@@ -1,5 +1,5 @@
 use diesel::RunQueryDsl;
-use enzymeml::enzyme_ml::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
+use enzymeml::prelude::{EnzymeMLDocument, EnzymeMLDocumentBuilder};
 use std::error::Error;
 use std::sync::{Arc, MutexGuard};
 use tauri::{AppHandle, Manager, State};
@@ -9,6 +9,15 @@ use crate::models::NewDocument;
 use crate::schema::documents;
 use crate::states::EnzymeMLState;
 
+/// Sets the title of the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `title` - The new title for the document
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
 #[tauri::command]
 pub fn set_title(
     state: State<Arc<EnzymeMLState>>,
@@ -28,6 +37,13 @@ pub fn set_title(
     Ok(())
 }
 
+/// Creates a new EnzymeML document and saves it to the database
+///
+/// # Arguments
+/// * `title` - The title for the new document
+///
+/// # Returns
+/// Result containing the database ID of the created document or an error
 pub fn create_new_document(title: &str) -> Result<i32, Box<dyn Error>> {
     let mut connection = establish_db_connection();
     let doc = EnzymeMLDocumentBuilder::default().name(title).build()?;
@@ -46,12 +62,26 @@ pub fn create_new_document(title: &str) -> Result<i32, Box<dyn Error>> {
     Ok(id)
 }
 
+/// Retrieves all species IDs from the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Vector of all species IDs (small molecules, proteins, and complexes)
 #[tauri::command]
 pub fn get_all_species_ids(state: State<Arc<EnzymeMLState>>) -> Vec<String> {
     let doc = state.doc.lock().unwrap();
     extract_species_ids(&doc)
 }
 
+/// Extracts species IDs from an EnzymeML document
+///
+/// # Arguments
+/// * `doc` - Reference to the locked EnzymeML document
+///
+/// # Returns
+/// Vector of all species IDs (small molecules, proteins, and complexes)
 pub fn extract_species_ids(doc: &MutexGuard<EnzymeMLDocument>) -> Vec<String> {
     doc.small_molecules
         .iter()
@@ -61,12 +91,27 @@ pub fn extract_species_ids(doc: &MutexGuard<EnzymeMLDocument>) -> Vec<String> {
         .collect()
 }
 
+/// Retrieves all species with their IDs and names from the EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Vector of tuples containing the ID and name of each species
 #[tauri::command]
 pub fn get_all_species(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)> {
     let doc = state.doc.lock().unwrap();
     get_all_species_ids_and_names(doc)
 }
 
+/// Retrieves the name of a specific species by its ID
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `species_id` - The ID of the species to look up
+///
+/// # Returns
+/// Result containing the species name or an error if not found
 #[tauri::command]
 pub fn get_species_name(
     state: State<Arc<EnzymeMLState>>,
@@ -86,6 +131,13 @@ pub fn get_species_name(
     }
 }
 
+/// Helper function to extract all species IDs and names from an EnzymeML document
+///
+/// # Arguments
+/// * `state_doc` - Reference to the locked EnzymeML document
+///
+/// # Returns
+/// Vector of tuples containing the ID and name of each species
 fn get_all_species_ids_and_names(state_doc: MutexGuard<EnzymeMLDocument>) -> Vec<(String, String)> {
     let all_species = state_doc
         .small_molecules
@@ -107,6 +159,14 @@ fn get_all_species_ids_and_names(state_doc: MutexGuard<EnzymeMLDocument>) -> Vec
     all_species
 }
 
+/// Retrieves all non-constant species IDs from the EnzymeML document
+/// Non-constant species are those that can change concentration during simulation
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Vector of non-constant species IDs (small molecules and proteins only)
 #[tauri::command]
 pub fn get_all_non_constant_species_ids(state: State<Arc<EnzymeMLState>>) -> Vec<String> {
     let state_doc = state.doc.lock().unwrap();
