@@ -51,10 +51,7 @@ async fn main() {
     // Initialize state and clone for both tauri and warp
     // Fetch env variable TESTING to determine if we are in testing mode
 
-    let app_state = match std::env::var("TESTING") {
-        Ok(_) => Arc::new(EnzymeMLState::testing()),
-        Err(_) => Arc::new(EnzymeMLState::default()),
-    };
+    let app_state = Arc::new(EnzymeMLState::default());
     let rocket_state = Arc::clone(&app_state);
     let tauri_state = Arc::clone(&app_state);
 

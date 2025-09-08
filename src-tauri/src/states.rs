@@ -45,16 +45,3 @@ impl From<&Arc<EnzymeMLState>> for ExposedEnzymeMLState {
         }
     }
 }
-
-impl EnzymeMLState {
-    pub fn testing() -> Self {
-        let enzmldoc: EnzymeMLDocument =
-            serde_json::from_str(include_str!("../enzymeml.json")).unwrap();
-        EnzymeMLState {
-            title: Mutex::new("Test Document".to_string()),
-            doc: Mutex::new(enzmldoc),
-            id: Mutex::new(None),
-            param_buffer: Mutex::new(Vec::new()),
-        }
-    }
-}
