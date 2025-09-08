@@ -19,7 +19,7 @@ import NotificationProvider, {
 } from "../components/NotificationProvider.tsx";
 import useAppStore from "../stores/appstore.ts";
 import { JsonView, defaultStyles } from "react-json-view-lite";
-import { getAllSmallMolecules } from "../commands/dbops.ts";
+
 export default function Home() {
   // States
   const [currentDoc, setCurrentDoc] = useState<EnzymeMLState | null>(null);
@@ -128,11 +128,6 @@ export default function Home() {
       });
   };
 
-  // List all small molecules
-  const smallMoleculeDbs = getAllSmallMolecules().then((data) => {
-    console.log(data);
-  });
-
   return (
     <NotificationProvider>
       <div
@@ -164,10 +159,10 @@ export default function Home() {
             }))}
           />
         </div>
-        <div className={"h-screen mt-2"}>
+        <div className={"mt-2 h-screen"}>
           <div
             className={
-              "h-full flex justify-center overflow-auto rounded-2xl scrollbar-hide"
+              "flex overflow-auto justify-center h-full rounded-2xl scrollbar-hide"
             }
           >
             <div
@@ -178,8 +173,8 @@ export default function Home() {
               }}
             >
               <JsonView
-                data={currentDoc?.doc}
-                shouldExpandNode={(level, value, field) => {
+                data={currentDoc?.doc || {}}
+                shouldExpandNode={() => {
                   return true;
                 }}
                 style={defaultStyles}
