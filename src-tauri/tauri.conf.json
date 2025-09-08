@@ -30,9 +30,9 @@
     "windows": [
       {
         "title": "EnzymeML Suite",
-        "width": 1000,
+        "width": 1200,
         "height": 800,
-        "minWidth": 700,
+        "minWidth": 1000,
         "minHeight": 400,
         "decorations": false,
         "resizable": true,
