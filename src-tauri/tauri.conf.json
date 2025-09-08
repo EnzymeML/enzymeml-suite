@@ -6,8 +6,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "EnzymeML Suite",
-    "version": "0.0.1"
+    "productName": "EnzymeMLSuite",
+    "version": "0.1.0"
   },
   "tauri": {
     "macOSPrivateApi": true,
@@ -29,7 +29,7 @@
     },
     "windows": [
       {
-        "title": "EnzymeML Suite",
+        "title": "EnzymeMLSuite",
         "width": 1200,
         "height": 800,
         "minWidth": 1000,
