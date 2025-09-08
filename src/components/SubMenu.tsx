@@ -33,7 +33,7 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
   [AvailablePaths.PROTEINS]: null,
   [AvailablePaths.REACTIONS]: null,
   [AvailablePaths.HOME]: null,
-  [AvailablePaths.MODELS]: {
+  [AvailablePaths.MODELLING]: {
     title: "Model Actions",
     items: [
       {
@@ -42,7 +42,7 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
         icon: <RightCircleOutlined />,
       },
     ],
-    clickHandler: (key, openNotification) => {
+    clickHandler: (key: string, openNotification: openNotificationType) => {
       switch (key) {
         case "derive-model":
           deriveModel()
@@ -168,7 +168,7 @@ export default function SubMenu() {
     <NotificationProvider>
       <Grow>
         <Menu
-          className={"h-auto py-2 shadow-sm"}
+          className={"py-2 h-auto shadow-sm"}
           style={{
             background: token.colorBgContainer,
             borderRadius: token.borderRadiusLG,
