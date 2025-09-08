@@ -1,11 +1,11 @@
-import {convertLatexToAsciiMath, MathfieldElement} from "mathlive";
+import { convertLatexToAsciiMath, MathfieldElement } from "mathlive";
 import "//unpkg.com/mathlive";
-import React, {useEffect, useState} from "react";
-import {asciiToLatex, convertSpeciesIDsToUnderscore, convertUnderscoreSpeciesToIDs, idToLatex} from "../utils.ts";
+import React, { useEffect, useState } from "react";
+import { asciiToLatex, convertSpeciesIDsToUnderscore, convertUnderscoreSpeciesToIDs, idToLatex } from "../utils.ts";
 import "./equation.css";
-import {Form} from "antd";
-import {ChildProps} from "../../types.ts";
-import {Equation} from "enzymeml/src";
+import { Form } from "antd";
+import { ChildProps } from "../../types.ts";
+import { Equation } from "enzymeml";
 
 declare global {
     namespace JSX {
@@ -20,26 +20,26 @@ function RateLaw(props: {
     onInput: (evt: React.FormEvent<MathfieldElement>) => void,
     latexEquation: string
 }) {
-    return <div className={"flex flex-row place-items-center justify-start h-auto"}>
+    return <div className={"flex flex-row justify-start place-items-center h-auto"}>
         <math-field read-only={true} id={"static-math-field"}>
             {`\\frac{d ${idToLatex(props.id)} }{dt} = `}
         </math-field>
         <math-field className={"w-full"}
-                    id={"dynamic-math-field"}
-                    onBlur={props.onInput}
-                    onKeyDown={(evt) => {
-                        // If the event is enter key, blur the field
-                        if (evt.key === "Enter") {
-                            evt.currentTarget.blur();
-                        }
+            id={"dynamic-math-field"}
+            onBlur={props.onInput}
+            onKeyDown={(evt) => {
+                // If the event is enter key, blur the field
+                if (evt.key === "Enter") {
+                    evt.currentTarget.blur();
+                }
 
-                        // If escape is pressed, return to the previous value
-                        if (evt.key === "Escape") {
-                            // @ts-ignore
-                            evt.target.value = props.latexEquation;
-                            evt.currentTarget.blur();
-                        }
-                    }}
+                // If escape is pressed, return to the previous value
+                if (evt.key === "Escape") {
+                    // @ts-ignore
+                    evt.target.value = props.latexEquation;
+                    evt.currentTarget.blur();
+                }
+            }}
         >
             {props.latexEquation}
         </math-field>
@@ -61,12 +61,12 @@ export default function Model(
         // Convert IDs to underscores in the equation.css
         convertSpeciesIDsToUnderscore(data.equation)
             .then((converted) => {
-                    setLatexEquation(asciiToLatex(converted));
-                }
+                setLatexEquation(asciiToLatex(converted));
+            }
             ).catch((error) => {
                 console.error('Error:', error);
             }
-        )
+            )
 
     }, []);
 
@@ -101,7 +101,7 @@ export default function Model(
             form={form}
         >
             <Form.Item name="equation">
-                <RateLaw id={data.species_id} onInput={onMathInput} latexEquation={latexEquation}/>
+                <RateLaw id={data.species_id} onInput={onMathInput} latexEquation={latexEquation} />
             </Form.Item>
         </Form>
     );

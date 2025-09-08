@@ -1,22 +1,22 @@
 import React from "react";
-import {FormViewProps} from "../types.ts";
-import {Equation} from "enzymeml/src";
+import { FormViewProps } from "../types.ts";
+import { Equation } from "enzymeml";
 import FormBase from "../components/FormBase.tsx";
-import {Form} from "antd";
+import { Form } from "antd";
 import EquationInput from "../components/EquationInput.tsx";
-import {asciiToLatex} from "../utilities/equationutils.ts";
+import { asciiToLatex } from "../utilities/equationutils.ts";
 
 
 export default function EquationForm(
-    {context}: FormViewProps<Equation>
+    { context }: FormViewProps<Equation>
 ) {
     // Context
-    const {handleUpdateObject, form, data, locked} = React.useContext(context);
+    const { handleUpdateObject, form, data, locked } = React.useContext(context);
 
     // Handlers
     // @ts-ignore
     const handleEquationChange = (equation: string) => {
-        form.setFieldsValue({equation: equation});
+        form.setFieldsValue({ equation: equation });
         handleUpdateObject();
     }
 
@@ -29,17 +29,17 @@ export default function EquationForm(
             locked={locked}
         >
             <Form.Item name={"equation"}
-                       style={{
-                           display: 'flex',
-                           flexDirection: 'column',
-                           justifyContent: 'center',
-                       }}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                }}
             >
                 <div className={"w-full -translate-y-3"}>
                     <EquationInput id={data.species_id}
-                                   equation={asciiToLatex(data.equation)}
-                                   isOde={data.equation_type === "ode"}
-                                   onChange={handleEquationChange}
+                        equation={asciiToLatex(data.equation)}
+                        isOde={data.equation_type === "ode"}
+                        onChange={handleEquationChange}
                     />
                 </div>
             </Form.Item>
