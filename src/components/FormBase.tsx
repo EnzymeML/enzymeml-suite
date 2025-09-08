@@ -1,6 +1,6 @@
-import {Form, FormInstance} from "antd";
+import { Form, FormInstance } from "antd";
 import React from "react";
-import {Identifiable} from "../types.ts";
+import { Identifiable } from "../types.ts";
 
 interface FormBaseProps<T extends Identifiable> {
     form: FormInstance<T>;
@@ -27,8 +27,8 @@ export default function FormBase<T extends Identifiable>(
         <Form
             className={className}
             form={form}
-            labelCol={{span: 5}}
-            wrapperCol={{span: 17}}
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 19 }}
             size={size}
             layout="horizontal"
             initialValues={data}
