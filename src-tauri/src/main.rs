@@ -16,13 +16,19 @@ use crate::states::EnzymeMLState;
 // use tauri::Manager;
 
 pub(crate) mod api;
-mod dataio;
 mod db;
 mod docutils;
 mod models;
 mod schema;
 pub mod states;
 pub mod unit;
+
+pub mod io {
+    pub mod dataio;
+    pub mod dbops;
+    pub mod macros;
+    pub mod stringarray;
+}
 
 pub mod actions {
     pub mod enzmldoc;
@@ -77,15 +83,20 @@ async fn main() {
         .manage(tauri_state)
         .invoke_handler(tauri::generate_handler![
             // Data IO
-            dataio::save,
-            dataio::load,
-            dataio::list_all_entries,
-            dataio::new_document,
-            dataio::export_to_json,
-            dataio::get_state,
-            dataio::export_measurements,
-            dataio::import_excel_meas,
-            dataio::load_json,
+            io::dataio::save,
+            io::dataio::load,
+            io::dataio::list_all_entries,
+            io::dataio::new_document,
+            io::dataio::export_to_json,
+            io::dataio::get_state,
+            io::dataio::export_measurements,
+            io::dataio::import_excel_meas,
+            io::dataio::load_json,
+            // Database
+            io::dbops::save_mol_to_db,
+            io::dbops::filter_small_mols,
+            io::dbops::get_all_small_mols,
+            io::dbops::get_small_mol_by_id,
             // EnzymeML Document
             enzmldoc::get_all_species_ids,
             enzmldoc::get_all_non_constant_species_ids,
@@ -132,6 +143,7 @@ async fn main() {
             parameters::create_parameter,
             parameters::get_parameter,
             parameters::update_parameter,
+            parameters::partial_update_parameter,
             parameters::delete_parameter,
             // Simulation
             simulation::simulate_enzymeml,
