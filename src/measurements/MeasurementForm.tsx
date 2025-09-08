@@ -1,108 +1,140 @@
-import {Button, Form, Input, InputNumber, SelectProps} from "antd";
-import {FormViewProps} from "../types.ts";
-import React, {useEffect, useState} from "react";
+import { Button, Form, Input, InputNumber, SelectProps } from "antd";
+import { FormViewProps } from "../types.ts";
+import React, { useEffect, useState } from "react";
 import FormBase from "../components/FormBase.tsx";
-import {DataTypes, Measurement} from "enzymeml/src";
-import {listAllSpeciesIdsNames} from "../commands/enzmldoc.ts";
-import {AutoCompleteProps} from "antd/lib";
+import { DataTypes, Measurement } from "enzymeml";
+import { listAllSpeciesIdsNames } from "../commands/enzmldoc.ts";
+import { AutoCompleteProps } from "antd/lib";
 import SpeciesReference from "../components/SpeciesReference.tsx";
-import {UnitTypes} from "../commands/units.ts";
+import { UnitTypes } from "../commands/units.ts";
 import QuantityForm from "../components/QuantityForm.tsx";
 import InitialsField from "./components/InitialsField.tsx";
 
-export const mapSpeciesToOption = (species: [string, string][]): AutoCompleteProps["options"] => {
-    const options = species.map(
-        ([id, name]) => {
-            return {value: id, label: <SpeciesReference name={name} id={id}/>}
-        }
-    )
+export const mapSpeciesToOption = (
+  species: [string, string][]
+): AutoCompleteProps["options"] => {
+  return species
+    .map(([id, name]) => ({
+      value: id,
+      label: <SpeciesReference name={name} id={id} />,
+    }))
+    .filter((option) => option !== null) as AutoCompleteProps["options"];
+};
 
-    return options.filter(
-        (option) => option !== null
-    ) as AutoCompleteProps["options"]
-}
+export default function MeasurementForm({
+  context,
+}: FormViewProps<Measurement>) {
+  // States
+  const [availableSpecies, setAvailableSpecies] = useState<
+    SelectProps["options"]
+  >([]);
 
-export default function MeasurementForm({context}: FormViewProps<Measurement>) {
-    // States
-    const [availableSpecies, setAvailableSpecies] = useState<SelectProps["options"]>([])
+  // Context
+  const { handleUpdateObject, form, data, locked } = React.useContext(context);
 
-    // Context
-    const {handleUpdateObject, form, data, locked} = React.useContext(context);
+  // Memoize handlers
+  const handleAddSpecies = React.useCallback(
+    () => ({
+      data_type: DataTypes.CONCENTRATION,
+      is_simulated: false,
+    }),
+    []
+  );
 
-    // Effects
-    useEffect(() => {
-        listAllSpeciesIdsNames().then(
-            (data) => {
-                setAvailableSpecies(mapSpeciesToOption(data));
-            }
-        ).catch(
-            (e) => console.log("Failed to fetch species: ", e)
-        )
-    }, []);
+  // Add a debug wrapper for handleUpdateObject
+  const handleUpdateMeasurement = React.useCallback(async () => {
+    try {
+      console.log('Form data before update:', form.getFieldsValue());
+      console.log('Current data:', data);
 
-    // Handlers
-    return (
-        <FormBase
-            form={form}
-            data={data}
-            handleUpdate={handleUpdateObject}
-            locked={locked}
-        >
-            <Form.Item label="Name" name="name">
-                <Input/>
-            </Form.Item>
-            <Form.Item
-                label="pH"
-                name="ph"
-                rules={[
-                    {
-                        type: 'number',
-                        min: 0,
-                        max: 14,
-                        message: 'pH must be between 0 and 14',
-                    },
-                ]}
-            >
-                <InputNumber
-                    className="w-full"
-                    type="number"
-                    placeholder="pH value"
-                />
-            </Form.Item>
-            <Form.Item label={"Temperature"}>
-                <QuantityForm name={"temperature"}
-                              unitPath={"temperature_unit"}
-                              label={"Temperature"}
-                              unitTypes={[UnitTypes.TEMPERATURE]}
-                              required={false}
-                              handleUpdateObject={handleUpdateObject}
-                />
-            </Form.Item>
-            <Form.Item label={"Initials"}>
-                <Form.List name="species_data">
-                    {(fields, subOpt) => (
-                        <div style={{display: 'flex', flexDirection: 'column', rowGap: 16}}>
-                            {fields.map((field) => (
-                                    <>
-                                        <InitialsField field={field}
-                                                       subOpt={subOpt}
-                                                       availableSpecies={availableSpecies}
-                                                       handleUpdateObject={handleUpdateObject}
-                                        />
-                                    </>
-                                )
-                            )}
-                            <Button type="dashed" onClick={() => subOpt.add({
-                                data_type: DataTypes.CONCENTRATION,
-                                is_simulated: false
-                            })}
-                                    block>
-                                + Add Species
-                            </Button>
-                        </div>
-                    )}
-                </Form.List>
-            </Form.Item>
-        </FormBase>
-    );
+      // Call the original handler
+      await handleUpdateObject();
+
+      console.log('Update successful');
+    } catch (error) {
+      console.error('Update failed:', error);
+    }
+  }, [form, data, handleUpdateObject]);
+
+  // Effects with cleanup
+  useEffect(() => {
+    let mounted = true;
+
+    listAllSpeciesIdsNames()
+      .then((data) => {
+        if (!mounted) return;
+        setAvailableSpecies(
+          mapSpeciesToOption(data) as AutoCompleteProps["options"]
+        );
+      })
+      .catch((e) => console.log("Failed to fetch species: ", e));
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Memoize the form fields rendering
+  const renderInitialsFields = (fields: any[], subOpt: any) => (
+    <div style={{ display: "flex", flexDirection: "column", rowGap: 16 }}>
+      {fields.map((field) => (
+        <InitialsField
+          key={field.key}
+          field={field}
+          subOpt={subOpt}
+          availableSpecies={availableSpecies}
+          handleUpdateObject={handleUpdateObject}
+          form={form}
+        />
+      ))}
+      <Button
+        type="dashed"
+        onClick={() => subOpt.add(handleAddSpecies())}
+        block
+      >
+        + Add Species
+      </Button>
+    </div>
+  );
+
+  return (
+    <FormBase
+      form={form}
+      data={data}
+      handleUpdate={handleUpdateMeasurement}
+      locked={locked}
+    >
+      <Form.Item label="Name" name="name">
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="pH"
+        name="ph"
+        rules={[
+          {
+            type: "number",
+            min: 0,
+            max: 14,
+            message: "pH must be between 0 and 14",
+          },
+        ]}
+      >
+        <InputNumber className="w-full" type="number" placeholder="pH value" />
+      </Form.Item>
+      <Form.Item label={"Temperature"}>
+        <QuantityForm
+          name={"temperature"}
+          unitPath={"temperature_unit"}
+          label={"Temperature"}
+          unitTypes={[UnitTypes.TEMPERATURE]}
+          required={false}
+          handleUpdateObject={handleUpdateObject}
+          form={form}
+        />
+      </Form.Item>
+      <Form.Item label={"Initials"}>
+        <Form.List name="species_data">{renderInitialsFields}</Form.List>
+      </Form.Item>
+    </FormBase>
+  );
 }
