@@ -32,14 +32,14 @@ diesel_migrations = { version = "2.2.0", features = ["sqlite"] }
 dotenvy = "0.15"
 libsqlite3-sys = { version = "0.28.0", features = ["bundled"] }
 dirs = "5.0.1"
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket_cors = "0.6.0"
 simplelog = "0.12.2"
 log = "0.4.22"
 meval = "0.2.0"
 open = "5.3.0"
-diesel = { version = "2.1.0", features = [
+diesel = { version = "2.2.12", features = [
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
 ] }
