@@ -1,5 +1,6 @@
-import {PlusOutlined} from "@ant-design/icons";
-import {FloatButton} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { FloatButton } from "antd";
+import { BsStars } from "react-icons/bs";
 
 interface FloatingCreateProps {
     handleCreate: () => void;
@@ -13,12 +14,25 @@ export default function FloatingCreate(
     }: FloatingCreateProps
 ) {
     return (
-        <FloatButton
-            shape="square"
+        <FloatButton.Group
+            trigger="hover"
             type="primary"
-            icon={<PlusOutlined/>}
-            tooltip={<div>Add {type}</div>}
-            onClick={handleCreate}
-        />
+            style={{ insetInlineEnd: 94 }}
+            icon={<PlusOutlined />}
+        >
+            <FloatButton
+                shape="square"
+                type="default"
+                icon={<BsStars size={20} />}
+                tooltip={<div>From text</div>}
+            />
+            <FloatButton
+                shape="square"
+                type="default"
+                icon={<PlusOutlined />}
+                tooltip={<div>Add {type}</div>}
+                onClick={handleCreate}
+            />
+        </FloatButton.Group >
     )
 }
