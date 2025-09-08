@@ -1,5 +1,5 @@
-import {FormInstance} from "antd";
-import {AlternativeStringCol} from "./components/DataProvider.tsx";
+import { FormInstance } from "antd";
+import { AlternativeStringCol } from "./components/DataProvider.tsx";
 import React from "react";
 
 export interface Identifiable {
@@ -16,6 +16,7 @@ export interface ChildProps<T extends Identifiable> {
     isLoading: boolean,
     handleUpdateObject: () => void,
     handleDeleteObject: () => void,
+    saveObject?: (id: string) => Promise<void>,
     alternativeIdCol?: AlternativeStringCol<T, keyof T> | string;
     locked: boolean;
     setLocked: React.Dispatch<React.SetStateAction<boolean>>;
