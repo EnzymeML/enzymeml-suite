@@ -28,8 +28,8 @@ pub fn init() {
     if !db_file_exists() {
         println!("Database file does not exist, creating it");
         create_db_file();
-        run_migrations();
     }
+    run_migrations();
 }
 
 /// Establishes a connection to the SQLite database.
