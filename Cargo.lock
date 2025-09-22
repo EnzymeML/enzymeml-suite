@@ -1741,9 +1741,9 @@ dependencies = [
 
 [[package]]
 name = "diesel"
-version = "2.2.11"
+version = "2.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a917a9209950404d5be011c81d081a2692a822f73c3d6af586f0cab5ff50f614"
+checksum = "229850a212cd9b84d4f0290ad9d294afc0ae70fccaa8949dbe8b43ffafa1e20c"
 dependencies = [
  "diesel_derives",
  "libsqlite3-sys",
@@ -1806,15 +1806,6 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys 0.4.1",
-]
-
-[[package]]
-name = "dirs"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
@@ -1841,18 +1832,6 @@ dependencies = [
  "libc",
  "redox_users 0.4.5",
  "winapi",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users 0.4.5",
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2355,7 +2334,7 @@ dependencies = [
  "rayon",
  "regex",
  "rust_xlsxwriter",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sha2",
@@ -2373,7 +2352,7 @@ dependencies = [
  "derive_builder",
  "diesel",
  "diesel_migrations",
- "dirs 5.0.1",
+ "dirs 6.0.0",
  "dotenvy",
  "enzymeml",
  "libsqlite3-sys",
@@ -2383,7 +2362,7 @@ dependencies = [
  "open",
  "rocket",
  "rocket_cors",
- "schemars",
+ "schemars 1.0.4",
  "serde",
  "serde_json",
  "simplelog",
@@ -2393,6 +2372,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-http",
  "tauri-plugin-shell",
+ "tauri-plugin-store",
  "tauri-plugin-stronghold",
  "tauri-plugin-window-state",
  "tokio",
@@ -4192,9 +4172,9 @@ dependencies = [
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.28.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c10584274047cb335c23d3e61bcef8e323adae7c5c8c760540f73610177fc3f"
+checksum = "133c182a6a2c87864fe97778797e46c7e999672690dc9fa3ee8e241aa4a9c13f"
 dependencies = [
  "cc",
  "pkg-config",
@@ -4471,7 +4451,7 @@ dependencies = [
  "pulldown-cmark",
  "regex",
  "reqwest",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serde_with",
@@ -7472,7 +7452,7 @@ checksum = "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615"
 dependencies = [
  "dyn-clone",
  "indexmap 1.9.3",
- "schemars_derive",
+ "schemars_derive 0.8.22",
  "serde",
  "serde_json",
  "url",
@@ -7480,10 +7460,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82d20c4491bc164fa2f6c5d44565947a52ad80b9505d8e36f8d54c27c739fcd0"
+dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "schemars_derive 1.0.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "schemars_derive"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.104",
+]
+
+[[package]]
+name = "schemars_derive"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33d020396d1d138dc19f1165df7545479dcd58d93810dc5d646a16e55abefa80"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7622,9 +7627,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.121"
+version = "1.0.143"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ab380d7d9f22ef3f21ad3e6c1ebe8e4fc7a2000ccba2e4d71fc96f15b2cb609"
+checksum = "d401abef1d108fbd9cbaebc3e46611f4b1021f714a0597a71f41ee463f5f4a5a"
 dependencies = [
  "indexmap 2.9.0",
  "itoa",
@@ -8531,7 +8536,7 @@ dependencies = [
  "glob",
  "heck 0.5.0",
  "json-patch 3.0.1",
- "schemars",
+ "schemars 0.8.22",
  "semver",
  "serde",
  "serde_json",
@@ -8591,7 +8596,7 @@ dependencies = [
  "anyhow",
  "glob",
  "plist",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "tauri-utils",
@@ -8645,7 +8650,7 @@ dependencies = [
  "dunce",
  "glob",
  "percent-encoding",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serde_repr",
@@ -8669,7 +8674,7 @@ dependencies = [
  "http 1.1.0",
  "regex",
  "reqwest",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "tauri",
@@ -8692,7 +8697,7 @@ dependencies = [
  "open",
  "os_pipe",
  "regex",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "shared_child",
@@ -8700,6 +8705,22 @@ dependencies = [
  "tauri-plugin",
  "thiserror 2.0.12",
  "tokio",
+]
+
+[[package]]
+name = "tauri-plugin-store"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d85dd80d60a76ee2c2fdce09e9ef30877b239c2a6bb76e6d7d03708aa5f13a19"
+dependencies = [
+ "dunce",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -8813,7 +8834,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "schemars",
+ "schemars 0.8.22",
  "semver",
  "serde",
  "serde-untagged",
