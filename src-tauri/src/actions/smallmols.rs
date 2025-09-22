@@ -4,7 +4,7 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
 
 /// Creates a new small molecule in the EnzymeML document and adds a corresponding ODE equation
 ///
@@ -31,6 +31,78 @@ pub fn create_small_mol(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle)
     update_event!(app_handle, "update_small_mols");
 
     id
+}
+
+/// Adds a small molecule to the EnzymeML document
+///
+/// This function adds a small molecule to the document's small_molecules collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `object` - The small molecule object to add
+#[tauri::command]
+pub fn add_small_mol(
+    state: State<Arc<EnzymeMLState>>,
+    mut object: SmallMolecule,
+    app_handle: AppHandle,
+) -> String {
+    let mut state_guard = state.doc.lock().unwrap();
+    let id = generate_id(
+        &state_guard
+            .small_molecules
+            .iter()
+            .map(|s| s.id.clone())
+            .collect(),
+        "s",
+    );
+    object.id = id.clone();
+    state_guard.small_molecules.push(object.clone());
+    drop(state_guard);
+    update_event!(app_handle, "update_small_mols");
+    id
+}
+
+/// Adds multiple small molecules to the EnzymeML document
+///
+/// This function adds multiple small molecules to the document's small_molecules collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `data` - The vector of small molecule objects to add
+#[tauri::command]
+pub fn add_small_mols(
+    state: State<Arc<EnzymeMLState>>,
+    mut data: Vec<SmallMolecule>,
+    app_handle: AppHandle,
+) -> Vec<String> {
+    let mut existing_ids: Vec<String> = state
+        .doc
+        .lock()
+        .unwrap()
+        .small_molecules
+        .iter()
+        .map(|s| s.id.clone())
+        .collect();
+
+    let mut ids = Vec::with_capacity(data.len());
+    let objects: Vec<SmallMolecule> = data
+        .iter_mut()
+        .map(|o| {
+            let id = generate_id(&existing_ids, "s");
+            ids.push(id.clone());
+            existing_ids.push(id.clone());
+            o.id = id;
+            o.clone()
+        })
+        .collect();
+
+    println!("Adding objects: {:#?}", objects);
+    add_objects!(state.doc, small_molecules, objects);
+
+    update_event!(app_handle, "update_small_mols");
+    ids
 }
 
 /// Updates an existing small molecule in the EnzymeML document

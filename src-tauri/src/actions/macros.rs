@@ -131,6 +131,52 @@ macro_rules! create_object {
     }};
 }
 
+/// Macro to add an object to a nested collection.
+///
+/// This macro takes a state, a path to a nested collection within the state, and an object.
+/// It pushes the object into the collection without generating a new ID or modifying the object.
+/// This is useful when adding pre-built objects that already have their properties set.
+///
+/// # Arguments
+///
+/// * `$state` - The state containing the nested collection, wrapped in a `Mutex`.
+/// * `$($path).+` - The path to the nested collection within the state.
+/// * `$object` - The object to add to the collection.
+///
+/// # Panics
+///
+/// This macro will panic if it fails to acquire the mutex lock on the state.
+#[macro_export]
+macro_rules! add_object {
+    ($state:expr, $($path:ident).+, $object:expr) => {{
+        let mut state = $state.lock().unwrap();
+        state.$($path).+.push($object);
+    }};
+}
+
+/// Macro to add multiple objects to a nested collection.
+///
+/// This macro takes a state, a path to a nested collection within the state, and a vector of objects.
+/// It pushes the objects into the collection without generating a new IDs or modifying the objects.
+/// This is useful when adding pre-built objects that already have their properties set.
+///
+/// # Arguments
+///
+/// * `$state` - The state containing the nested collection, wrapped in a `Mutex`.
+/// * `$($path).+` - The path to the nested collection within the state.
+/// * `$objects` - The vector of objects to add to the collection.
+///
+/// # Panics
+///
+/// This macro will panic if it fails to acquire the mutex lock on the state.
+#[macro_export]
+macro_rules! add_objects {
+    ($state:expr, $($path:ident).+, $objects:expr) => {{
+        let mut state = $state.lock().unwrap();
+        state.$($path).+.extend($objects);
+    }};
+}
+
 /// Macro to emit an update event to all listeners.
 ///
 /// This macro takes an app handle and an event name, and emits the event to all listeners.
