@@ -73,7 +73,7 @@ const EditableNumberCell: React.FC<EditableNumberCellProps> = ({
             scale: 1,
             x: 0,
             transition: {
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 300,
                 damping: 25
             }
@@ -99,7 +99,7 @@ const EditableNumberCell: React.FC<EditableNumberCellProps> = ({
             scale: 1,
             x: 0,
             transition: {
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 400,
                 damping: 30
             }
@@ -123,7 +123,7 @@ const EditableNumberCell: React.FC<EditableNumberCellProps> = ({
             opacity: 1,
             scale: 1,
             transition: {
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 400,
                 damping: 30,
                 delay: 0.1
