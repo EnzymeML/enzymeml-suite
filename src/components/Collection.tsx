@@ -1,19 +1,29 @@
 import { LayoutGroup } from "framer-motion";
 import React, { useCallback, memo } from "react";
-import FloatingCreate from "./FloatingCreate.tsx";
+import FloatingCreate, { FloatingCreateRef } from "./FloatingCreate.tsx";
 import useAppStore from "../stores/appstore.ts";
+import { ZodObject, ZodRawShape } from "zod";
+import { ExtractionContext } from "../types/context.ts";
 
-interface CollectionProps {
+interface CollectionProps<T> {
   items: React.ReactNode[];
   handleCreateObject: () => Promise<string>;
   type: string;
+  schema?: ZodObject<ZodRawShape>;
+  addFunction?: (items: T[]) => void;
+  floatingCreateRef?: React.RefObject<FloatingCreateRef>;
+  context: ExtractionContext;
 }
 
-const Collection = memo(function Collection({
+function Collection<T = any>({
   items,
   handleCreateObject,
   type,
-}: CollectionProps) {
+  schema,
+  addFunction,
+  floatingCreateRef,
+  context,
+}: CollectionProps<T>) {
   if (items.length === 0) {
     return null;
   }
@@ -35,11 +45,18 @@ const Collection = memo(function Collection({
 
   return (
     <div className={"flex flex-col"} style={{ overflow: "hidden" }}>
-      <FloatingCreate handleCreate={onCreate} type={type} />
+      <FloatingCreate
+        ref={floatingCreateRef}
+        handleCreate={onCreate}
+        type={type}
+        schema={schema}
+        addFunction={addFunction}
+        context={context}
+      />
       <LayoutGroup>{items.map((element) => element)}</LayoutGroup>
       <div className={"mb-72"} />
     </div>
   );
-});
+}
 
-export default Collection;
+export default memo(Collection) as typeof Collection;

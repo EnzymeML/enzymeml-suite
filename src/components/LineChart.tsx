@@ -1,5 +1,5 @@
 import { VisData } from "../commands/visualisation.ts";
-import { LineProps, ResponsiveLine } from "@nivo/line";
+import { ResponsiveLine } from "@nivo/line";
 import { useEffect, useState } from "react";
 import useAppStore from "../stores/appstore.ts";
 import { theme } from "antd";
@@ -20,7 +20,7 @@ export default function LineChart({ data }: LineChartProps) {
     width: 0,
     height: 0,
   });
-  const [chartTheme, setChartTheme] = useState<LineProps["theme"]>({});
+  const [chartTheme, setChartTheme] = useState({});
   const useLines = useVizStore((state) => state.useLines);
   const usePoints = useVizStore((state) => state.usePoints);
   const darkMode = useAppStore((state) => state.darkMode);
@@ -52,7 +52,7 @@ export default function LineChart({ data }: LineChartProps) {
 
   useEffect(() => {
     if (true === true) {
-      const newChartTheme: LineProps["theme"] = {
+      const newChartTheme = {
         crosshair: {
           line: {
             stroke: token.colorText,
