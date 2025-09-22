@@ -40,7 +40,9 @@
             "core:event:allow-listen",
             "core:event:allow-unlisten",
             "cors-fetch:default",
-            "stronghold:default"
+            "stronghold:default",
+            "shell:default",
+            "store:default"
           ]
         }
       ]
