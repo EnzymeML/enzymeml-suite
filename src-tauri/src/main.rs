@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use tauri::async_runtime::spawn;
 use tauri::Manager;
+use tauri_plugin_store::StoreExt;
 
 use crate::actions::{
     enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols,
@@ -54,10 +55,11 @@ async fn main() {
     let tauri_state = Arc::clone(&app_state);
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_cors_fetch::init())
         .setup(|app| {
             #[cfg(debug_assertions)] // only include this code on debug builds
             {
@@ -89,9 +91,11 @@ async fn main() {
                     .expect("Rocket failed to launch");
             });
 
+            // Initialize the JSON store.
+            app.store("config.json")?;
+
             Ok(())
         })
-        .plugin(tauri_plugin_cors_fetch::init())
         .manage(tauri_state)
         .invoke_handler(tauri::generate_handler![
             // Data IO
@@ -125,6 +129,8 @@ async fn main() {
             smallmols::update_small_mol,
             smallmols::delete_small_mol,
             smallmols::list_small_mols,
+            smallmols::add_small_mol,
+            smallmols::add_small_mols,
             // Vessels
             vessels::create_vessel,
             vessels::get_vessel,
