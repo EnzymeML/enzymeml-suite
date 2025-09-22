@@ -1,6 +1,6 @@
-import {LineProps} from "@nivo/line";
+import { LineSvgPropsWithDefaults } from "@nivo/line";
 
-type Theme = LineProps['theme'];
+type Theme = LineSvgPropsWithDefaults<any>['theme'];
 
 export const lineChartTheme: Theme = {
     background: "#ffffff",
@@ -100,7 +100,6 @@ export const lineChartTheme: Theme = {
         }
     },
     tooltip: {
-        wrapper: {},
         container: {
             background: "#ffffff",
             color: "#333333",
