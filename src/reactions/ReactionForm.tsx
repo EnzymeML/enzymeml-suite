@@ -15,6 +15,9 @@ import { mapSpeciesToOption } from "../measurements/MeasurementForm.tsx";
 import ReactionElementField from "./components/ReactionElementField.tsx";
 import ModifierElementField from "./components/ModifierElementField.tsx";
 import KineticLawDisplay from "../kineticlaw/KineticLawDisplay.tsx";
+import ReactionDrawerContainer from "./components/ReactionDrawerContainer.tsx";
+import createReactionSMILES from "./utils.ts";
+import { listSmallMoleculesWithSMILES } from "../commands/smallmols.ts";
 
 export interface EquationDisplayProps {
   reactants: ReactionElement[];
@@ -27,6 +30,7 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
   const [availableSpecies, setAvailableSpecies] = useState<
     SelectProps["options"]
   >([]);
+  const [reactionSMILES, setReactionSMILES] = useState<string>("");
 
   // Context
   const { handleUpdateObject, form, data, locked } = React.useContext(context);
@@ -54,6 +58,20 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
     };
   }, []);
 
+  useEffect(() => {
+    // If not defined in the data, return
+    if (!data.reactants && !data.products) return;
+
+    let reactants = data.reactants || [];
+    let products = data.products || [];
+
+    const reactantIds = reactants.map((reactant) => reactant.species_id);
+    const productIds = products.map((product) => product.species_id);
+    listSmallMoleculesWithSMILES().then((smallMolecules) => {
+      setReactionSMILES(createReactionSMILES(reactantIds, productIds, smallMolecules));
+    });
+  }, [data.reactants, data.products]);
+
 
 
   return (
@@ -63,6 +81,38 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
       handleUpdate={handleUpdateObject}
       locked={locked}
     >
+      {reactionSMILES.length > 0 && (
+        <ReactionDrawerContainer
+          className="mb-10"
+          smilesStr={reactionSMILES}
+          width={700}
+          height={170}
+          showChildPopovers={true}
+          getChildPopoverContent={(child, index) => (
+            <div>
+              <h4 style={{ margin: 0, marginBottom: 8 }}>SVG Element {index}</h4>
+              <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                <strong>Tag:</strong> {child.tagName}
+              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                <strong>Class:</strong> {
+                  (child as SVGElement).className?.baseVal ||
+                  child.getAttribute('class') ||
+                  'none'
+                }
+              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                <strong>Children:</strong> {child.children.length}
+              </p>
+              {child.getAttribute('data-smiles') && (
+                <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                  <strong>SMILES:</strong> {child.getAttribute('data-smiles')}
+                </p>
+              )}
+            </div>
+          )}
+        />
+      )}
       {/* <Grow>{chemicalReaction}</Grow> */}
       <Form.Item label="Name" name="name">
         <Input />
