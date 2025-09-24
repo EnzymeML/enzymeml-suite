@@ -19,7 +19,7 @@ export default function SmileDrawerContainer({
   height = HEIGHT,
 }: SmileDrawerContainerProps) {
   // States
-  const pixelRatio = useMemo(() => window.devicePixelRatio || 1, []); // Only compute once
+  const pixelRatio = useMemo(() => window.devicePixelRatio || 1, []);
   const darkMode = useAppStore((state) => state.darkMode) ? "dark" : "light";
 
   // Refs
@@ -29,38 +29,25 @@ export default function SmileDrawerContainer({
   // Styling
   const { token } = theme.useToken();
 
-  // Initialize drawer and canvas only once
+  // Initialize drawer only once
   useEffect(() => {
     if (!drawerRef.current) {
+      // Configure drawer for the actual canvas resolution
       drawerRef.current = new SmilesDrawer.Drawer({
-        width: width,
-        height: height,
-        offsetX: width / 2,
-        offsetY: height / 2,
+        width: width * pixelRatio,
+        height: height * pixelRatio,
+        offsetX: (width * pixelRatio) / 2,
+        offsetY: (height * pixelRatio) / 2,
       });
-    }
-
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      if (ctx) {
-        canvas.width = width * pixelRatio * 2;
-        canvas.height = height * pixelRatio * 2;
-        canvas.style.width = `${width / 2}px`;
-        canvas.style.height = `${height / 2}px`;
-
-        ctx.scale(pixelRatio, pixelRatio);
-      }
     }
 
     // Cleanup drawer on unmount
     return () => {
       drawerRef.current = null;
     };
-  }, []); // Empty dependency array - only run once
+  }, [width, height, pixelRatio]);
 
-  // Only redraw when smilesStr or darkMode changes
+  // Setup canvas and redraw when needed
   useEffect(() => {
     if (!smilesStr || !canvasRef.current || !drawerRef.current) return;
 
@@ -68,19 +55,28 @@ export default function SmileDrawerContainer({
     const ctx = canvas.getContext("2d");
 
     if (ctx) {
-      ctx.clearRect(0, 0, width, height);
+      // Set canvas internal dimensions for high-DPI displays
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
 
+      // Set canvas display size
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      // Clear the canvas (no context scaling needed since drawer handles the resolution)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Parse and draw the SMILES string
       SmilesDrawer.parse(smilesStr, function (tree: any) {
         if (drawerRef.current) {
-          // Check if drawer still exists
           drawerRef.current.draw(tree, canvas, darkMode, false);
         }
       });
     }
-  }, [smilesStr, darkMode]); // Only depend on smilesStr and darkMode
+  }, [smilesStr, darkMode, width, height, pixelRatio]); // Include all dependencies
 
   return (
-    <div className="flex items-center justify-center w-full h-full">
+    <div className="flex justify-center items-center w-full h-full">
       <canvas
         ref={canvasRef}
         style={{
