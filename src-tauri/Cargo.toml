@@ -21,7 +21,7 @@ diesel_migrations = { version = "2.2.0", features = ["sqlite"] }
 dotenvy = "0.15"
 libsqlite3-sys = { version = "0.35.0", features = ["bundled"] }
 dirs = "6.0.0"
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket_cors = "0.6.0"
 simplelog = "0.12.2"
