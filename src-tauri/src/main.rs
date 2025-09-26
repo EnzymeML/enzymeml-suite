@@ -77,8 +77,6 @@ async fn main() {
                 .expect("could not resolve app local data path")
                 .join("salt.txt");
 
-            println!("Salt path: {:?}", salt_path);
-
             // Initialize the Rocket server.
             let app_handle = app.handle().clone();
 
