@@ -67,7 +67,11 @@ fn run_migrations() {
 /// # Panics
 /// * If the connection cannot be established
 pub fn establish_connection() -> SqliteConnection {
-    let db_path = "sqlite://".to_string() + get_db_path().as_str();
+    let db_path = if cfg!(debug_assertions) {
+        "sqlite://./db.sqlite".to_string()
+    } else {
+        "sqlite://".to_string() + get_db_path().as_str()
+    };
 
     SqliteConnection::establish(&db_path)
         .unwrap_or_else(|_| panic!("Error connecting to {}", db_path))
