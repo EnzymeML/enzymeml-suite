@@ -3,6 +3,7 @@ import { useEffect, useRef, useMemo, useState } from "react";
 import SmilesDrawer from "smiles-drawer";
 import { theme, Popover } from "antd";
 import useAppStore from "../../stores/appstore.ts";
+import { ReactionElement } from "enzymeml";
 
 export const WIDTH = 1200;
 const HEIGHT = 100;
@@ -21,9 +22,7 @@ interface ReactionDrawerContainerProps {
   belowText?: string;
   scale?: number;
   className?: string;
-  // Function to generate popover content for each SVG child element
-  getChildPopoverContent?: (child: Element, index: number) => React.ReactNode;
-  showChildPopovers?: boolean;
+  participants?: ReactionElement[];
 }
 
 export default function ReactionDrawerContainer({
@@ -33,8 +32,7 @@ export default function ReactionDrawerContainer({
   height = HEIGHT,
   aboveText = "",
   belowText = "",
-  getChildPopoverContent,
-  showChildPopovers = false,
+  participants,
 }: ReactionDrawerContainerProps) {
   const darkMode = useAppStore((s) => s.darkMode) ? "dark" : "light";
   const { token } = theme.useToken();
@@ -50,7 +48,7 @@ export default function ReactionDrawerContainer({
   // Determine the scale based on the length of the smiles string
   // Scale should go down if the smiles string is too long
   const scale = useMemo(() => {
-    return Math.min(1.1, 180 / smilesStr.length);
+    return Math.min(0.9, 150 / smilesStr.length);
   }, [smilesStr]);
 
 
@@ -91,7 +89,7 @@ export default function ReactionDrawerContainer({
 
   // Function to set up popovers for all SVG children
   const setupChildPopovers = () => {
-    if (!svgRef.current || !getChildPopoverContent || !showChildPopovers) {
+    if (!svgRef.current || !participants) {
       setChildPopovers([]);
       return;
     }
@@ -99,10 +97,15 @@ export default function ReactionDrawerContainer({
     const children = Array.from(svgRef.current.children);
     const popovers: SVGChildPopover[] = [];
 
-    children.forEach((child, index) => {
+    let participantIndex = 0;
+    children.forEach((child) => {
       if (child.id === 'plus' || child.id === 'arrow' || child.getBoundingClientRect().height === 0) return;
-      const content = getChildPopoverContent(child, index);
-      if (content) {
+
+      // Take the next participant in order
+      if (participantIndex < participants.length) {
+        const participant = participants[participantIndex];
+        const content = participant.species_id;
+
         const bounds = child.getBoundingClientRect();
         popovers.push({
           element: child,
@@ -112,6 +115,8 @@ export default function ReactionDrawerContainer({
 
         // Style the child to indicate it's interactive (but don't add event listeners here)
         (child as SVGElement).style.opacity = '1.0';
+
+        participantIndex++;
       }
     });
 
@@ -157,7 +162,7 @@ export default function ReactionDrawerContainer({
     );
 
     // No cleanup needed since we're not adding event listeners to SVG elements
-  }, [smilesStr, darkMode, weights, getChildPopoverContent, showChildPopovers]);
+  }, [smilesStr, darkMode, weights, participants]);
 
   return (
     <div
@@ -178,7 +183,7 @@ export default function ReactionDrawerContainer({
       />
 
       {/* Render popovers for each SVG child */}
-      {showChildPopovers && childPopovers.map((popover, index) => {
+      {childPopovers.map((popover, index) => {
         const svgRect = svgRef.current?.getBoundingClientRect();
         const containerRect = containerRef.current?.getBoundingClientRect();
 
