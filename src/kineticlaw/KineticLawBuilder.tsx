@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Typography, Space, Button, theme } from 'antd';
-import { KINETIC_LAWS } from './kineticLaws';
-import { KineticLawDefinition, SpeciesInfo } from '../reactions/types';
-import { listProteins } from '../commands/proteins';
-import { listSmallMolecules } from '../commands/smallmols';
-import { Selector, SpeciesMapping } from './components';
-import useAppStore from '../stores/appstore';
+
+import { KineticLawDefinition, SpeciesInfo } from '@reactions/types';
+import { listProteins } from '@commands/proteins';
+import { listSmallMolecules } from '@commands/smallmols';
+import useAppStore from '@stores/appstore';
+
+import { KINETIC_LAWS } from '@kineticlaw/kineticLaws';
+import { Selector, SpeciesMapping } from '@kineticlaw/components';
 
 const { Text } = Typography;
 

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Button, Card, theme, Form } from 'antd';
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import LatexRenderer from '../components/LatexRenderer';
-import KineticLawBuilder from './KineticLawBuilder';
+
+import LatexRenderer from '@components/LatexRenderer';
+
+import KineticLawBuilder from '@kineticlaw/KineticLawBuilder';
 
 interface KineticLawDisplayProps {
     reactionId: string;

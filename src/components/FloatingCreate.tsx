@@ -1,10 +1,11 @@
+import { useState, useImperativeHandle, forwardRef } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { FloatButton } from "antd";
-import { useState, useImperativeHandle, forwardRef } from "react";
 import { BsStars } from "react-icons/bs";
 import { ZodObject, ZodRawShape } from "zod";
-import ExtractModal from "../llm/ExtractModal";
-import { ExtractionContext } from "../types/context";
+
+import ExtractModal from "@llm/ExtractModal";
+import { ExtractionContext } from "@suite-types/context";
 
 interface FloatingCreateProps<T extends ZodObject<ZodRawShape>, U> {
     handleCreate: () => void;
@@ -21,7 +22,7 @@ export interface FloatingCreateRef {
     isExtractModalVisible: () => boolean;
 }
 
-const FloatingCreate = forwardRef<FloatingCreateRef, FloatingCreateProps<ZodObject<ZodRawShape>, any>>(
+const FloatingCreate = forwardRef<FloatingCreateRef, FloatingCreateProps<ZodObject<ZodRawShape>, unknown>>(
     function FloatingCreate<T extends ZodObject<ZodRawShape>, U>(
         {
             handleCreate,

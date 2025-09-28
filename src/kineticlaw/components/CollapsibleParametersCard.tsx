@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Typography, Collapse, Descriptions, Pagination, theme } from 'antd';
-import { KineticLawDefinition } from '../../reactions/types';
-import LatexRenderer from '../../components/LatexRenderer';
+
+import { KineticLawDefinition } from '@reactions/types';
+import LatexRenderer from '@components/LatexRenderer';
 
 const { Text } = Typography;
 

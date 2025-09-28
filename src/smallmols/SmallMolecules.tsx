@@ -1,4 +1,20 @@
+import React, { useEffect, useState, useRef } from "react";
 import "react-json-view-lite/dist/index.css";
+import { ZodObject, ZodRawShape } from "zod";
+import { SmallMolecule, SmallMoleculeSchema } from "enzymeml";
+
+import DataProvider from "@components/DataProvider";
+import { ChildProps } from "@suite-types/types";
+import EmptyPage from "@components/EmptyPage";
+import Collection from "@components/Collection";
+import DetailView from "@components/DetailView";
+import { setCollectionIds } from "@tauri/listener";
+import useAppStore from "@stores/appstore";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
+import { saveMoleculeToDb } from "@commands/dbops";
+import { useExtractionModalShortcuts } from "@hooks/useKeyboardShortcuts";
+import { FloatingCreateRef } from "@components/FloatingCreate";
+import { ExtractionContextEnum, ExtractionContexts } from "@suite-types/context";
 import {
   addSmallMolecules,
   createSmallMolecule,
@@ -6,25 +22,11 @@ import {
   getSmallMolecule,
   listSmallMolecules,
   updateSmallMolecule,
-} from "../commands/smallmols.ts";
-import React, { useEffect, useState, useRef } from "react";
-import DataProvider from "../components/DataProvider.tsx";
-import { ChildProps } from "../types.ts";
-import { SmallMolecule, SmallMoleculeSchema } from "enzymeml";
-import EmptyPage from "../components/EmptyPage.tsx";
-import Collection from "../components/Collection.tsx";
-import DetailView from "../components/DetailView.tsx";
-import SmallMoleculeForm from "./SmallMoleculeForm.tsx";
-import { setCollectionIds } from "../tauri/listener.ts";
-import useAppStore from "../stores/appstore.ts";
-import { useTauriListener } from "../hooks/useTauriListener.ts";
-import { saveMoleculeToDb } from "../commands/dbops.ts";
-import { useExtractionModalShortcuts } from "../hooks/useKeyboardShortcuts.ts";
-import { FloatingCreateRef } from "../components/FloatingCreate.tsx";
-import { ExtractionContextEnum, ExtractionContexts } from "../types/context.ts";
-import { ZodObject, ZodRawShape } from "zod";
+} from "@commands/smallmols";
 
-// @ts-ignore
+import SmallMoleculeForm from "@smallmols/SmallMoleculeForm";
+
+//@ts-expect-error - ChildProps is not typed
 const SmallMoleculeContext = React.createContext<ChildProps<SmallMolecule>>({});
 
 // Memoize the DetailView component to prevent unnecessary re-renders
@@ -51,11 +53,11 @@ const SmallMoleculeItem = React.memo(
     >
       <div id={id}>
         <MemoizedDetailView
-          // @ts-ignore for now
+          // @ts-expect-error for now
           context={SmallMoleculeContext}
           placeholder={"Small Molecule"}
           nameKey={"name"}
-          // @ts-ignore for now
+          // @ts-expect-error for now
           FormComponent={SmallMoleculeForm}
           listOfIds={smallMolecules}
         />
@@ -85,7 +87,7 @@ export default function SmallMolecules() {
 
   // Fetch items on mount
   useEffect(() => setState(), [selectedId, setState]);
-  useTauriListener("update_small_mols", setState);
+  useRouterTauriListener("update_small_mols", setState);
 
   // Keyboard shortcuts for toggling extraction modal
   useExtractionModalShortcuts(() => {

@@ -40,7 +40,7 @@ export function correctLatexUnderscript(latexStr: string): string {
  * @returns {string} - The converted and corrected LaTeX string.
  */
 export function asciiToLatex(ascii: string): string {
-    let equation = convertAsciiMathToLatex(ascii);
+    const equation = convertAsciiMathToLatex(ascii);
     return correctLatexUnderscript(equation);
 }
 
@@ -54,19 +54,19 @@ export function asciiToLatex(ascii: string): string {
 export async function distributeParamsAndVars(plainEquation: string): Promise<RateLawSetup | null> {
 
     try {
-        let rateLawSetup: RateLawSetup = {
+        const rateLawSetup: RateLawSetup = {
             params: [],
             vars: []
         }
 
         const expression = parse(plainEquation);
         const nodes = expression.filter((node) => {
-            // @ts-ignore
+            // @ts-expect-error - node is not typed
             return node.isSymbolNode;
         });
 
         for (const node of nodes) {
-            // @ts-ignore
+            // @ts-expect-error - node is not typed
             const name = node.name;
             if (await isSpeciesID(name)) {
                 rateLawSetup.vars.push(underscoreToSpeciesID(name));
@@ -81,6 +81,7 @@ export async function distributeParamsAndVars(plainEquation: string): Promise<Ra
 
         return rateLawSetup;
     } catch (error) {
+        console.error('Error distributing params and vars: ', error);
         // Equation is malformed, possibly due to the user still typing
         // Return nothing to prevent the UI from updating
         return null
@@ -135,7 +136,7 @@ export async function convertSpeciesIDsToUnderscore(equation: string): Promise<s
     speciesIDs.forEach((speciesID) => {
         const underscoreSpeciesID = speciesIDToUnderscore(speciesID);
         if (equation.includes(speciesID)) {
-            let regex = new RegExp(`\\b${speciesID}\\b`, 'g');
+            const regex = new RegExp(`\\b${speciesID}\\b`, 'g');
             equation = equation.replace(regex, underscoreSpeciesID);
         }
     });

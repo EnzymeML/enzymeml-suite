@@ -4,11 +4,13 @@ import type React from "react"
 import { useState } from "react"
 import { Table, Card, Typography, Button } from "antd"
 import type { Parameter } from "enzymeml"
-import CardTitle from "../../components/CardTitle"
-import EditableNumberCell from "./EditableNumberCell"
-import { partialUpdateParameter } from "../../commands/parameters"
-import LatexRenderer from "../../components/LatexRenderer"
-import useAppStore from "../../stores/appstore"
+
+import CardTitle from "@components/CardTitle"
+import { partialUpdateParameter } from "@commands/parameters"
+import LatexRenderer from "@components/LatexRenderer"
+import useAppStore from "@stores/appstore"
+
+import EditableNumberCell from "@modelling/components/EditableNumberCell"
 
 const { Text } = Typography
 

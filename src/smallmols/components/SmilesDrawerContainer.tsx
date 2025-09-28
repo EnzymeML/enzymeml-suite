@@ -1,8 +1,9 @@
 import { useEffect, useRef, useMemo } from "react";
-// @ts-ignore
+// @ts-expect-error - SmilesDrawer is not typed
 import SmilesDrawer from "smiles-drawer";
 import { theme } from "antd";
-import useAppStore from "../../stores/appstore.ts";
+
+import useAppStore from "@stores/appstore";
 
 export const WIDTH = 200;
 const HEIGHT = WIDTH;
@@ -24,7 +25,7 @@ export default function SmileDrawerContainer({
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawerRef = useRef<any>(null);
+  const drawerRef = useRef<SmilesDrawer.Drawer | null>(null);
 
   // Styling
   const { token } = theme.useToken();
@@ -70,6 +71,7 @@ export default function SmileDrawerContainer({
     if (ctx) {
       ctx.clearRect(0, 0, width, height);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       SmilesDrawer.parse(smilesStr, function (tree: any) {
         if (drawerRef.current) {
           // Check if drawer still exists
@@ -80,7 +82,7 @@ export default function SmileDrawerContainer({
   }, [smilesStr, darkMode]); // Only depend on smilesStr and darkMode
 
   return (
-    <div className="flex items-center justify-center w-full h-full">
+    <div className="flex justify-center items-center w-full h-full">
       <canvas
         ref={canvasRef}
         style={{

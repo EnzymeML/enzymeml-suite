@@ -1,5 +1,4 @@
-import { ModelOption, MODEL_OPTIONS } from "../../stores/llmstore";
-import useLLMStore from "../../stores/llmstore";
+import useLLMStore, { ModelOption, MODEL_OPTIONS } from "@stores/llmstore";
 
 
 /**

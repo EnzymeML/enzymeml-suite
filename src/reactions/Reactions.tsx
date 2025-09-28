@@ -1,24 +1,26 @@
 import React, { ComponentType, useCallback, useEffect, useState } from "react";
 import DataProvider from "../components/DataProvider.tsx";
-import { ChildProps } from "../types.ts";
 import { Reaction } from "enzymeml";
+
+import { ChildProps } from "@suite-types/types";
+import DetailView from "@components/DetailView";
+import FloatingCreate from "@components/FloatingCreate";
+import Collection from "@components/Collection";
+import EmptyPage from "@components/EmptyPage";
+import { setCollectionIds } from "@tauri/listener";
+import useAppStore from "@stores/appstore";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
 import {
   createReaction,
   deleteReaction,
   getReaction,
   listReactions,
   updateReaction,
-} from "../commands/reactions.ts";
-import DetailView from "../components/DetailView.tsx";
-import ReactionForm from "./ReactionForm.tsx";
-import FloatingCreate from "../components/FloatingCreate.tsx";
-import Collection from "../components/Collection.tsx";
-import EmptyPage from "../components/EmptyPage.tsx";
-import { setCollectionIds } from "../tauri/listener.ts";
-import useAppStore from "../stores/appstore.ts";
-import { useTauriListener } from "../hooks/useTauriListener.ts";
+} from "@commands/reactions";
 
-// @ts-ignore
+import ReactionForm from "@reactions/ReactionForm";
+
+// @ts-expect-error - ChildProps is not typed
 const ReactionContext = React.createContext<ChildProps<Reaction>>({});
 
 // Memoize the DetailView component to prevent unnecessary re-renders
@@ -38,11 +40,11 @@ const ReactionItem = React.memo(
     >
       <div id={id}>
         <MemoizedDetailView
-          // @ts-ignore for now
+          // @ts-expect-error for now
           context={ReactionContext}
           placeholder={"Reaction"}
           nameKey={"name"}
-          // @ts-ignore for now
+          // @ts-expect-error for now
           FormComponent={
             ReactionForm as ComponentType<{ context: typeof ReactionContext }>
           }
@@ -65,7 +67,7 @@ export default function Reactions() {
 
   // Fetch items on mount
   useEffect(() => setState(), [selectedId, setState]);
-  useTauriListener("update_reactions", setState);
+  useRouterTauriListener("update_reactions", setState);
 
   // Create the items for the Collapsible component
   const items = React.useMemo(

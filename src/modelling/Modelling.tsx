@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { Layout, Row, Col } from "antd"
-import OptimizationForm from "./components/OptimizationForm"
-import OptimizationResults from "./components/OptimizationResults"
-import Parameters from "./components/Parameters"
-import type { OptimizationFormValues, OptimizationResult } from "./types"
+
+import type { OptimizationFormValues, OptimizationResult } from "@modelling/types"
+
+import OptimizationForm from "@modelling/components/OptimizationForm"
+import OptimizationResults from "@modelling/components/OptimizationResults"
+import Parameters from "@modelling/components/Parameters"
 
 const { Content } = Layout
 

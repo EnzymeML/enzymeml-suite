@@ -1,11 +1,12 @@
-import useAppStore from "../stores/appstore.ts";
-import { Layout, theme } from "antd";
+import { Layout, theme, GlobalToken } from "antd";
 import React, { useEffect, useCallback, useMemo } from "react";
-import WindowFrame from "./WindowFrame.tsx";
 import { listen } from "@tauri-apps/api/event";
 
+import useAppStore from "@stores/appstore.ts";
+import WindowFrame from "@components/WindowFrame.tsx";
+
 // Move style creation outside component
-const getLayoutStyle = (darkMode: boolean, token: any) => ({
+const getLayoutStyle = (darkMode: boolean, token: GlobalToken) => ({
   background: darkMode ? token.colorBgBase : token.colorBgLayout,
   borderColor: token.colorBorder,
   borderLeftWidth: 1,

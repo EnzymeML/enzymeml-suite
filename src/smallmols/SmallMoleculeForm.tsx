@@ -1,19 +1,21 @@
+import React, { useEffect, useState } from "react";
 import { AutoComplete, Col, Form, Input, Radio, Row, Select } from "antd";
 import { RiExternalLinkLine } from "react-icons/ri";
 import capitalize from "antd/lib/_util/capitalize";
-import { fetchFromPubChem, fetchPubChemDetails } from "./fetchutils.ts";
-import React, { useEffect, useState } from "react";
-import { Option } from "../types/options.ts";
 import { AutoCompleteProps } from "antd/lib";
-import { listVessels } from "../commands/vessels.ts";
-import SpeciesReference from "../components/SpeciesReference.tsx";
-import { ChildProps } from "../types.ts";
 import { SmallMolecule } from "enzymeml";
-import useAppStore from "../stores/appstore.ts";
-import SmileDrawerContainer from "./components/SmilesDrawerContainer.tsx";
-import FormBase from "../components/FormBase.tsx";
-import { filterSmallMolecules, getAllSmallMolecules, getSmallMoleculeById } from "../commands/dbops.ts";
-import { assembleOptions, DBOption } from "../utilities/dbutils.tsx";
+
+import { Option } from "@suite-types/options";
+import { listVessels } from "@commands/vessels";
+import SpeciesReference from "@components/SpeciesReference";
+import { ChildProps } from "@suite-types/types";
+import useAppStore from "@stores/appstore";
+import FormBase from "@components/FormBase";
+import { filterSmallMolecules, getAllSmallMolecules, getSmallMoleculeById } from "@commands/dbops";
+import { assembleOptions, DBOption } from "@utilities/dbutils";
+
+import { fetchFromPubChem, fetchPubChemDetails } from "@smallmols/fetchutils";
+import SmileDrawerContainer from "@smallmols/components/SmilesDrawerContainer";
 
 /**
  * Gets the default internal options for small molecules from the database
@@ -205,7 +207,7 @@ export default React.memo(
             <Form.Item label="Name" name="name" rules={[{ required: true }]}>
               <AutoComplete
                 className={"w-full"}
-                //@ts-ignore // TODO: fix this type error
+                //@ts-expect-error // TODO: fix this type error
                 options={options}
                 onSearch={onSearch}
                 onSelect={onSelect}
