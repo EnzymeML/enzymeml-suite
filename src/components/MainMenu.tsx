@@ -73,9 +73,16 @@ const items = [
 export default function MainMenu() {
   // States
   const darkMode = useAppStore((state) => state.darkMode);
+  const currentPath = useAppStore((state) => state.currentPath);
 
   // Styling
   const { token } = theme.useToken();
+
+  // Get the current menu key based on the current path
+  const getCurrentMenuKey = () => {
+    const currentItem = items.find((item) => item.route === currentPath);
+    return currentItem ? [currentItem.key] : [];
+  };
 
   // Handlers
   const navigate = useNavigate();
@@ -102,6 +109,7 @@ export default function MainMenu() {
       theme={darkMode ? "dark" : "light"}
       mode="vertical"
       items={items}
+      selectedKeys={getCurrentMenuKey()}
       onClick={handleMenuClick}
     />
   );

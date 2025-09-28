@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { DownOutlined, EditOutlined, ExportOutlined, FileOutlined, FolderOpenOutlined, SaveOutlined } from '@ant-design/icons';
+import { CloseOutlined, DownOutlined, EditOutlined, ExportOutlined, FileOutlined, FolderOpenOutlined, SaveOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Dropdown, Input, theme } from 'antd';
+import { useNavigate } from 'react-router-dom';
+
 import { useWindowTauriListener } from '@hooks/useTauriListener';
-import { DBEntries, exportToJSON, getState, listEntries, loadEntry, loadJSON, saveEntry } from '@commands/dataio';
+import { DBEntries, exportToJSON, getState, listEntries, loadEntry, loadJSON, newEntry, saveEntry } from '@commands/dataio';
 import { EnzymeMLState } from '@commands/dataio';
 import { setTitle as setDBTitle } from '@commands/enzmldoc';
 import Icon from '@ant-design/icons';
@@ -14,6 +17,8 @@ import { formatKeyboardShortcut } from '@utilities/osutils';
 import { NotificationType } from '@components/NotificationProvider';
 
 const MAX_RECENT_ENTRIES = 10;
+
+const appWindow = getCurrentWebviewWindow()
 
 /**
  * Props interface for the DocumentTitle component
@@ -124,6 +129,9 @@ export default function FileMenu() {
     /** Control dropdown open state */
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
+    // Router
+    const navigate = useNavigate();
+
     // Styling
     const { token } = theme.useToken();
 
@@ -185,6 +193,18 @@ export default function FileMenu() {
             type: 'divider',
         },
         {
+            key: 'new',
+            label: 'New Document',
+            icon: <FileOutlined />,
+            extra: formatKeyboardShortcut('N'),
+        },
+        {
+            key: 'save',
+            label: 'Save Document',
+            icon: <SaveOutlined />,
+            extra: formatKeyboardShortcut('S'),
+        },
+        {
             key: 'open',
             label: 'Open Document',
             icon: <FolderOpenOutlined />,
@@ -209,17 +229,20 @@ export default function FileMenu() {
             ],
         },
         {
-            key: 'save',
-            label: 'Save Document',
-            icon: <SaveOutlined />,
-            extra: formatKeyboardShortcut('S'),
-        },
-        {
             key: 'export',
             label: 'Export Document',
             icon: <ExportOutlined />,
             extra: formatKeyboardShortcut('R'),
         },
+        {
+            type: 'divider',
+        },
+        {
+            key: 'close',
+            label: 'Close Suite',
+            icon: <CloseOutlined />,
+            extra: formatKeyboardShortcut('W'),
+        }
     ];
 
     // Add all entries to the items array
@@ -234,7 +257,7 @@ export default function FileMenu() {
         if (searchInput.length !== 0 && !entry[0].toLowerCase().startsWith(searchInput.toLowerCase())) {
             return;
         }
-        const openMenuItem = items[2];
+        const openMenuItem = items[3];
         if (openMenuItem && 'children' in openMenuItem && openMenuItem.children) {
             openMenuItem.children.push({
                 key: `entry-${entry[1].toString()}`,
@@ -260,6 +283,14 @@ export default function FileMenu() {
             case 'open-from-file':
                 loadJSON();
                 break;
+            case 'new':
+                newEntry().then(() => {
+                    openNotification('New entry created', NotificationType.SUCCESS, 'Your new entry has been created successfully');
+                    navigate('/');
+                }).catch((error) => {
+                    openNotification('Error creating new entry', NotificationType.ERROR, error.toString());
+                });
+                break;
             case 'save':
                 saveEntry().then(() => {
                     openNotification('Entry saved', NotificationType.SUCCESS, 'Your entry has been saved successfully');
@@ -269,6 +300,9 @@ export default function FileMenu() {
                 break;
             case 'export':
                 exportToJSON();
+                break;
+            case 'close':
+                appWindow.close();
                 break;
             default:
                 // Handle recent document entries
