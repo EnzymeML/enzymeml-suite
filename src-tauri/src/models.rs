@@ -194,9 +194,9 @@ impl From<v2::SmallMolecule> for DBSmallMolecule {
         DBSmallMolecule {
             id: 0,
             name: value.name.clone(),
-            canonical_smiles: value.canonical_smiles.map(String::from),
-            inchi: value.inchi.map(String::from),
-            inchikey: value.inchikey.map(String::from),
+            canonical_smiles: value.canonical_smiles,
+            inchi: value.inchi,
+            inchikey: value.inchikey,
             references,
         }
     }
@@ -208,10 +208,10 @@ impl From<v2::Protein> for DBProtein {
         DBProtein {
             id: 0,
             name: value.name.clone(),
-            sequence: value.sequence.map(String::from),
-            ecnumber: value.ecnumber.map(String::from),
-            organism: value.organism.map(String::from),
-            organism_tax_id: value.organism_tax_id.map(String::from),
+            sequence: value.sequence,
+            ecnumber: value.ecnumber,
+            organism: value.organism,
+            organism_tax_id: value.organism_tax_id,
         }
     }
 }
@@ -222,7 +222,7 @@ impl From<v2::Vessel> for DBVessel {
         DBVessel {
             id: 0,
             name: value.name.clone(),
-            volume: value.volume as f64,
+            volume: value.volume,
             unit: value.unit.name.clone().unwrap_or_default(),
         }
     }
@@ -278,7 +278,7 @@ impl<'a> From<&'a v2::Vessel> for DBNewVessel<'a> {
     fn from(value: &'a v2::Vessel) -> Self {
         DBNewVessel {
             name: &value.name,
-            volume: value.volume as f64,
+            volume: value.volume,
             unit: value.unit.name.as_deref().unwrap_or_default(),
         }
     }

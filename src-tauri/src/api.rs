@@ -246,7 +246,7 @@ pub fn update_document(
     *state_doc = enzmldoc;
 
     // Communicate the change to the Tauri app
-    if let Some(value) = signal_change_to_frontend(&app_handle) {
+    if let Some(value) = signal_change_to_frontend(app_handle) {
         return value;
     }
 

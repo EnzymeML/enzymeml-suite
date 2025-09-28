@@ -474,7 +474,7 @@ pub async fn start_jupyter(
         .arg("--ServerApp.root_dir")
         .arg(&jupyter_dir)
         .arg("--port")
-        .arg(&port.to_string())
+        .arg(port.to_string())
         .current_dir(&jupyter_dir)
         .envs(setup_jupyter_env())
         .spawn()
@@ -487,13 +487,13 @@ pub async fn start_jupyter(
         match line {
             CommandEvent::Stdout(line) | CommandEvent::Stderr(line) => {
                 let line = String::from_utf8_lossy(&line);
-                if let Ok(_) = parse_output_and_create_session(
+                if parse_output_and_create_session(
                     &jupyter_state,
                     &line,
                     port,
                     name.clone(),
                     &mut child,
-                ) {
+                ).is_ok() {
                     return Ok(());
                 }
             }
@@ -660,10 +660,7 @@ fn get_next_available_port() -> u16 {
 /// # Returns
 /// `true` if the port is occupied, `false` if it's available
 fn is_port_occupied(port: u16) -> bool {
-    match TcpListener::bind(("127.0.0.1", port)) {
-        Ok(_) => false, // Port is free if we can bind to it
-        Err(_) => true, // Port is occupied if we can't bind to it
-    }
+    TcpListener::bind(("127.0.0.1", port)).is_err()
 }
 
 /// Gets the project directory path for the current EnzymeML document

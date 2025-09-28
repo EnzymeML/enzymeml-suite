@@ -281,7 +281,7 @@ fn derive_part_from_reac(
     if let Some(ref law) = reaction.kinetic_law {
         parts.push(EquationPart {
             negative: stoichiometry < 0.0,
-            stoichiometry: stoichiometry.into(),
+            stoichiometry,
             equation: law.equation.clone(),
         });
     }

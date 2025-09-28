@@ -217,11 +217,7 @@ impl JupyterState {
     /// the removed session (so the caller can decide what to do with it).
     pub fn remove_session_by_id(&self, id: &str) -> Option<JupyterSession> {
         let mut sessions = self.sessions.lock().unwrap();
-        if let Some(pos) = sessions.iter().position(|s| s.id == id) {
-            Some(sessions.remove(pos))
-        } else {
-            None
-        }
+        sessions.iter().position(|s| s.id == id).map(|pos| sessions.remove(pos))
     }
 }
 
