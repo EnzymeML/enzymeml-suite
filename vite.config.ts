@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import svgr from "vite-plugin-svgr";
 import react from "@vitejs/plugin-react";
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -17,6 +19,7 @@ export default defineConfig(async () => ({
             },
             include: "**/*.svg",
         }),
+        nodePolyfills({ protocolImports: true }),
     ],
 
     resolve: {
@@ -44,7 +47,19 @@ export default defineConfig(async () => ({
             "@utilities": resolve(__dirname, "./src/utilities"),
             "@vessels": resolve(__dirname, "./src/vessels"),
             "@visualisation": resolve(__dirname, "./src/visualisation"),
+            // shims for node polyfills
+            fs: resolve(__dirname, "./src/shims/fs.ts"),
+            path: resolve(__dirname, "./src/shims/path.ts"),
+            stream: resolve(__dirname, "./src/shims/stream.ts"),
         },
+    },
+
+    define: {
+        global: 'globalThis',
+    },
+
+    optimizeDeps: {
+        include: ['buffer', 'process', 'util', 'path-browserify'],
     },
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

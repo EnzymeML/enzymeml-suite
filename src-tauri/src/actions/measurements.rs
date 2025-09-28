@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::enzmldoc::get_species_name;
+use crate::actions::identifiers::MEASUREMENT_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
 
 /// Data structure for visualization containing an ID and data points
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -39,7 +40,7 @@ pub fn create_measurement(
     let mut builder = MeasurementBuilder::default();
     builder.name("New Measurement".to_string());
 
-    let id = create_object!(state.doc, measurements, builder, "m", id);
+    let id = create_object!(state.doc, measurements, builder, MEASUREMENT_PREFIX, id);
 
     let mut state_doc = state.doc.lock().unwrap();
 
@@ -73,6 +74,76 @@ pub fn create_measurement(
     update_event!(app_handle, "update_measurements");
 
     Ok(id)
+}
+
+/// Adds a small molecule to the EnzymeML document
+///
+/// This function adds a small molecule to the document's small_molecules collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `object` - The small molecule object to add
+#[tauri::command]
+pub fn add_measurement(
+    state: State<Arc<EnzymeMLState>>,
+    mut object: Measurement,
+    app_handle: AppHandle,
+) -> String {
+    let mut state_guard = state.doc.lock().unwrap();
+    let id = generate_id(
+        &state_guard
+            .measurements
+            .iter()
+            .map(|s| s.id.clone())
+            .collect(),
+        MEASUREMENT_PREFIX,
+    );
+    object.id = id.clone();
+    state_guard.measurements.push(object.clone());
+    drop(state_guard);
+    update_event!(app_handle, "update_measurements");
+    id
+}
+
+/// Adds multiple small molecules to the EnzymeML document
+///
+/// This function adds multiple small molecules to the document's small_molecules collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `data` - The vector of small molecule objects to add
+#[tauri::command]
+pub fn add_measurements(
+    state: State<Arc<EnzymeMLState>>,
+    mut data: Vec<Measurement>,
+    app_handle: AppHandle,
+) -> Vec<String> {
+    let mut existing_ids: Vec<String> = state
+        .doc
+        .lock()
+        .unwrap()
+        .measurements
+        .iter()
+        .map(|s| s.id.clone())
+        .collect();
+
+    let mut ids = Vec::with_capacity(data.len());
+    let objects: Vec<Measurement> = data
+        .iter_mut()
+        .map(|o| {
+            let id = generate_id(&existing_ids, MEASUREMENT_PREFIX);
+            ids.push(id.clone());
+            existing_ids.push(id.clone());
+            o.id = id;
+            o.clone()
+        })
+        .collect();
+
+    add_objects!(state.doc, measurements, objects);
+    update_event!(app_handle, "update_measurements");
+    ids
 }
 
 /// Updates an existing measurement in the EnzymeML document

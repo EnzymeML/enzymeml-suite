@@ -1,6 +1,22 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Measurement } from "enzymeml";
 
+export async function addMeasurement(data: Measurement): Promise<void> {
+    try {
+        await invoke('add_measurement', { data });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function addMeasurements(data: Measurement[]): Promise<void> {
+    try {
+        await invoke('add_measurements', { data });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
 export async function createMeasurement(): Promise<string> {
     try {
         return await invoke('create_measurement', {});

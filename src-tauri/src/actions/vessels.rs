@@ -2,10 +2,78 @@ use enzymeml::prelude::{Vessel, VesselBuilder};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::actions::identifiers::VESSEL_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 use crate::unit::UnitDefinitions;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+
+/// Adds a small molecule to the EnzymeML document
+///
+/// This function adds a vessel to the document's vessels collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `object` - The vessel object to add
+#[tauri::command]
+pub fn add_vessel(
+    state: State<Arc<EnzymeMLState>>,
+    mut object: Vessel,
+    app_handle: AppHandle,
+) -> String {
+    let mut state_guard = state.doc.lock().unwrap();
+    let id = generate_id(
+        &state_guard.vessels.iter().map(|s| s.id.clone()).collect(),
+        VESSEL_PREFIX,
+    );
+    object.id = id.clone();
+    state_guard.vessels.push(object.clone());
+    drop(state_guard);
+    update_event!(app_handle, "update_vessels");
+    id
+}
+
+/// Adds multiple vessels to the EnzymeML document
+///
+/// This function adds multiple vessels to the document's vessels collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `data` - The vector of vessel objects to add
+#[tauri::command]
+pub fn add_vessels(
+    state: State<Arc<EnzymeMLState>>,
+    mut data: Vec<Vessel>,
+    app_handle: AppHandle,
+) -> Vec<String> {
+    let mut existing_ids: Vec<String> = state
+        .doc
+        .lock()
+        .unwrap()
+        .vessels
+        .iter()
+        .map(|s| s.id.clone())
+        .collect();
+
+    let mut ids = Vec::with_capacity(data.len());
+    let objects: Vec<Vessel> = data
+        .iter_mut()
+        .map(|o| {
+            let id = generate_id(&existing_ids, VESSEL_PREFIX);
+            ids.push(id.clone());
+            existing_ids.push(id.clone());
+            o.id = id;
+            o.clone()
+        })
+        .collect();
+
+    add_objects!(state.doc, vessels, objects);
+    update_event!(app_handle, "update_vessels");
+
+    ids
+}
 
 /// Creates a new vessel in the EnzymeML document
 ///
@@ -26,7 +94,7 @@ pub fn create_vessel(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) ->
     builder.volume(1.0);
     builder.unit(UnitDefinitions::get_unit("ml").unwrap());
 
-    let id = create_object!(state.doc, vessels, builder, "v", id);
+    let id = create_object!(state.doc, vessels, builder, VESSEL_PREFIX, id);
 
     update_event!(app_handle, "update_vessels");
 

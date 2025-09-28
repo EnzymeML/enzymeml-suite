@@ -73,6 +73,8 @@ interface LLMState {
     tools: ToolDefinition[]
     /** Whether to use web search */
     useWebSearch: boolean
+    /** Whether to display the extraction modal */
+    extractionModalVisible: boolean
     // Actions
     /** Updates the selected language model and persists it to storage */
     setLLMModel: (llmModel: ModelOption) => void
@@ -82,6 +84,8 @@ interface LLMState {
     removeTool: (llmTool: ToolDefinition) => void
     /** Updates the use web search flag and persists it to storage */
     setUseWebSearch: (useWebSearch: boolean) => void
+    /** Displays the extraction modal */
+    setExtractionModalVisible: (visible: boolean) => void
 }
 
 /**
@@ -102,6 +106,7 @@ const useLLMStore = create<LLMState>()(
                 llmModel: MODEL_OPTIONS[0],
                 tools: [TOOL_OPTIONS.search_databases.tool],
                 useWebSearch: false,
+                extractionModalVisible: false,
                 // Actions
                 setLLMModel: (llmModel: ModelOption) => {
                     set({ llmModel });
@@ -120,6 +125,9 @@ const useLLMStore = create<LLMState>()(
                 },
                 setUseWebSearch: (useWebSearch: boolean) => {
                     set({ useWebSearch });
+                },
+                setExtractionModalVisible: (visible: boolean) => {
+                    set({ extractionModalVisible: visible });
                 },
             }),
             {

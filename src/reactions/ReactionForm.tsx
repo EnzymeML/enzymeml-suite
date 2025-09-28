@@ -114,6 +114,14 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
   }, [data.reactants, data.products]);
 
 
+  // Parse participants and set them in the form
+  let participants: ReactionElement[] = [];
+  if (data.reactants) {
+    participants = participants.concat(data.reactants);
+  }
+  if (data.products) {
+    participants = participants.concat(data.products);
+  }
 
   return (
     <FormBase
@@ -129,7 +137,7 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
           smilesStr={reactionSMILES}
           width={700}
           height={170}
-          participants={data.reactants.concat(data.products)}
+          participants={participants}
         />
       )}
       {/* <Grow>{chemicalReaction}</Grow> */}

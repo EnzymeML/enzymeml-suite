@@ -1,4 +1,4 @@
-import { theme } from "antd";
+import { Spin, theme, Typography } from "antd";
 // @ts-expect-error - ignore
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 // @ts-expect-error - ignore
@@ -6,54 +6,106 @@ import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/pris
 
 import useAppStore from "@stores/appstore";
 
+/**
+ * Props for the ProcessingView component
+ */
 interface ProcessingViewProps {
+    /** Whether the AI is currently streaming data */
     isStreaming: boolean;
+    /** The streamed content chunks received from the AI */
     streamedChunks: string;
+    /** Callback function to navigate back to the previous step */
     onBack: () => void;
+    /** Messages to display during different processing states */
     messages: {
+        /** Message shown while streaming is active */
         streaming: string;
+        /** Message shown when processing is complete */
         complete: string;
+        /** Message shown while waiting for AI response */
         waitingForResponse: string;
+        /** Message shown while analyzing content */
         analyzing: string;
     };
 }
 
+const { Text } = Typography;
+
+/**
+ * ProcessingView component displays the AI processing state and streamed content
+ * 
+ * This component shows the real-time streaming output from the AI during data extraction.
+ * It provides a syntax-highlighted view of the JSON response being streamed, with
+ * theme-aware styling that adapts to dark/light mode.
+ * 
+ * Features:
+ * - Real-time display of streamed AI responses
+ * - Syntax highlighting for JSON content with theme support
+ * - Loading state with spinner when waiting for response
+ * - Fixed height container with scrolling for long content
+ * - Responsive design with proper spacing and typography
+ * 
+ * @param isStreaming - Whether the AI is currently streaming data
+ * @param streamedChunks - The accumulated streamed content from the AI
+ * @param onBack - Callback function to navigate back to the previous step
+ * @param messages - Configuration object containing messages for different states
+ * @returns JSX element representing the processing view interface
+ */
 export default function ProcessingView({
+    isStreaming,
     streamedChunks,
     messages,
 }: ProcessingViewProps) {
+    /** Ant Design theme tokens for consistent styling */
     const { token } = theme.useToken();
+    /** Current dark mode state for theme-aware syntax highlighting */
     const darkMode = useAppStore((state) => state.darkMode);
 
+    /** Show spinner when streaming but no chunks have arrived yet */
+    const showSpinner = isStreaming && !streamedChunks;
+
     return (
-        <div className="flex flex-col gap-4">
+        <div
+            className="flex overflow-hidden flex-col gap-4"
+            style={{
+                borderRadius: token.borderRadius,
+                minHeight: '50px',
+                maxHeight: '400px'
+            }}
+        >
 
             {/* Content Display - Fixed Height with Scroll */}
             <div
-                className="overflow-auto"
-                style={{
-                    background: token.colorBgLayout,
-                    borderRadius: token.borderRadius,
-                    minHeight: '300px',
-                    maxHeight: '400px'
-                }}
+                className="overflow-hidden scrollbar-hide"
+
             >
-                <SyntaxHighlighter
-                    language="json"
-                    style={darkMode ? oneDark : oneLight}
-                    customStyle={{
-                        background: 'transparent',
-                        padding: '16px',
-                        margin: 0,
-                        fontSize: '12px',
-                        lineHeight: '1.5',
-                        color: token.colorText,
-                        minHeight: '100%'
-                    }}
-                    wrapLongLines={true}
-                >
-                    {streamedChunks || messages.waitingForResponse}
-                </SyntaxHighlighter>
+                {showSpinner ? (
+                    // Loading state: Display spinner and waiting message
+                    <div className="flex flex-col gap-3 justify-center items-center h-full">
+                        <Spin size="default" />
+                        <Text className="text-center">{messages.waitingForResponse}</Text>
+                    </div>
+                ) : streamedChunks ? (
+                    // Content state: Display syntax-highlighted JSON with theme support
+                    <SyntaxHighlighter
+                        language="json"
+                        style={darkMode ? oneDark : oneLight}
+                        customStyle={{
+                            background: 'transparent',
+                            padding: '16px',
+                            margin: 0,
+                            fontSize: '12px',
+                            lineHeight: '1.5',
+                            minHeight: '100%'
+                        }}
+                        codeTagProps={{
+                            style: { backgroundColor: "transparent" }
+                        }}
+                        wrapLongLines={true}
+                    >
+                        {streamedChunks}
+                    </SyntaxHighlighter>
+                ) : null}
             </div>
         </div>
     );

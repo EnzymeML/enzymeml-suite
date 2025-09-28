@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::actions::identifiers::SMALL_MOLECULE_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
@@ -27,7 +28,13 @@ pub fn create_small_mol(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle)
     builder.name("New Small Molecule".to_string());
     builder.constant(false);
 
-    let id = create_object!(state.doc, small_molecules, builder, "s", id);
+    let id = create_object!(
+        state.doc,
+        small_molecules,
+        builder,
+        SMALL_MOLECULE_PREFIX,
+        id
+    );
 
     update_event!(app_handle, "update_small_mols");
 
@@ -55,7 +62,7 @@ pub fn add_small_mol(
             .iter()
             .map(|s| s.id.clone())
             .collect(),
-        "s",
+        SMALL_MOLECULE_PREFIX,
     );
     object.id = id.clone();
     state_guard.small_molecules.push(object.clone());
@@ -91,7 +98,7 @@ pub fn add_small_mols(
     let objects: Vec<SmallMolecule> = data
         .iter_mut()
         .map(|o| {
-            let id = generate_id(&existing_ids, "s");
+            let id = generate_id(&existing_ids, SMALL_MOLECULE_PREFIX);
             ids.push(id.clone());
             existing_ids.push(id.clone());
             o.id = id;
@@ -99,10 +106,9 @@ pub fn add_small_mols(
         })
         .collect();
 
-    println!("Adding objects: {:#?}", objects);
     add_objects!(state.doc, small_molecules, objects);
-
     update_event!(app_handle, "update_small_mols");
+
     ids
 }
 

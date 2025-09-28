@@ -1,6 +1,7 @@
+//@ts-expect-error - LineSvgPropsWithDefaults is not typed
 import { LineSvgPropsWithDefaults } from "@nivo/line";
 
-type Theme = LineSvgPropsWithDefaults<any>['theme'];
+type Theme = LineSvgPropsWithDefaults<unknown>['theme'];
 
 export const lineChartTheme: Theme = {
     background: "#ffffff",

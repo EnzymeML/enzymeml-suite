@@ -60,10 +60,10 @@ export default function JupyterSessionManager({ children }: JupyterSessionManage
         }
     };
 
-    // Check installation status on every render
+    // Check installation status on component mount
     useEffect(() => {
         checkInstallationStatus();
-    });
+    }, []);
 
     // Also set up periodic checking every 5 seconds
     useEffect(() => {

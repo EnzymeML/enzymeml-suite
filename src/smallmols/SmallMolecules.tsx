@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import "react-json-view-lite/dist/index.css";
-import { ZodObject, ZodRawShape } from "zod";
-import { SmallMolecule, SmallMoleculeSchema } from "enzymeml";
+import { SmallMolecule } from "enzymeml";
 
 import DataProvider from "@components/DataProvider";
 import { ChildProps } from "@suite-types/types";
@@ -12,11 +11,8 @@ import { setCollectionIds } from "@tauri/listener";
 import useAppStore from "@stores/appstore";
 import { useRouterTauriListener } from "@hooks/useTauriListener";
 import { saveMoleculeToDb } from "@commands/dbops";
-import { useExtractionModalShortcuts } from "@hooks/useKeyboardShortcuts";
 import { FloatingCreateRef } from "@components/FloatingCreate";
-import { ExtractionContextEnum, ExtractionContexts } from "@suite-types/context";
 import {
-  addSmallMolecules,
   createSmallMolecule,
   deleteSmallMolecule,
   getSmallMolecule,
@@ -89,11 +85,6 @@ export default function SmallMolecules() {
   useEffect(() => setState(), [selectedId, setState]);
   useRouterTauriListener("update_small_mols", setState);
 
-  // Keyboard shortcuts for toggling extraction modal
-  useExtractionModalShortcuts(() => {
-    floatingCreateRef.current?.toggleExtractModal();
-  }, smallMolecules.length > 0); // Only enable shortcuts when there are items (not on empty page)
-
   // Create the items for the Collapsible component
   const items = React.useMemo(
     () =>
@@ -110,14 +101,12 @@ export default function SmallMolecules() {
   }
 
   return (
-    <Collection<SmallMolecule>
+    <Collection
       items={items}
       handleCreateObject={createSmallMolecule}
       type={"Small Molecule"}
-      schema={SmallMoleculeSchema as unknown as ZodObject<ZodRawShape>}
-      addFunction={addSmallMolecules}
       floatingCreateRef={floatingCreateRef}
-      context={ExtractionContexts[ExtractionContextEnum.SMALL_MOLECULES]}
+      eventName={"update_small_mols"}
     />
   );
 }

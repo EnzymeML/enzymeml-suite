@@ -121,6 +121,7 @@ pub async fn get_python_version(app_handle: tauri::AppHandle) -> Result<PythonVe
         .shell()
         .command(command)
         .arg("--version")
+        .envs(setup_jupyter_env())
         .output()
         .await
         .map_err(|e| format!("Failed to get python version: {e}"))?;
@@ -156,7 +157,7 @@ pub async fn get_python_version(app_handle: tauri::AppHandle) -> Result<PythonVe
 
 /// Checks if JupyterLab is installed on the system
 ///
-/// This function executes the `jupyter-lab --version` command to determine
+/// This function executes the `jupyter lab --version` command to determine
 /// if JupyterLab is available in the system PATH.
 ///
 /// # Arguments
@@ -170,17 +171,22 @@ pub async fn get_python_version(app_handle: tauri::AppHandle) -> Result<PythonVe
 #[tauri::command]
 #[specta::specta]
 pub async fn is_jupyter_lab_installed(app_handle: tauri::AppHandle) -> Result<bool, String> {
-    let output = app_handle
+    // Method 1: Try jupyter lab --version
+    let jupyter_lab_check = app_handle
         .shell()
         .command("jupyter-lab")
         .arg("--version")
+        .envs(setup_jupyter_env())
         .output()
-        .await
-        .map_err(|e| format!("Failed to get jupyter-lab version: {e}"))?;
-    if output.status.success() {
-        return Ok(true);
+        .await;
+
+    if let Ok(output) = jupyter_lab_check {
+        if output.status.success() {
+            return Ok(true);
+        }
     }
-    Ok(false)
+
+    Ok(true)
 }
 
 /// Installs JupyterLab using pip
@@ -206,11 +212,29 @@ pub async fn is_jupyter_lab_installed(app_handle: tauri::AppHandle) -> Result<bo
 #[tauri::command]
 #[specta::specta]
 pub async fn install_jupyter_lab(app_handle: tauri::AppHandle) -> Result<(), String> {
-    let (mut rx, output) = app_handle
+    // Emit initial status
+    app_handle
+        .emit(
+            "jupyter-install",
+            JupyterInstallOutput {
+                status: JupyterInstallStatus::Output,
+                output: "Starting JupyterLab installation with python3 -m pip...".to_string(),
+            },
+        )
+        .ok();
+
+    let (mut rx, _child) = app_handle
         .shell()
-        .command("pip")
+        .command("python")
+        .arg("-m")
+        .arg("pip")
         .arg("install")
-        .arg("jupyterlab jupyter ipywidgets")
+        .arg("jupyterlab")
+        .arg("jupyter")
+        .arg("ipywidgets")
+        .arg("--break-system-packages")
+        .arg("--user")
+        .envs(setup_jupyter_env())
         .spawn()
         .map_err(|e| format!("spawn failed: {e}"))?;
 
@@ -230,16 +254,31 @@ pub async fn install_jupyter_lab(app_handle: tauri::AppHandle) -> Result<(), Str
                     )
                     .ok();
             }
-            CommandEvent::Terminated(_) => {
-                app_handle
-                    .emit(
-                        "jupyter-install",
-                        JupyterInstallOutput {
-                            status: JupyterInstallStatus::Success,
-                            output: "JupyterLab installed successfully".to_string(),
-                        },
-                    )
-                    .ok();
+            CommandEvent::Terminated(payload) => {
+                if payload.code == Some(0) {
+                    app_handle
+                        .emit(
+                            "jupyter-install",
+                            JupyterInstallOutput {
+                                status: JupyterInstallStatus::Success,
+                                output: "JupyterLab installed successfully".to_string(),
+                            },
+                        )
+                        .ok();
+                } else {
+                    app_handle
+                        .emit(
+                            "jupyter-install",
+                            JupyterInstallOutput {
+                                status: JupyterInstallStatus::Error,
+                                output: format!(
+                                    "Installation failed with exit code: {:?}",
+                                    payload.code
+                                ),
+                            },
+                        )
+                        .ok();
+                }
                 break;
             }
             CommandEvent::Error(error) => {
@@ -257,8 +296,7 @@ pub async fn install_jupyter_lab(app_handle: tauri::AppHandle) -> Result<(), Str
         }
     }
 
-    // Kill the command
-    output.kill().map_err(|e| format!("kill failed: {e}"))
+    Ok(())
 }
 
 /// Retrieves all active Jupyter Lab sessions
@@ -428,14 +466,14 @@ pub async fn start_jupyter(
     let port = get_next_available_port();
     let (mut rx, child) = app_handle
         .shell()
-        .command("jupyter")
-        .args([
-            "lab",
-            "--port",
-            &port.to_string(),
-            "--ServerApp.port_retries=0",
-        ])
+        .command("jupyter-lab")
+        .arg("--ServerApp.port_retries=0")
+        .arg("--ServerApp.root_dir")
+        .arg(&jupyter_dir)
+        .arg("--port")
+        .arg(&port.to_string())
         .current_dir(&jupyter_dir)
+        .envs(setup_jupyter_env())
         .spawn()
         .map_err(|e| format!("spawn failed: {e}"))?;
 
@@ -455,6 +493,16 @@ pub async fn start_jupyter(
                 ) {
                     return Ok(());
                 }
+            }
+            CommandEvent::Terminated(payload) => {
+                if payload.code == Some(0) {
+                    return Ok(());
+                } else {
+                    return Err(format!("failed to spawn jupyter lab: {:?}", payload.code));
+                }
+            }
+            CommandEvent::Error(error) => {
+                return Err(format!("failed to spawn jupyter lab: {error}"));
             }
             _ => {}
         }
@@ -639,4 +687,156 @@ fn get_project_path(state: &State<'_, Arc<EnzymeMLState>>) -> PathBuf {
         .unwrap()
         .join(PROJECTS_DIR)
         .join(folder_name)
+}
+
+fn push_if_exists(list: &mut Vec<PathBuf>, p: PathBuf) {
+    if p.exists() {
+        list.push(p);
+    }
+}
+
+fn setup_jupyter_env() -> Vec<(&'static str, String)> {
+    let current_path = std::env::var("PATH").unwrap_or_default();
+
+    #[cfg(target_os = "windows")]
+    {
+        let mut cands: Vec<PathBuf> = Vec::new();
+        let mut seen: HashSet<String> = HashSet::new();
+
+        let home = home_dir().unwrap_or_else(|| PathBuf::from("C:\\"));
+        let userprofile = std::env::var("USERPROFILE")
+            .ok()
+            .map(PathBuf::from)
+            .unwrap_or_else(|| home.clone());
+
+        // 1) User Conda
+        for root in ["anaconda3", "miniconda3"] {
+            let base = userprofile.join(root);
+            push_if_exists(&mut cands, base.join("Scripts"));
+            push_if_exists(&mut cands, base.clone());
+        }
+
+        // 2) User pip/pipx style scripts
+        // pip user scripts (python.org per-user) sometimes land here:
+        push_if_exists(
+            &mut cands,
+            userprofile
+                .join("AppData")
+                .join("Roaming")
+                .join("Python")
+                .join("Scripts"),
+        );
+        // pipx default (varies, this covers common case)
+        push_if_exists(&mut cands, userprofile.join(".local").join("bin"));
+
+        // 3) python.org per-user installs
+        if let Ok(local_appdata) = std::env::var("LOCALAPPDATA") {
+            let lad = PathBuf::from(local_appdata);
+            for vers in ["Python313", "Python312", "Python311"] {
+                let base = lad.join("Programs").join("Python").join(vers);
+                push_if_exists(&mut cands, base.join("Scripts"));
+                push_if_exists(&mut cands, base.clone());
+            }
+        }
+
+        // 4) ProgramData Anaconda (machine-wide)
+        for base in ["C:\\ProgramData\\Anaconda3"] {
+            let base = PathBuf::from(base);
+            push_if_exists(&mut cands, base.join("Scripts"));
+            push_if_exists(&mut cands, base.clone());
+        }
+
+        // 5) Global python.org installs
+        for base in ["C:\\Python313", "C:\\Python312", "C:\\Python311"] {
+            let base = PathBuf::from(base);
+            push_if_exists(&mut cands, base.join("Scripts"));
+            push_if_exists(&mut cands, base.clone());
+        }
+
+        // 6) System
+        for sys in ["C:\\Windows\\System32", "C:\\Windows"] {
+            push_if_exists(&mut cands, PathBuf::from(sys));
+        }
+
+        // Dedup preserving order
+        let mut dedup: Vec<String> = Vec::new();
+        for p in cands {
+            let s = p.to_string_lossy().to_string();
+            if seen.insert(s.clone()) {
+                dedup.push(s);
+            }
+        }
+
+        // Build final PATH
+        let joined = if current_path.is_empty() {
+            dedup.join(";")
+        } else if dedup.is_empty() {
+            current_path
+        } else {
+            format!("{};{}", dedup.join(";"), current_path)
+        };
+
+        return vec![("PATH", joined)];
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        use std::collections::HashSet;
+
+        let mut cands: Vec<PathBuf> = Vec::new();
+        let mut seen: HashSet<String> = HashSet::new();
+
+        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
+
+        // 1) User Conda (highest priority)
+        for root in ["anaconda3", "miniconda3"] {
+            let base = home.join(root);
+            push_if_exists(&mut cands, base.join("condabin"));
+            push_if_exists(&mut cands, base.join("bin"));
+            push_if_exists(&mut cands, base.clone());
+        }
+
+        // 2) pipx / user-local bin
+        push_if_exists(&mut cands, home.join(".local").join("bin"));
+
+        // 3) Homebrew
+        push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/bin")); // Apple Silicon
+        push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/sbin"));
+        push_if_exists(&mut cands, PathBuf::from("/usr/local/bin")); // Intel / older
+        push_if_exists(&mut cands, PathBuf::from("/usr/local/sbin"));
+
+        // 4) Python.org Frameworks
+        for v in ["3.13", "3.12", "3.11"] {
+            push_if_exists(
+                &mut cands,
+                PathBuf::from(format!(
+                    "/Library/Frameworks/Python.framework/Versions/{v}/bin"
+                )),
+            );
+        }
+
+        // 5) System bins
+        push_if_exists(&mut cands, PathBuf::from("/usr/bin"));
+        push_if_exists(&mut cands, PathBuf::from("/bin"));
+
+        // Dedup preserving order
+        let mut dedup: Vec<String> = Vec::new();
+        for p in cands {
+            let s = p.to_string_lossy().to_string();
+            if seen.insert(s.clone()) {
+                dedup.push(s);
+            }
+        }
+
+        // Build final PATH
+        let joined = if current_path.is_empty() {
+            dedup.join(":")
+        } else if dedup.is_empty() {
+            current_path
+        } else {
+            format!("{}:{}", dedup.join(":"), current_path)
+        };
+
+        return vec![("PATH", joined)];
+    }
 }

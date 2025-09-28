@@ -15,7 +15,6 @@
     "shell:allow-open",
     "http:default",
     "shell:default",
-    "dialog:default",
-    "stronghold:default"
+    "dialog:default"
   ]
 }

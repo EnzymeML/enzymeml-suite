@@ -8,6 +8,7 @@ use crate::db::establish_db_connection;
 use crate::models::NewDocument;
 use crate::schema::documents;
 use crate::states::EnzymeMLState;
+use crate::update_event;
 
 /// Sets the title of the EnzymeML document
 ///
@@ -60,6 +61,33 @@ pub fn create_new_document(title: &str) -> Result<i32, Box<dyn Error>> {
         .get_result(&mut connection)?;
 
     Ok(id)
+}
+
+/// Creates a new EnzymeML document and replaces the current document in state
+///
+/// This function replaces the current EnzymeML document in the application state
+/// with the provided document. It emits an update event to notify the frontend
+/// of the document change.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `enzmldoc` - The new EnzymeML document to set as the current document
+/// * `app_handle` - Handle to the Tauri application for event emission to the frontend
+///
+/// # Returns
+/// Result indicating success or failure
+#[tauri::command]
+pub fn create_document(
+    state: State<Arc<EnzymeMLState>>,
+    enzmldoc: EnzymeMLDocument,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let mut state_doc = state.doc.lock().unwrap();
+    *state_doc = enzmldoc;
+
+    update_event!(app_handle, "update_document");
+
+    Ok(())
 }
 
 /// Retrieves all species IDs from the EnzymeML document

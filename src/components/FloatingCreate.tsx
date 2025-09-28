@@ -1,18 +1,12 @@
-import { useState, useImperativeHandle, forwardRef } from "react";
+import { useImperativeHandle, forwardRef } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { FloatButton } from "antd";
-import { BsStars } from "react-icons/bs";
-import { ZodObject, ZodRawShape } from "zod";
 
-import ExtractModal from "@llm/ExtractModal";
-import { ExtractionContext } from "@suite-types/context";
+import useLLMStore from "@suite/stores/llmstore";
 
-interface FloatingCreateProps<T extends ZodObject<ZodRawShape>, U> {
+interface FloatingCreateProps {
     handleCreate: () => void;
     type: string;
-    schema?: T;
-    addFunction?: (items: U[]) => void;
-    context: ExtractionContext;
 }
 
 export interface FloatingCreateRef {
@@ -22,59 +16,43 @@ export interface FloatingCreateRef {
     isExtractModalVisible: () => boolean;
 }
 
-const FloatingCreate = forwardRef<FloatingCreateRef, FloatingCreateProps<ZodObject<ZodRawShape>, unknown>>(
-    function FloatingCreate<T extends ZodObject<ZodRawShape>, U>(
+const FloatingCreate = forwardRef<FloatingCreateRef, FloatingCreateProps>(
+    function FloatingCreate(
         {
             handleCreate,
             type,
-            schema,
-            addFunction,
-            context,
-        }: FloatingCreateProps<T, U>,
+        }: FloatingCreateProps,
         ref: React.Ref<FloatingCreateRef>
     ) {
-        const [visible, setVisible] = useState(false);
+
+        // Global states
+        const extractionModalVisible = useLLMStore((state) => state.extractionModalVisible);
+
+        // Global actions
+        const setExtractionModalVisible = useLLMStore((state) => state.setExtractionModalVisible);
 
         // Expose modal control functions to parent components
         useImperativeHandle(ref, () => ({
-            openExtractModal: () => setVisible(true),
-            closeExtractModal: () => setVisible(false),
-            toggleExtractModal: () => setVisible(prev => !prev),
-            isExtractModalVisible: () => visible,
+            openExtractModal: () => setExtractionModalVisible(true),
+            closeExtractModal: () => setExtractionModalVisible(false),
+            toggleExtractModal: () => setExtractionModalVisible(!extractionModalVisible),
+            isExtractModalVisible: () => extractionModalVisible,
         }));
+
         return (
-            <>
-                <FloatButton.Group
-                    trigger="hover"
-                    type="primary"
-                    style={{ insetInlineEnd: 94 }}
-                    icon={<PlusOutlined />}
-                >
-                    <FloatButton
-                        shape="square"
-                        type="default"
-                        icon={<BsStars size={20} />}
-                        tooltip={<div>From text</div>}
-                        onClick={() => setVisible(true)}
-                    />
-                    <FloatButton
-                        shape="square"
-                        type="default"
-                        icon={<PlusOutlined />}
-                        tooltip={<div>Add {type}</div>}
-                        onClick={handleCreate}
-                    />
-                </FloatButton.Group >
-                {schema && addFunction && (
-                    <ExtractModal
-                        schema={schema as ZodObject<ZodRawShape>}
-                        context={context}
-                        visible={visible}
-                        setVisible={setVisible}
-                        addFunction={addFunction}
-                    />
-                )}
-            </>
+            <FloatButton
+                shape="circle"
+                type="primary"
+                icon={<PlusOutlined />}
+                tooltip={
+                    {
+                        title: `Add ${type}`,
+                        placement: "left"
+                    }
+                }
+
+                onClick={handleCreate}
+            />
         );
     });
 

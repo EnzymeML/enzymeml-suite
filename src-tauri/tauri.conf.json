@@ -41,7 +41,6 @@
             "core:event:allow-listen",
             "core:event:allow-unlisten",
             "cors-fetch:default",
-            "stronghold:default",
             "shell:default",
             "store:default",
             {
@@ -49,12 +48,8 @@
               "allow": [
                 {
                   "name": "jupyter-lab",
-                  "cmd": "jupyter",
-                  "args": ["lab", "--no-browser", "--port", { "validator": "\\d+" }]
-                },
-                {
-                  "name": "pip",
-                  "args": ["install", "jupyterlab"]
+                  "cmd": "jupyter-lab",
+                  "args": ["--ServerApp.port_retries=0", "--ServerApp.root_dir", { "validator": ".*" }, "--port", { "validator": "\\d+" }]
                 },
                 {
                   "name": "python3",
@@ -63,6 +58,16 @@
                 {
                   "name": "python",
                   "args": ["--version"]
+                },
+                {
+                  "name": "jupyter-lab-version",
+                  "cmd": "jupyter-lab",
+                  "args": ["--version"]
+                },
+                {
+                  "name": "python-module-pip-install",
+                  "cmd": "python",
+                  "args": ["-m", "pip", "install", "jupyterlab", "jupyter", "ipywidgets", "--break-system-packages", "--user"]
                 }
               ]
             },
@@ -70,16 +75,15 @@
               "identifier": "opener:allow-open-url",
               "allow": [
                 {
-                  "url": "http://localhost:*"
-                },
+                  "url": "*"
+                }
+              ]
+            },
+            {
+              "identifier": "opener:allow-open-path",
+              "allow": [
                 {
-                  "url": "http://127.0.0.1:*"
-                },
-                {
-                  "url": "https://www.enzymeml.org"
-                },
-                {
-                  "url": "https://www.python.org/downloads/"
+                  "path": "**"
                 }
               ]
             }
