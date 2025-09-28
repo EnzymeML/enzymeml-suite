@@ -1,12 +1,37 @@
 import { useEffect, useRef, useMemo, useState } from "react";
-// @ts-ignore
+// @ts-expect-error - SmilesDrawer is not typed
 import SmilesDrawer from "smiles-drawer";
-import { theme, Popover } from "antd";
+import { theme, Popover, Tag, Badge, Typography } from "antd";
 import useAppStore from "../../stores/appstore.ts";
 import { ReactionElement } from "enzymeml";
+import { listSmallMolecules } from "@suite/commands/smallmols.ts";
+import { useRouterTauriListener } from "@suite/hooks/useTauriListener.ts";
+import { getBadgeColor } from "@suite/components/CardHeader.tsx";
 
 export const WIDTH = 1200;
 const HEIGHT = 100;
+
+/**
+ * PopoverLabel component that displays an ID badge and name text for use in popovers
+ * 
+ * @param id - The identifier to display in the badge
+ * @param name - The name text to display next to the badge
+ * @returns A flex container with a colored badge and typography text
+ */
+function PopoverLabel({ id, name }: { id: string, name: string }) {
+  // States
+  const darkMode = useAppStore((s) => s.darkMode);
+
+  return <div className="flex flex-row gap-2 items-center">
+    <Badge count={id} size={"small"} color={getBadgeColor(darkMode)} />
+    <Typography.Text
+      className="text-sm"
+      color={"accentColor"}
+    >
+      {name}
+    </Typography.Text>
+  </div>
+}
 
 interface SVGChildPopover {
   element: Element;
@@ -38,12 +63,27 @@ export default function ReactionDrawerContainer({
   const { token } = theme.useToken();
 
   const svgRef = useRef<SVGSVGElement>(null);
-  const drawerRef = useRef<any>(null);
+  const drawerRef = useRef<SmilesDrawer.ReactionDrawer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // State for tracking child popovers
+  // State
   const [childPopovers, setChildPopovers] = useState<SVGChildPopover[]>([]);
   const [hoveredChild, setHoveredChild] = useState<number | null>(null);
+  const [smallMolecules, setSmallMolecules] = useState<[string, string][]>([]);
+
+  // Effects
+  useEffect(() => {
+    listSmallMolecules().then((smallMolecules) => {
+      setSmallMolecules(smallMolecules);
+    });
+  }, []);
+
+  // Hooks
+  useRouterTauriListener("update_small_mols", () => {
+    listSmallMolecules().then((smallMolecules) => {
+      setSmallMolecules(smallMolecules);
+    });
+  });
 
   // Determine the scale based on the length of the smiles string
   // Scale should go down if the smiles string is too long
@@ -104,13 +144,16 @@ export default function ReactionDrawerContainer({
       // Take the next participant in order
       if (participantIndex < participants.length) {
         const participant = participants[participantIndex];
-        const content = participant.species_id;
+        const smallMolecule = smallMolecules.find(([id]) => id === participant.species_id);
 
-        const bounds = child.getBoundingClientRect();
+        const content = smallMolecule
+          ? <PopoverLabel id={smallMolecule[0]} name={smallMolecule[1]} />
+          : <PopoverLabel id={participant.species_id} name={participant.species_id} />;
+
         popovers.push({
           element: child,
           content,
-          bounds,
+          bounds: child.getBoundingClientRect(),
         });
 
         // Style the child to indicate it's interactive (but don't add event listeners here)
@@ -133,6 +176,7 @@ export default function ReactionDrawerContainer({
 
     SmilesDrawer.parseReaction(
       smilesStr,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (reaction: any) => {
         try {
           drawerRef.current.draw(
@@ -155,6 +199,7 @@ export default function ReactionDrawerContainer({
           console.error("Error drawing reaction:", e);
         }
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (err: any) => {
         // eslint-disable-next-line no-console
         console.error("Error parsing reaction SMILES:", err);
