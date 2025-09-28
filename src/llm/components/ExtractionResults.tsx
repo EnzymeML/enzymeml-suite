@@ -1,11 +1,25 @@
 import { useState, useMemo } from "react";
 import { Button, theme, Checkbox, List } from "antd";
-import ExtractedItemListItem from "./ExtractedItemListItem";
+
+import ExtractedItemListItem from "@llm/components/ExtractedItemListItem";
+
+// Import types from ExtractedItemListItem
+interface ExtractedItemData {
+    name?: string;
+    title?: string;
+    id?: string;
+    [key: string]: unknown;
+}
+
+interface ExtractedItem {
+    data: ExtractedItemData;
+    description: string;
+}
 
 interface ExtractionResultsProps {
-    extractedData: any[];
+    extractedData: ExtractedItem[];
     onBack: () => void;
-    onComplete: (selectedItems: any[]) => void;
+    onComplete: (selectedItems: ExtractedItemData[]) => void;
     instructions: {
         title: string;
         description: string;

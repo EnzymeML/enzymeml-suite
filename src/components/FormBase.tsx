@@ -1,6 +1,6 @@
 import { Form, FormInstance } from "antd";
-import React from "react";
-import { Identifiable } from "../types.ts";
+
+import { Identifiable } from "@suite-types/types";
 
 interface FormBaseProps<T extends Identifiable> {
     form: FormInstance<T>;

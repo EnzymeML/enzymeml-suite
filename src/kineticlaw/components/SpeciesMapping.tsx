@@ -1,9 +1,11 @@
 import React from 'react';
-import { Typography, Space, Card, theme } from 'antd';
-import { KineticLawDefinition, SpeciesInfo } from '../../reactions/types';
-import LatexRenderer from '../../components/LatexRenderer';
-import SpeciesAssignmentCard from './SpeciesAssignmentCard';
-import { SPECIES_ROLE_COLORS, createColoredSymbolsMap, getEquationSize } from './utils';
+import { Typography, Space, Card, theme, FormInstance } from 'antd';
+
+import { KineticLawDefinition, SpeciesInfo } from '@reactions/types';
+import LatexRenderer from '@components/LatexRenderer';
+
+import SpeciesAssignmentCard from '@kineticlaw/components/SpeciesAssignmentCard';
+import { SPECIES_ROLE_COLORS, createColoredSymbolsMap, getEquationSize } from '@kineticlaw/utils';
 
 const { Text } = Typography;
 
@@ -12,7 +14,7 @@ interface SpeciesMappingProps {
     equation: string;
     availableSpecies: SpeciesInfo[];
     onSpeciesAssignment: (placeholderId: string, speciesId: string) => void;
-    form: any;
+    form: FormInstance;
 }
 
 const SpeciesMapping: React.FC<SpeciesMappingProps> = ({

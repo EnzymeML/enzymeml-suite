@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, Descriptions, Typography, Space } from 'antd';
-import { KineticLawDefinition } from '../types';
-import LatexRenderer from '../../components/LatexRenderer';
+
+import { KineticLawDefinition } from "@reactions/types";
+import LatexRenderer from "@components/LatexRenderer";
 
 const { Text } = Typography;
 

@@ -2,10 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -13,13 +16,91 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@suite/*": [
+        "src/*"
+      ],
+      "@animations/*": [
+        "src/animations/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@commands/*": [
+        "src/commands/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@home/*": [
+        "src/home/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@icons/*": [
+        "src/icons/*"
+      ],
+      "@intro/*": [
+        "src/intro/*"
+      ],
+      "@jupyter/*": [
+        "src/jupyter/*"
+      ],
+      "@kineticlaw/*": [
+        "src/kineticlaw/*"
+      ],
+      "@llm/*": [
+        "src/llm/*"
+      ],
+      "@measurements/*": [
+        "src/measurements/*"
+      ],
+      "@modelling/*": [
+        "src/modelling/*"
+      ],
+      "@proteins/*": [
+        "src/proteins/*"
+      ],
+      "@reactions/*": [
+        "src/reactions/*"
+      ],
+      "@smallmols/*": [
+        "src/smallmols/*"
+      ],
+      "@stores/*": [
+        "src/stores/*"
+      ],
+      "@tauri/*": [
+        "src/tauri/*"
+      ],
+      "@suite-types/*": [
+        "src/types/*"
+      ],
+      "@utilities/*": [
+        "src/utilities/*"
+      ],
+      "@vessels/*": [
+        "src/vessels/*"
+      ],
+      "@visualisation/*": [
+        "src/visualisation/*"
+      ]
+    },
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

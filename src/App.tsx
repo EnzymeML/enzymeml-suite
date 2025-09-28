@@ -7,29 +7,45 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ConfigProvider, Layout, theme } from "antd";
-import SmallMolecules from "./smallmols/SmallMolecules.tsx";
-import Home from "./home/Home.tsx";
-import Measurements from "./measurements/Measurements.tsx";
-import Vessels from "./vessels/Vessels.tsx";
-import Proteins from "./proteins/Proteins.tsx";
-import Reactions from "./reactions/Reactions.tsx";
-import useAppStore, { AvailablePaths } from "./stores/appstore.ts";
-import WindowFrame from "./components/WindowFrame.tsx";
-import MainMenu from "./components/MainMenu.tsx";
-import SubMenu from "./components/SubMenu.tsx";
-import Modelling from "./modelling/Modelling.tsx";
 
+import SmallMolecules from "@suite/smallmols/SmallMolecules.tsx";
+import Home from "@suite/home/Home.tsx";
+import Measurements from "@suite/measurements/Measurements.tsx";
+import Vessels from "@suite/vessels/Vessels.tsx";
+import Proteins from "@suite/proteins/Proteins.tsx";
+import Reactions from "@suite/reactions/Reactions.tsx";
+import useAppStore, { AvailablePaths } from "@suite/stores/appstore.ts";
+import WindowFrame from "@suite/components/WindowFrame.tsx";
+import MainMenu from "@suite/components/MainMenu.tsx";
+import SubMenu from "@suite/components/SubMenu.tsx";
+import Modelling from "@suite/modelling/Modelling.tsx";
+import { commands } from "@suite/commands/jupyter.ts";
+import { useFileMenuShortcuts } from "@hooks/useKeyboardShortcuts";
+import { exportToJSON, loadJSON, saveEntry } from "@commands/dataio";
+import { NotificationType } from "./components/NotificationProvider";
+
+/**
+ * Context interface for managing selected items across the application
+ */
 interface AppContext {
   selectedId: string | null;
   setSelectedId: (id: string) => void;
 }
 
+/**
+ * React context for sharing selected item state throughout the app
+ */
 export const AppContext = React.createContext<AppContext>({
   selectedId: null,
   setSelectedId: () => { },
 });
+
 const { Content, Sider } = Layout;
 
+/**
+ * Main application component that handles routing and layout
+ * Manages the sidebar navigation and content area
+ */
 function App() {
   // States
   const darkMode = useAppStore((state) => state.darkMode);
@@ -39,6 +55,14 @@ function App() {
   const setCurrentPath = useAppStore((state) => state.setCurrentPath);
   const setSelectedId = useAppStore((state) => state.setSelectedId);
 
+  // Styling
+  const { token } = theme.useToken();
+
+  // Effects
+  /**
+   * Updates the current path in the store when the route changes
+   * Validates that the path is a valid AvailablePath
+   */
   useEffect(() => {
     const pathName = location.pathname;
     if (Object.values(AvailablePaths).includes(pathName as AvailablePaths)) {
@@ -48,10 +72,9 @@ function App() {
     }
   }, [location, setCurrentPath]); // Run when `location` changes
 
-  // Hooks
-  const { token } = theme.useToken();
-
-  // Effects
+  /**
+   * Prevents body scrolling to ensure the app layout handles all scrolling
+   */
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -108,10 +131,20 @@ function App() {
   );
 }
 
+/**
+ * Root application wrapper component that provides global configuration
+ * Handles theme management, keyboard shortcuts, and system preferences
+ */
 const WrappedApp: React.FC = () => {
+  // Initialize Python version check
+  commands.getPythonVersion().then(result => {
+    console.log(result);
+  });
+
   // States
   const darkMode = useAppStore((state) => state.darkMode);
   const themePreference = useAppStore((state) => state.themePreference);
+  const openNotification = useAppStore((state) => state.openNotification);
 
   // Actions
   const setDarkMode = useAppStore((state) => state.setDarkMode);
@@ -119,7 +152,28 @@ const WrappedApp: React.FC = () => {
   // Event listeners
   const windowQuery = window.matchMedia("(prefers-color-scheme:dark)");
 
+  // Keyboard shortcuts
+  /**
+   * Sets up global keyboard shortcuts for file operations
+   * - Cmd/Ctrl+O: Open file
+   * - Cmd/Ctrl+S: Save entry
+   * - Cmd/Ctrl+R: Export to JSON
+   */
+  useFileMenuShortcuts({
+    onOpen: () => loadJSON(),
+    onSave: () => saveEntry().then(() => {
+      openNotification('Entry saved', NotificationType.SUCCESS, 'Your entry has been saved successfully');
+    }).catch((error) => {
+      openNotification('Error saving entry', NotificationType.ERROR, error.toString());
+    }),
+    onExport: () => exportToJSON(),
+  });
+
   // Callbacks
+  /**
+   * Handles dark mode changes based on theme preference
+   * Supports 'dark', 'light', and 'system' preferences
+   */
   const darkModeChange = useCallback(() => {
     if (themePreference === "dark") {
       setDarkMode(true);
@@ -131,6 +185,9 @@ const WrappedApp: React.FC = () => {
   }, []);
 
   // Effects
+  /**
+   * Listens for system theme changes when using 'system' preference
+   */
   useEffect(() => {
     windowQuery.addEventListener("change", darkModeChange);
     return () => {
@@ -138,6 +195,9 @@ const WrappedApp: React.FC = () => {
     };
   }, [windowQuery, darkModeChange]);
 
+  /**
+   * Updates dark mode when theme preference changes
+   */
   useEffect(() => {
     if (themePreference === "dark") {
       setDarkMode(true);

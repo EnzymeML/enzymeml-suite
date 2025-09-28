@@ -1,8 +1,21 @@
 import { Checkbox, List } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { GiMolecule } from "react-icons/gi";
 
+interface ExtractedItemData {
+    name?: string;
+    title?: string;
+    id?: string;
+    [key: string]: unknown;
+}
+
+export interface ExtractedItem {
+    data: ExtractedItemData;
+    description: string;
+}
+
 interface ExtractedItemListItemProps {
-    item: any;
+    item: ExtractedItem;
     index: number;
     isSelected: boolean;
     onSelect: (index: number, selected: boolean) => void;
@@ -16,15 +29,15 @@ export default function ExtractedItemListItem({
 }: ExtractedItemListItemProps) {
 
     // Extract the name/title from the item (adapt based on your schema)
-    const getItemName = (item: any) => {
+    const getItemName = (item: ExtractedItem) => {
         return item.data.name || item.data.title || item.data.id || `Item ${index + 1}`;
     };
 
-    const handleCheckboxChange = (e: any) => {
+    const handleCheckboxChange = (e: CheckboxChangeEvent) => {
         onSelect(index, e.target.checked);
     };
 
-    const getReasoning = (item: any) => {
+    const getReasoning = (item: ExtractedItem) => {
         return item.description || item.data.name || item.data.title || item.data.id || `Item ${index + 1}`;
     };
 

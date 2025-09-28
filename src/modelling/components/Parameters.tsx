@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { Parameter } from "enzymeml";
+import { setCollectionIds } from "@tauri/listener";
+import useAppStore from "@stores/appstore";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
+import ParameterTable from "@modelling/components/ParameterTable";
 import {
     getParameter,
     listAllParametersIds,
-} from "../../commands/parameters.ts";
-import { setCollectionIds } from "../../tauri/listener.ts";
-import useAppStore from "../../stores/appstore.ts";
-import { useTauriListener } from "../../hooks/useTauriListener.ts";
-import ParameterTable from "./ParameterTable.tsx";
+} from "@commands/parameters";
 
 export default function Parameters() {
     // States
-    const [_, setParameters] = useState<[string, string][]>([]);
+    const [parameters, setParameters] = useState<[string, string][]>([]);
     const [allParameters, setAllParameters] = useState<Parameter[]>([]);
     const [loading, setLoading] = useState(true);
     const selectedId = useAppStore((state) => state.selectedId);
+
+    console.log(parameters);
 
     // Fetch all parameter data
     const fetchAllParameters = useCallback(async () => {
@@ -44,7 +46,7 @@ export default function Parameters() {
 
     // Fetch items on mount
     useEffect(() => setState(), [selectedId, setState]);
-    useTauriListener("update_parameters", setState);
+    useRouterTauriListener("update_parameters", setState);
 
     return (
         <ParameterTable

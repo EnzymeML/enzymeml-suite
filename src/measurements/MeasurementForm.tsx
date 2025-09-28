@@ -1,14 +1,16 @@
-import { Button, Form, Input, InputNumber, SelectProps } from "antd";
-import { FormViewProps } from "../types.ts";
+import { Button, Form, FormListFieldData, FormListOperation, Input, InputNumber, SelectProps } from "antd";
 import React, { useEffect, useState } from "react";
-import FormBase from "../components/FormBase.tsx";
 import { DataTypes, Measurement } from "enzymeml";
-import { listAllSpeciesIdsNames } from "../commands/enzmldoc.ts";
 import { AutoCompleteProps } from "antd/lib";
-import SpeciesReference from "../components/SpeciesReference.tsx";
-import { UnitTypes } from "../commands/units.ts";
-import QuantityForm from "../components/QuantityForm.tsx";
-import InitialsField from "./components/InitialsField.tsx";
+
+import FormBase from "@components/FormBase";
+import { listAllSpeciesIdsNames } from "@commands/enzmldoc";
+import { FormViewProps } from "@suite-types/types";
+import SpeciesReference from "@components/SpeciesReference";
+import { UnitTypes } from "@commands/units";
+import QuantityForm from "@components/QuantityForm";
+
+import InitialsField from "@measurements/components/InitialsField";
 
 export const mapSpeciesToOption = (
   species: [string, string][]
@@ -75,7 +77,7 @@ export default function MeasurementForm({
   }, []);
 
   // Memoize the form fields rendering
-  const renderInitialsFields = (fields: any[], subOpt: any) => (
+  const renderInitialsFields = (fields: FormListFieldData[], subOpt: FormListOperation) => (
     <div style={{ display: "flex", flexDirection: "column", rowGap: 16 }}>
       {fields.map((field) => (
         <InitialsField

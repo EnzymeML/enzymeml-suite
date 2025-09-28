@@ -1,10 +1,10 @@
-import { Button, theme } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
-// @ts-ignore
+import { theme } from "antd";
+// @ts-expect-error - ignore
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-// @ts-ignore
+// @ts-expect-error - ignore
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import useAppStore from "../../stores/appstore";
+
+import useAppStore from "@stores/appstore";
 
 interface ProcessingViewProps {
     isStreaming: boolean;
@@ -19,9 +19,7 @@ interface ProcessingViewProps {
 }
 
 export default function ProcessingView({
-    isStreaming,
     streamedChunks,
-    onBack,
     messages,
 }: ProcessingViewProps) {
     const { token } = theme.useToken();

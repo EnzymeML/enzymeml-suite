@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button, Flex, Popover, Tooltip, theme } from "antd";
-import useLLMStore from "../../stores/llmstore";
-import ModelSelector from "./ModelSelector";
-import ToolSelector from "./ToolSelector";
-import "./InputView.css";
 import { RiAddLine, RiGlobalLine, RiNavigationFill } from "react-icons/ri";
+
+import useLLMStore from "@stores/llmstore";
+import ModelSelector from "@llm/components/ModelSelector";
+import ToolSelector from "@llm/components/ToolSelector";
+import "@llm/components/InputView.css";
 
 const ICON_SIZE = "18px";
 

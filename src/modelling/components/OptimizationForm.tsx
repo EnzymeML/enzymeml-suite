@@ -1,13 +1,21 @@
 import type React from "react"
+import Latex from 'react-latex-next'
+import 'katex/dist/katex.css'
+
 import { useState, useEffect } from "react"
 import { Form, Select, InputNumber, Button, Card, Modal, Tooltip, Typography, Row, Col } from "antd"
 import { SettingOutlined } from "@ant-design/icons"
-import { getAlgorithmFields, algorithmOptions, algorithmDescriptions, objectiveFunctionOptions, objectiveFunctionFormulas } from "../form-config"
-import type { AlgorithmType, OptimizationFormValues } from "../types"
-import Latex from 'react-latex-next'
-import 'katex/dist/katex.css'
-import CardTitle from "../../components/CardTitle"
-import useAppStore from "../../stores/appstore"
+
+import type { AlgorithmType, OptimizationFormValues } from "@modelling/types"
+import CardTitle from "@components/CardTitle"
+import useAppStore from "@stores/appstore"
+import {
+    getAlgorithmFields,
+    algorithmOptions,
+    algorithmDescriptions,
+    objectiveFunctionOptions,
+    objectiveFunctionFormulas
+} from "@modelling/form-config"
 
 const { Text } = Typography
 

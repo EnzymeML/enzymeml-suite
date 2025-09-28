@@ -2,13 +2,15 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Row, Typography, Button, Card, Badge, theme, Modal } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import { KINETIC_LAW_CATEGORIES } from '../kineticLaws';
-import { KineticLawDefinition } from '../../reactions/types';
-import LatexRenderer from '../../components/LatexRenderer';
-import KineticLawMenu from './KineticLawMenu';
-import CollapsibleParametersCard from './CollapsibleParametersCard';
-import CardTitle from '../../components/CardTitle';
-import { createColoredSymbolsMap, getEquationSize } from './utils';
+
+import { KINETIC_LAW_CATEGORIES } from '@kineticlaw/kineticLaws';
+import { KineticLawDefinition } from '@reactions/types';
+import LatexRenderer from '@components/LatexRenderer';
+import CardTitle from '@components/CardTitle';
+
+import CollapsibleParametersCard from '@kineticlaw/components/CollapsibleParametersCard';
+import { createColoredSymbolsMap, getEquationSize } from '@kineticlaw/utils';
+import KineticLawMenu from '@kineticlaw/components/KineticLawMenu';
 
 const DEFAULT_DESCRIPTION = 'Select a Kinetic Law';
 

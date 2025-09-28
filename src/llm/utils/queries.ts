@@ -41,6 +41,7 @@ export async function researchQuery(client: OpenAI, query: string) {
     const userQuery = new UserQuery(query);
     const response = await client.responses.create({
         model: "gpt-4.1-mini",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         input: [systemQuery.toMessage() as any, userQuery.toMessage() as any],
         tools: [{ type: "web_search" }],
         tool_choice: "required",

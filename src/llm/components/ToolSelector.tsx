@@ -1,5 +1,4 @@
-import { TOOL_OPTIONS, ToolOption } from "../../stores/llmstore";
-import useLLMStore from "../../stores/llmstore";
+import useLLMStore, { TOOL_OPTIONS, ToolOption } from "@stores/llmstore";
 
 
 /**

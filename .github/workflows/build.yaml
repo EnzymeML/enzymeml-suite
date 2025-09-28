@@ -2,17 +2,26 @@ name: 'build'
 
 on:
   workflow_dispatch:
+    inputs:
+      build_macos:
+        description: 'Build for macOS'
+        type: boolean
+        default: true
+      build_ubuntu:
+        description: 'Build for Ubuntu'
+        type: boolean
+        default: true
+      build_windows:
+        description: 'Build for Windows'
+        type: boolean
+        default: true
 
 jobs:
-  build-tauri:
+  build-macos:
+    if: inputs.build_macos == true
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -24,11 +33,41 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: install frontend dependencies
+        run: npm install # change this to npm, pnpm or bun depending on which one you use.
+
+      - id: tauri-action
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target universal-apple-darwin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries-macos
+          path: |
+            ${{ github.workspace }}/target/universal-apple-darwin/release/bundle/**/*.dmg
+
+  build-ubuntu:
+    if: inputs.build_ubuntu == true
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -42,26 +81,39 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
 
       - uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04'
         with:
           name: binaries-linux
           path: |
             ${{ github.workspace }}/target/release/bundle/**/*.deb
             ${{ github.workspace }}/target/release/bundle/**/*.AppImage
 
-      - uses: actions/upload-artifact@v4
-        if: matrix.platform == 'macos-latest'
+  build-windows:
+    if: inputs.build_windows == true
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
         with:
-          name: binaries-macos
-          path: |
-            ${{ github.workspace }}/target/universal-apple-darwin/release/bundle/**/*.dmg
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install frontend dependencies
+        run: npm install # change this to npm, pnpm or bun depending on which one you use.
+
+      - id: tauri-action
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v4
-        if: matrix.platform == 'windows-latest'
         with:
           name: binaries-windows
           path: |

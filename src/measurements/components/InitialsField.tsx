@@ -9,8 +9,9 @@ import {
   SelectProps,
 } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
-import QuantityForm from "../../components/QuantityForm";
-import { UnitTypes } from "../../commands/units";
+
+import QuantityForm from "@components/QuantityForm";
+import { UnitTypes } from "@commands/units";
 
 interface InitialsFieldProps {
   field: FormListFieldData;

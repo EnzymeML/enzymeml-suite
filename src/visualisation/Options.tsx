@@ -1,7 +1,8 @@
-import useVizStore from "../stores/vizstore.ts";
-import {Checkbox, Menu, theme} from "antd";
-import Grow from "../animations/Grow.tsx";
-import useAppStore from "../stores/appstore.ts";
+import { Checkbox, Menu, theme } from "antd";
+
+import Grow from "@animations/Grow";
+import useVizStore from "@stores/vizstore";
+import useAppStore from "@stores/appstore";
 
 export default function Options() {
 
@@ -15,39 +16,39 @@ export default function Options() {
     const setUsePoints = useVizStore(state => state.setUsePoints);
 
     // Styling
-    const {token} = theme.useToken();
+    const { token } = theme.useToken();
 
     return (
         <Grow>
-            <Menu className={"h-auto py-2 shadow-sm"}
-                  style={{
-                      background: token.colorBgContainer,
-                      borderRadius: token.borderRadiusLG,
-                      border: 0,
-                      borderBottomLeftRadius: token.borderRadiusLG,
-                      borderBottomRightRadius: token.borderRadiusLG,
-                      borderBottom: 1,
-                      borderStyle: 'solid',
-                      borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
-                  }}
-                  theme={darkMode ? "dark" : "light"}
-                  mode="vertical"
-                  selectedKeys={[]}
+            <Menu className={"py-2 h-auto shadow-sm"}
+                style={{
+                    background: token.colorBgContainer,
+                    borderRadius: token.borderRadiusLG,
+                    border: 0,
+                    borderBottomLeftRadius: token.borderRadiusLG,
+                    borderBottomRightRadius: token.borderRadiusLG,
+                    borderBottom: 1,
+                    borderStyle: 'solid',
+                    borderColor: darkMode ? token.colorBgContainer : token.colorBorder,
+                }}
+                theme={darkMode ? "dark" : "light"}
+                mode="vertical"
+                selectedKeys={[]}
             >
                 <Menu.Item>
                     <Checkbox className={"w-full"}
-                              value={usePoints}
-                              defaultChecked={usePoints}
-                              onChange={(e) => setUsePoints(e.target.checked)}
+                        value={usePoints}
+                        defaultChecked={usePoints}
+                        onChange={(e) => setUsePoints(e.target.checked)}
                     >
                         Points
                     </Checkbox>
                 </Menu.Item>
                 <Menu.Item>
                     <Checkbox className={"w-full"}
-                              value={useLines}
-                              defaultChecked={useLines}
-                              onChange={(e) => setUseLines(e.target.checked)}
+                        value={useLines}
+                        defaultChecked={useLines}
+                        onChange={(e) => setUseLines(e.target.checked)}
                     >
                         Lines
                     </Checkbox>

@@ -12,6 +12,7 @@ use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+const DEBUG_DB_PATH: &str = "./db.sqlite";
 
 /// Initializes the database by creating the database file if it doesn't exist
 /// and running any pending migrations.
@@ -40,9 +41,9 @@ pub fn init() {
 /// # Panics
 /// * If the connection cannot be established
 pub fn establish_db_connection() -> SqliteConnection {
-    let db_path = get_db_path().clone();
+    let db_path = get_db_path();
 
-    SqliteConnection::establish(db_path.as_str())
+    SqliteConnection::establish(&db_path)
         .unwrap_or_else(|_| panic!("Error connecting to {}", db_path))
 }
 
@@ -67,7 +68,7 @@ fn run_migrations() {
 /// # Panics
 /// * If the connection cannot be established
 pub fn establish_connection() -> SqliteConnection {
-    let db_path = "sqlite://".to_string() + get_db_path().as_str();
+    let db_path = format!("sqlite://{}", get_db_path());
 
     SqliteConnection::establish(&db_path)
         .unwrap_or_else(|_| panic!("Error connecting to {}", db_path))
@@ -103,16 +104,20 @@ fn db_file_exists() -> bool {
 
 /// Gets the path to the SQLite database file.
 ///
-/// Constructs the full path to the database file in the user's
-/// configuration directory.
+/// In debug mode, uses a local db.sqlite file in the current directory.
+/// In release mode, uses the user's configuration directory.
 ///
 /// # Returns
 /// * `String` - The full path to the database file
 ///
 /// # Panics
-/// * If the home directory cannot be determined
-/// * If the home directory path cannot be converted to a string
+/// * If the home directory cannot be determined (release mode only)
+/// * If the home directory path cannot be converted to a string (release mode only)
 fn get_db_path() -> String {
-    let home_dir = dirs::home_dir().unwrap();
-    home_dir.to_str().unwrap().to_string() + "/.config/enzymeml/db.sqlite"
+    if cfg!(debug_assertions) {
+        DEBUG_DB_PATH.to_string()
+    } else {
+        let home_dir = dirs::home_dir().unwrap();
+        home_dir.to_str().unwrap().to_string() + "/.config/enzymeml/db.sqlite"
+    }
 }

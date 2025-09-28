@@ -1,5 +1,5 @@
-import { KineticLawDefinition } from '../../reactions/types';
-import { ColoredSymbolsMapProps } from '../../components/LatexRenderer';
+import { KineticLawDefinition } from '@reactions/types';
+import { ColoredSymbolsMapProps } from '@components/LatexRenderer';
 
 // Color mapping for species roles
 export const SPECIES_ROLE_COLORS = {
@@ -15,7 +15,7 @@ export const SPECIES_ROLE_COLORS = {
 export const colorizeEquation = (
     equation: string,
     selectedLaw: KineticLawDefinition | null,
-    formValues: Record<string, any>
+    formValues: Record<string, string>
 ): string => {
     if (!selectedLaw) return equation;
 
@@ -39,7 +39,7 @@ export const colorizeEquation = (
 // Shared function to create colored symbols map for LatexRenderer
 export const createColoredSymbolsMap = (
     selectedLaw: KineticLawDefinition | null,
-    formValues?: Record<string, any>
+    formValues?: Record<string, string>
 ): ColoredSymbolsMapProps[] => {
     if (!selectedLaw) return [];
 

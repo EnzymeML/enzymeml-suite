@@ -1,19 +1,21 @@
 import { Badge, Col, List, Row, theme, Typography } from "antd";
-import useAppStore, { AvailablePaths } from "../stores/appstore.ts";
-import { listSmallMolecules } from "../commands/smallmols.ts";
-import { listVessels } from "../commands/vessels.ts";
-import { listProteins } from "../commands/proteins.ts";
-import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { getBadgeColor } from "./CardHeader.tsx";
-import { listReactions } from "../commands/reactions.ts";
-import { listMeasurements } from "../commands/measurements.ts";
+import { useEffect, useRef, useState } from "react";
+
+import useAppStore, { AvailablePaths } from "@stores/appstore.ts";
+import { listSmallMolecules } from "@commands/smallmols.ts";
+import { listVessels } from "@commands/vessels.ts";
+import { listProteins } from "@commands/proteins.ts";
+import { listReactions } from "@commands/reactions.ts";
+import { listMeasurements } from "@commands/measurements.ts";
+
+import { getBadgeColor } from "@components/CardHeader.tsx";
 
 interface Collection {
   fetchFun: () => Promise<[string, string][]>;
 }
 
-// @ts-ignore
+// @ts-expect-error - AvailablePaths is not defined
 const pathMapping: { [key in AvailablePaths]: Collection } = {
   [AvailablePaths.SMALL_MOLECULES]: {
     fetchFun: listSmallMolecules,

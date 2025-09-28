@@ -269,7 +269,11 @@ pub fn save(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<i
 /// # Returns
 /// Result indicating success or failure
 #[tauri::command]
-pub fn load(id: i32, state: State<Arc<EnzymeMLState>>) -> Result<(), String> {
+pub fn load(
+    id: i32,
+    state: State<Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
     // Extract the guarded state values
     let mut state_id = state.id.lock().unwrap();
     let mut state_doc = state.doc.lock().unwrap();
@@ -283,6 +287,10 @@ pub fn load(id: i32, state: State<Arc<EnzymeMLState>>) -> Result<(), String> {
     *state_id = Some(entry.id);
     *state_title = entry.title;
     *state_doc = doc;
+
+    app_handle
+        .emit("update_document", ())
+        .expect("Failed to emit event");
 
     Ok(())
 }

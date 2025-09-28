@@ -2,11 +2,12 @@
 import { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { ZodObject, ZodRawShape } from "zod";
-import ExtractionFlow from "./ExtractionFlow";
 import { theme } from "antd";
-import { ExtractionContext } from "../types/context";
 
-interface ExtractModelProps<T extends ZodObject<ZodRawShape>, U = any> {
+import { ExtractionContext } from "@suite-types/context";
+import ExtractionFlow from "@llm/ExtractionFlow";
+
+interface ExtractModelProps<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]> {
     visible: boolean;
     schema: T;
     setVisible: (visible: boolean) => void;
@@ -14,7 +15,7 @@ interface ExtractModelProps<T extends ZodObject<ZodRawShape>, U = any> {
     context: ExtractionContext;
 }
 
-export default function ExtractModal<T extends ZodObject<ZodRawShape>, U = any>({
+export default function ExtractModal<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]>({
     visible,
     schema,
     setVisible,
