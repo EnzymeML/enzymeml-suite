@@ -1,23 +1,25 @@
 import "react-json-view-lite/dist/index.css";
 import React, { ComponentType, useCallback, useEffect, useState } from "react";
-import DataProvider from "../components/DataProvider.tsx";
 import { Vessel } from "enzymeml";
+
+import DataProvider from "@components/DataProvider";
+import DetailView from "@components/DetailView";
+import Collection from "@components/Collection";
+import EmptyPage from "@components/EmptyPage";
+import { setCollectionIds } from "@tauri/listener";
+import useAppStore from "@stores/appstore";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
 import {
   createVessel,
   deleteVessel,
   getVessel,
   listVessels,
   updateVessel,
-} from "../commands/vessels.ts";
-import DetailView from "../components/DetailView.tsx";
-import Collection from "../components/Collection.tsx";
-import EmptyPage from "../components/EmptyPage.tsx";
-import VesselForm from "./VesselForm.tsx";
-import { setCollectionIds } from "../tauri/listener.ts";
-import useAppStore from "../stores/appstore.ts";
-import { useTauriListener } from "../hooks/useTauriListener.ts";
+} from "@commands/vessels";
 
-// @ts-ignore
+import VesselForm from "@vessels/VesselForm";
+
+// @ts-expect-error - ChildProps is not typed
 const VesselContext = React.createContext<ChildProps<Vessel>>({});
 
 // Memoize the DetailView component to prevent unnecessary re-renders
@@ -62,7 +64,7 @@ export default function Vessels() {
 
   // Fetch items on mount
   useEffect(() => setState(), [selectedId, setState]);
-  useTauriListener("update_vessels", setState);
+  useRouterTauriListener("update_vessels", setState);
 
   // Create the items for the Collapsible component
   const items = React.useMemo(

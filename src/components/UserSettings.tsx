@@ -1,8 +1,9 @@
-import {Dropdown, DropdownProps, MenuProps} from "antd";
-import {CheckOutlined, SettingOutlined} from "@ant-design/icons";
-import useAppStore from "../stores/appstore.ts";
-import {useEffect, useState} from "react";
-import {emit} from "@tauri-apps/api/event";
+import { Dropdown, DropdownProps, MenuProps } from "antd";
+import { CheckOutlined, SettingOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { emit } from "@tauri-apps/api/event";
+
+import useAppStore from "@stores/appstore.ts";
 
 export enum ThemeSubMenuKeys {
     LIGHT = "theme-light",
@@ -49,12 +50,12 @@ const initialItems: MenuProps["items"] = [
 
 const changeThemeIcon = (items: MenuProps["items"], themePreference: string) => {
     if (items && items.length > 0) {
-        // @ts-ignore
+        // @ts-expect-error - items is not typed
         const updatedChildren = items[0].children.map((item) => {
             if (item && item.key === `theme-${themePreference}`) {
                 return {
                     ...item,  // create a new item object
-                    icon: <CheckOutlined/>
+                    icon: <CheckOutlined />
                 };
             } else {
                 return {
@@ -77,12 +78,12 @@ const changeThemeIcon = (items: MenuProps["items"], themePreference: string) => 
 
 const changeDatabaseIcon = (items: MenuProps["items"], databasesToUse: string[]) => {
     if (items && items.length > 0) {
-        // @ts-ignore
+        // @ts-expect-error - Items is not typed
         const updatedChildren = items[1].children.map((item) => {
             if (databasesToUse.includes(item.key.split("-")[1])) {
                 return {
                     ...item,  // create a new item object
-                    icon: <CheckOutlined/>
+                    icon: <CheckOutlined />
                 };
             } else {
                 return {
@@ -113,9 +114,8 @@ export default function UserSettings() {
 
     // Effects
     useEffect(() => {
-        // @ts-ignore
         const changedItems = changeDatabaseIcon(initialItems, databasesToUse);
-        // @ts-ignore
+        // @ts-expect-error - items is not typed
         setItems(changeThemeIcon(changedItems, themePreference));
     }, [themePreference, databasesToUse]);  // React when themePreference changes
 
@@ -124,7 +124,7 @@ export default function UserSettings() {
     const setDatabasesToUse = useAppStore((state) => state.setDatabasesToUse);
 
     // Handlers
-    const onClick: MenuProps["onClick"] = ({key}) => {
+    const onClick: MenuProps["onClick"] = ({ key }) => {
         if (key.startsWith("theme")) {
             handleThemeChange(key);
         } else if (key.startsWith("db")) {
@@ -159,7 +159,7 @@ export default function UserSettings() {
         setThemePreference(theme);
         emit(
             'theme-change',
-            {theme: theme}
+            { theme: theme }
         ).catch((error) => console.error("Error emitting theme-change event:", error));
     };
 
@@ -171,7 +171,7 @@ export default function UserSettings() {
 
     return (
         <Dropdown
-            overlayStyle={{width: "200px"}}
+            overlayStyle={{ width: "200px" }}
             onOpenChange={handleOpenChange}
             open={open}
             menu={{
@@ -180,7 +180,7 @@ export default function UserSettings() {
             }}
         >
             <a onClick={(e) => e.preventDefault()}>
-                <SettingOutlined/>
+                <SettingOutlined />
             </a>
         </Dropdown>
     );

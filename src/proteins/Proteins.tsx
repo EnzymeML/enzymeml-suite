@@ -1,23 +1,25 @@
 import React, { ComponentType, useCallback, useEffect, useState } from "react";
 import "react-json-view-lite/dist/index.css";
-import DataProvider from "../components/DataProvider.tsx";
-import { ChildProps } from "../types.ts";
+import { Protein } from "enzymeml";
+
+import DataProvider from "@components/DataProvider";
+import { ChildProps } from "@suite-types/types";
+import EmptyPage from "@components/EmptyPage";
+import Collection from "@components/Collection";
+import DetailView from "@components/DetailView";
+import { setCollectionIds } from "@tauri/listener";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
 import {
   createProtein,
   deleteProtein,
   getProtein,
   listProteins,
   updateProtein,
-} from "../commands/proteins.ts";
-import EmptyPage from "../components/EmptyPage.tsx";
-import Collection from "../components/Collection.tsx";
-import { Protein } from "enzymeml";
-import ProteinForm from "./ProteinForm.tsx";
-import DetailView from "../components/DetailView.tsx";
-import { setCollectionIds } from "../tauri/listener.ts";
-import { useTauriListener } from "../hooks/useTauriListener.ts";
+} from "@commands/proteins";
 
-// @ts-ignore
+import ProteinForm from "./ProteinForm.tsx";
+
+// @ts-expect-error - ChildProps is not typed
 const ProteinContext = React.createContext<ChildProps<Vessel>>({});
 
 // Memoize the DetailView component to prevent unnecessary re-renders
@@ -63,7 +65,7 @@ export default function Proteins() {
 
   // Fetch items on mount
   useEffect(() => setState(), [setState]);
-  useTauriListener("update_proteins", setState);
+  useRouterTauriListener("update_proteins", setState);
 
   // Create the items for the Collapsible component
   const items = React.useMemo(

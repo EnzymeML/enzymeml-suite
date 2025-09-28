@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Select, Typography, Space, Tag, Card, Row, Col } from 'antd';
-import { KineticLawDefinition, SpeciesInfo } from '../../reactions/types';
+
+import { KineticLawDefinition, SpeciesInfo } from '@reactions/types';
 
 const { Text } = Typography;
 const { Option } = Select;

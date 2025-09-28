@@ -1,19 +1,21 @@
+import { useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { emit } from "@tauri-apps/api/event";
+import { Menu, MenuProps, theme } from "antd";
+import { RightCircleOutlined } from "@ant-design/icons";
+
+import { exportMeasurements, importMeasurement } from "@commands/dataio.ts";
+import Grow from "@animations/Grow.tsx";
+import { openVisualisation } from "@commands/visualisation.ts";
+import { deriveModel } from "@commands/equations.ts";
 import useAppStore, {
   AvailablePaths,
   openNotificationType,
-} from "../stores/appstore.ts";
-import { Menu, MenuProps, theme } from "antd";
-import { useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+} from "@stores/appstore.ts";
+
 import NotificationProvider, {
   NotificationType,
-} from "./NotificationProvider.tsx";
-import { exportMeasurements, importMeasurement } from "../commands/dataio.ts";
-import Grow from "../animations/Grow.tsx";
-import { RightCircleOutlined } from "@ant-design/icons";
-import { openVisualisation } from "../commands/visualisation.ts";
-import { emit } from "@tauri-apps/api/event";
-import { deriveModel } from "../commands/equations.ts";
+} from "@components/NotificationProvider.tsx";
 
 export type MenuItem = Required<MenuProps>["items"][number];
 type HandlerFunction = (

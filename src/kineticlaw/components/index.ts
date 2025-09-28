@@ -2,4 +2,4 @@ export { default as CollapsibleParametersCard } from './CollapsibleParametersCar
 export { default as KineticLawMenu } from './KineticLawMenu';
 export { default as Selector } from './Selector';
 export { default as SpeciesMapping } from './SpeciesMapping';
-export * from './utils'; 
+export * from '../utils'; 

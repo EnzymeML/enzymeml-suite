@@ -1,7 +1,8 @@
+import React, { useCallback, useMemo } from "react";
 import CardHeader from "./CardHeader.tsx";
 import DetailButtons from "./DetailButtons.tsx";
-import React, { useCallback, useMemo } from "react";
-import useAppStore from "../stores/appstore.ts";
+
+import useAppStore from "@stores/appstore.ts";
 
 export interface DetailHeaderProps {
   id: string;
@@ -55,7 +56,7 @@ export default React.memo(function DetailHeader({
 
   return (
     <div className={"flex flex-row justify-between cursor-pointer"}>
-      <div className={"h-full w-full"} onClick={handleClick}>
+      <div className={"w-full h-full"} onClick={handleClick}>
         <CardHeader id={id} name={speciesName} placeholder={placeholder} />
       </div>
       <DetailButtons onLock={handleLock} onDelete={handleDelete} saveObject={handleSave} />

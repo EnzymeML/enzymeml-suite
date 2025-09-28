@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { listMeasurements } from "../commands/measurements.ts";
-import useVizStore from "../stores/vizstore.ts";
-import { ListenToEvent, setCollectionIds } from "../tauri/listener.ts";
 import { Menu, theme } from "antd";
-import Grow from "../animations/Grow.tsx";
-import useAppStore from "../stores/appstore.ts";
-import { MenuItem } from "../components/SubMenu.tsx";
+
+import { listMeasurements } from "@commands/measurements";
+import useVizStore from "@stores/vizstore";
+import { ListenToEvent, setCollectionIds } from "@tauri/listener";
+import Grow from "@animations/Grow";
+import useAppStore from "@stores/appstore";
+import { MenuItem } from "@components/SubMenu";
 
 export default function Select() {
 
@@ -28,12 +29,9 @@ export default function Select() {
     useEffect(() => setStates(), []);
     useEffect(() => (ListenToEvent("update_measurements", setStates)), []);
 
-    useEffect(() => {
-
-    }, []);
 
     // Handlers
-    const handleClick = (e: any) => {
+    const handleClick = (e: { key: string }) => {
         setSelectedMeasData(e.key);
     }
 

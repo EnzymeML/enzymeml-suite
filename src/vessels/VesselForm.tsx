@@ -1,10 +1,11 @@
-import { Form, Input, Radio } from "antd";
-import { FormViewProps } from "../types.ts";
-import { Vessel } from "enzymeml";
 import React from "react";
-import FormBase from "../components/FormBase.tsx";
-import QuantityForm from "../components/QuantityForm.tsx";
-import { UnitTypes } from "../commands/units.ts";
+import { Form, Input, Radio } from "antd";
+import { Vessel } from "enzymeml";
+
+import { FormViewProps } from "@suite-types/types";
+import FormBase from "@components/FormBase";
+import QuantityForm from "@components/QuantityForm";
+import { UnitTypes } from "@commands/units";
 
 export default function VesselForm({ context }: FormViewProps<Vessel>) {
   // Context

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Space, Badge, Menu, Input, theme } from 'antd';
-import { KINETIC_LAWS, KINETIC_LAW_CATEGORIES } from '../kineticLaws';
+
+import { KINETIC_LAWS, KINETIC_LAW_CATEGORIES } from '@kineticlaw/kineticLaws';
 
 const { Text } = Typography;
 const { Search } = Input;

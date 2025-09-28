@@ -1,11 +1,12 @@
 import React from "react";
 import { Layout, theme } from "antd";
 import { Content } from "antd/lib/layout/layout";
-import { ChildProps, Identifiable } from "../types.ts";
-import useAppStore from "../stores/appstore.ts";
-import DetailHeader from "./DetailHeader.tsx";
-import { handleDelete } from "../tauri/listener.ts";
 
+import { ChildProps, Identifiable } from "@suite-types/types";
+import useAppStore from "@stores/appstore.ts";
+import { handleDelete } from "@tauri/listener.ts";
+
+import DetailHeader from "@components/DetailHeader.tsx";
 interface DetailViewProps<T extends Identifiable> {
   placeholder: string;
   context: React.Context<ChildProps<T>>;
@@ -39,7 +40,6 @@ export default function DetailView<T extends Identifiable>({
       return props.data.id;
     }
     if (props.alternativeIdCol && props.alternativeIdCol in props.data) {
-      // @ts-ignore
       return props.data[props.alternativeIdCol];
     }
     return null;
@@ -49,7 +49,7 @@ export default function DetailView<T extends Identifiable>({
   const handleDeleteObject = React.useCallback(() => {
     if (id) {
       handleDelete(
-        id,
+        String(id),
         selectedId,
         setSelectedId,
         listOfIds,
@@ -86,8 +86,8 @@ export default function DetailView<T extends Identifiable>({
         <div className={"mb-2 shadow-sm"} style={containerStyle}>
           <div className="flex flex-col gap-2">
             <DetailHeader
-              id={id}
-              speciesName={props.data[nameKey]}
+              id={String(id)}
+              speciesName={String(props.data[nameKey] || '')}
               placeholder={placeholder}
               handleDeleteObject={handleDeleteObject}
               setLocked={props.setLocked}
@@ -96,7 +96,7 @@ export default function DetailView<T extends Identifiable>({
             {selectedId === id && (
               <div
                 className={"flex flex-col"}
-                key={id}
+                key={String(id)}
                 style={{ overflow: "hidden" }}
               >
                 <FormComponent context={context} />

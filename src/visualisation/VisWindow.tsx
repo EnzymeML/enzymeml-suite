@@ -1,12 +1,13 @@
 import '../App.css';
 import React, { useCallback, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import Visualisation from "./Visualisation.tsx";
 import { ConfigProvider, Layout, theme } from "antd";
-import useAppStore from "../stores/appstore.ts";
-import Select from "./Select.tsx";
-import WindowFrame from "../components/WindowFrame.tsx";
-import Options from "./Options.tsx";
+
+import Visualisation from "@visualisation/Visualisation";
+import useAppStore from "@stores/appstore";
+import Select from "@visualisation/Select";
+import WindowFrame from "@components/WindowFrame";
+import Options from "@visualisation/Options";
 import { listen } from "@tauri-apps/api/event";
 
 const { Content, Sider } = Layout;

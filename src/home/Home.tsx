@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { emit, listen } from "@tauri-apps/api/event";
+import { Button, Input, Select } from "antd";
+import { JsonView, defaultStyles } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
+
 import {
   DBEntries,
   EnzymeMLState,
@@ -11,14 +14,12 @@ import {
   loadJSON,
   newEntry,
   saveEntry,
-} from "../commands/dataio.ts";
-import { Button, Input, Select } from "antd";
-import { setTitle } from "../commands/enzmldoc.ts";
+} from "@commands/dataio.ts";
+import { setTitle } from "@commands/enzmldoc.ts";
 import NotificationProvider, {
   NotificationType,
-} from "../components/NotificationProvider.tsx";
-import useAppStore from "../stores/appstore.ts";
-import { JsonView, defaultStyles } from "react-json-view-lite";
+} from "@components/NotificationProvider.tsx";
+import useAppStore from "@stores/appstore.ts";
 
 export default function Home() {
   // States

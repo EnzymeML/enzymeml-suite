@@ -1,5 +1,5 @@
-import {defineConfig} from "vite";
-import {resolve} from "path";
+import { defineConfig } from "vite";
+import { resolve } from "path";
 import svgr from "vite-plugin-svgr";
 import react from "@vitejs/plugin-react";
 
@@ -18,6 +18,34 @@ export default defineConfig(async () => ({
             include: "**/*.svg",
         }),
     ],
+
+    resolve: {
+        alias: {
+            "@suite": resolve(__dirname, "./src"),
+            "@animations": resolve(__dirname, "./src/animations"),
+            "@assets": resolve(__dirname, "./src/assets"),
+            "@commands": resolve(__dirname, "./src/commands"),
+            "@components": resolve(__dirname, "./src/components"),
+            "@home": resolve(__dirname, "./src/home"),
+            "@hooks": resolve(__dirname, "./src/hooks"),
+            "@icons": resolve(__dirname, "./src/icons"),
+            "@intro": resolve(__dirname, "./src/intro"),
+            "@jupyter": resolve(__dirname, "./src/jupyter"),
+            "@kineticlaw": resolve(__dirname, "./src/kineticlaw"),
+            "@llm": resolve(__dirname, "./src/llm"),
+            "@measurements": resolve(__dirname, "./src/measurements"),
+            "@modelling": resolve(__dirname, "./src/modelling"),
+            "@proteins": resolve(__dirname, "./src/proteins"),
+            "@reactions": resolve(__dirname, "./src/reactions"),
+            "@smallmols": resolve(__dirname, "./src/smallmols"),
+            "@stores": resolve(__dirname, "./src/stores"),
+            "@tauri": resolve(__dirname, "./src/tauri"),
+            "@suite-types": resolve(__dirname, "./src/types"),
+            "@utilities": resolve(__dirname, "./src/utilities"),
+            "@vessels": resolve(__dirname, "./src/vessels"),
+            "@visualisation": resolve(__dirname, "./src/visualisation"),
+        },
+    },
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
     //

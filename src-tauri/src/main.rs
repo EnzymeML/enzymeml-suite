@@ -1,4 +1,4 @@
-// Prevents additi pub(crate) pub(crate)onal console window on Windows in release, DO NOT REMOVE!!
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::sync::Arc;
@@ -8,11 +8,13 @@ use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
 use crate::actions::{
-    enzmldoc, equations, measurements, parameters, proteins, reactions, simulation, smallmols,
-    units, vessels, windows,
+    enzmldoc, equations, jupyter, measurements, parameters, proteins, reactions, simulation,
+    smallmols, units, vessels, windows,
 };
 use crate::api::create_rocket;
-use crate::states::EnzymeMLState;
+use crate::states::{EnzymeMLState, JupyterState};
+use specta_typescript::Typescript;
+use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 pub(crate) mod api;
 mod db;
@@ -32,6 +34,7 @@ pub mod io {
 pub mod actions {
     pub mod enzmldoc;
     pub mod equations;
+    pub mod jupyter;
     pub mod macros;
     pub mod measurements;
     pub mod parameters;
@@ -51,10 +54,29 @@ async fn main() {
     // Fetch env variable TESTING to determine if we are in testing mode
 
     let app_state = Arc::new(EnzymeMLState::default());
+    let jupyter_state = Arc::new(JupyterState::default());
     let rocket_state = Arc::clone(&app_state);
     let tauri_state = Arc::clone(&app_state);
 
+    // Jupyter commands
+    generate_bindings(
+        collect_commands![
+            jupyter::get_jupyter_sessions,
+            jupyter::kill_jupyter,
+            jupyter::start_jupyter,
+            jupyter::get_python_version,
+            jupyter::install_jupyter_lab,
+            jupyter::is_jupyter_lab_installed,
+            jupyter::get_jupyter_template_metadata,
+            jupyter::add_template_to_project,
+            jupyter::open_project_folder,
+        ],
+        collect_events![jupyter::JupyterInstallOutput, jupyter::JupyterInstallStatus,],
+        "../src/commands/jupyter.ts",
+    );
+
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_http::init())
@@ -95,6 +117,7 @@ async fn main() {
             Ok(())
         })
         .manage(tauri_state)
+        .manage(jupyter_state)
         .invoke_handler(tauri::generate_handler![
             // Data IO
             io::dataio::save,
@@ -172,7 +195,27 @@ async fn main() {
             measurements::list_measurements,
             // Windows
             windows::open_visualisation,
+            // Jupyter
+            jupyter::start_jupyter,
+            jupyter::get_jupyter_sessions,
+            jupyter::kill_jupyter,
+            jupyter::get_python_version,
+            jupyter::install_jupyter_lab,
+            jupyter::is_jupyter_lab_installed,
+            jupyter::get_jupyter_template_metadata,
+            jupyter::add_template_to_project,
+            jupyter::open_project_folder,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn generate_bindings(commands: Commands<tauri::Wry>, events: Events, path: &str) {
+    let builder = Builder::<tauri::Wry>::new()
+        .commands(commands)
+        .events(events);
+
+    builder
+        .export(Typescript::default(), path)
+        .expect("Failed to export typescript bindings");
 }

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { NotificationType } from "../components/NotificationProvider.tsx";
+
+import { NotificationType } from "@components/NotificationProvider";
 
 export type openNotificationType = (message: string, type: NotificationType, description: string) => void
 

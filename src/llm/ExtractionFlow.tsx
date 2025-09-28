@@ -2,16 +2,20 @@ import { useState, useEffect } from "react";
 import { Divider, message, theme } from "antd";
 import { extractData, UserQuery } from "enzymeml";
 import { ZodObject, ZodRawShape, z } from "zod";
-import ProcessingView from "./components/ProcessingView";
-import ExtractionResults from "./components/ExtractionResults";
-import InputView from "./components/InputView";
 import OpenAI from "openai";
-import useAppStore from "../stores/appstore";
-import useLLMStore from "../stores/llmstore";
-import extractionPrompt from "./prompts/extraction";
-import { getBadgeColor } from "../components/CardHeader";
-import { researchQuery } from "./utils/queries";
-import { ExtractionContext } from "../types/context";
+
+import useAppStore from "@stores/appstore";
+import useLLMStore from "@stores/llmstore";
+import extractionPrompt from "@llm/prompts/extraction";
+import { researchQuery } from "@llm/utils/queries";
+import { ExtractionContext } from "@suite-types/context";
+
+import ProcessingView from "@llm/components/ProcessingView";
+import ExtractionResults from "@llm/components/ExtractionResults";
+import InputView from "@llm/components/InputView";
+import { ExtractedItem } from "@llm/components/ExtractedItemListItem";
+import { glowingContainerStyle } from "@llm/utils/containerstyle";
+
 
 // Instructions and content constants
 const EXTRACTION_INSTRUCTIONS = {
@@ -30,7 +34,7 @@ const EXTRACTION_INSTRUCTIONS = {
     }
 };
 
-interface ExtractionFlowProps<T extends ZodObject<ZodRawShape>, U = any> {
+interface ExtractionFlowProps<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]> {
     schema: T;
     onComplete: (items: U[]) => void;
     onCancel: () => void;
@@ -51,7 +55,7 @@ function extendSchema<T extends ZodObject<ZodRawShape>>(schema: T) {
     });
 }
 
-export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any>({
+export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]>({
     schema,
     onComplete,
     onCancel,
@@ -96,7 +100,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any
             });
 
             // Combine text input and file paths
-            let inputQueries = [extractionPrompt, new UserQuery(input)];
+            const inputQueries = [extractionPrompt, new UserQuery(input)];
 
             if (useWebSearch) {
                 const additionalInformation = await researchQuery(client, input);
@@ -128,7 +132,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any
             // Get final result
             const finalData = await final;
 
-            // @ts-ignore
+            // @ts-expect-error - finalData.output_parsed is not typed
             setExtractedData(finalData.output_parsed?.items || []);
             setIsStreaming(false);
             setStep('results');
@@ -141,7 +145,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any
     };
 
     const handleComplete = () => {
-        // @ts-ignore
+        // @ts-expect-error - extractedData is not typed
         onComplete(extractedData.map((item) => item.data));
     };
 
@@ -154,20 +158,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any
     const { token } = theme.useToken();
     const darkMode = useAppStore((state) => state.darkMode);
 
-    const badgeColor = getBadgeColor(darkMode);
-
-    // Convert color names to proper rgba values for opacity support
-    const primaryColorRgb = darkMode ? '50, 205, 50' : '206, 9, 123'; // lime: rgb(50, 205, 50), #ce097b: rgb(206, 9, 123)
-
-    const containerStyle = {
-        '--bg-color': token.colorBgContainer,
-        '--primary-color': badgeColor,
-        '--primary-color-transparent': `rgba(${primaryColorRgb}, 0.3)`, // 30% opacity
-        '--primary-color-glow': `rgba(${primaryColorRgb}, 0.2)`, // 20% opacity for glow
-        '--primary-color-subtle': `rgba(${primaryColorRgb}, 0.1)`, // 10% opacity for subtle outer glow
-        padding: 16,
-        color: token.colorText,
-    } as React.CSSProperties;
+    const containerStyle = glowingContainerStyle(darkMode, token);
 
     return (
         <div
@@ -193,7 +184,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = any
                         <Divider size="small" />
                         <div className="shadow-sm" style={containerStyle}>
                             <ExtractionResults
-                                extractedData={extractedData}
+                                extractedData={extractedData as ExtractedItem[]}
                                 onBack={handleBack}
                                 onComplete={handleComplete}
                                 instructions={EXTRACTION_INSTRUCTIONS.resultsInstructions}

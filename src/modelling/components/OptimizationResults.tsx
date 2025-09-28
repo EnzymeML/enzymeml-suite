@@ -1,11 +1,27 @@
-"use client"
-
 import type React from "react"
-import { Card, Tabs, Badge, Descriptions, Typography, Space, Button, theme, Tooltip } from "antd"
-import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, QuestionCircleOutlined, SaveOutlined, PlayCircleOutlined } from "@ant-design/icons"
-import type { OptimizationResult, OptimizationFormValues } from "../types"
-import CardTitle from "../../components/CardTitle"
-import useAppStore from "../../stores/appstore"
+import {
+    Card,
+    Tabs,
+    Badge,
+    Descriptions,
+    Typography,
+    Space,
+    Button,
+    theme,
+    Tooltip
+} from "antd"
+import {
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    LoadingOutlined,
+    QuestionCircleOutlined,
+    SaveOutlined,
+    PlayCircleOutlined
+} from "@ant-design/icons"
+
+import type { OptimizationResult, OptimizationFormValues } from "@modelling/types"
+import CardTitle from "@components/CardTitle"
+import useAppStore from "@stores/appstore"
 
 const { TabPane } = Tabs
 const { Text } = Typography

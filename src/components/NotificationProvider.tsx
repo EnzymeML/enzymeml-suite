@@ -1,10 +1,11 @@
 import { notification, NotificationArgsProps } from "antd";
 import React, { useEffect, useMemo } from "react";
-import useAppStore from "../stores/appstore.ts";
+
+import useAppStore from "@stores/appstore.ts";
 
 export type NotificationPlacement = NotificationArgsProps["placement"];
 
-const NOTIFICATION_PLACEMENT: NotificationPlacement = "bottomRight";
+export const NOTIFICATION_PLACEMENT: NotificationPlacement = "bottomRight";
 const Context = React.createContext({ name: "Default" });
 
 export enum NotificationType {

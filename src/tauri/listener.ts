@@ -1,8 +1,18 @@
-import {listen} from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import React from "react";
 
+/**
+ * Type definition for a function that triggers a state update or side effect
+ */
 export type SetFunctionType = () => void;
 
+/**
+ * Sets up an event listener for Tauri events and handles cleanup
+ * 
+ * @param trigger - The event name to listen for
+ * @param setFunction - Function to call when the event is triggered
+ * @returns Cleanup function to remove the event listener
+ */
 export function ListenToEvent(trigger: string, setFunction: SetFunctionType) {
     const unlisten = listen(trigger, () => setFunction());
 
@@ -14,6 +24,12 @@ export function ListenToEvent(trigger: string, setFunction: SetFunctionType) {
     };
 }
 
+/**
+ * Fetches collection IDs and updates the state with the retrieved data
+ * 
+ * @param listFun - Async function that returns an array of [id, name] tuples
+ * @param setFun - React state setter function to update the collection IDs
+ */
 export function setCollectionIds(
     listFun: () => Promise<[string, string][]>,
     setFun: (value: React.SetStateAction<[string, string][]>) => void,
@@ -29,6 +45,21 @@ export function setCollectionIds(
     )
 }
 
+/**
+ * Handles deletion of an item from a collection with smart selection management
+ * 
+ * When deleting an item:
+ * - If the deleted item is currently selected, automatically selects the next appropriate item
+ * - If deleting the first item, selects the second item (if available)
+ * - If deleting any other item, selects the previous item
+ * - If deleting the last remaining item, clears the selection
+ * 
+ * @param id - ID of the item to delete
+ * @param selectedId - Currently selected item ID (or null if none selected)
+ * @param setSelectedId - Function to update the selected item ID
+ * @param listOfIds - Array of [id, name] tuples representing all items in the collection
+ * @param deleteFun - Function to execute the actual deletion
+ */
 export function handleDelete(
     id: string,
     selectedId: string | null,
