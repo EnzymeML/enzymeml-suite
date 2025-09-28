@@ -21,7 +21,9 @@ export default function DetailButtons(
 
     // Handlers
     const confirm = () => {
-        onDelete ? onDelete() : null;
+        if (onDelete) {
+            onDelete();
+        }
     };
 
     const toggleLock = () => {
