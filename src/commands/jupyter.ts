@@ -157,7 +157,7 @@ async installJupyterLab() : Promise<Result<null, string>> {
 /**
  * Checks if JupyterLab is installed on the system
  * 
- * This function executes the `jupyter-lab --version` command to determine
+ * This function executes the `jupyter lab --version` command to determine
  * if JupyterLab is available in the system PATH.
  * 
  * # Arguments
