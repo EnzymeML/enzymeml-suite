@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Divider, message, theme } from "antd";
+import { message, theme } from "antd";
 import { extractData, UserQuery } from "enzymeml";
 import { ZodObject, ZodRawShape, z } from "zod";
 import OpenAI from "openai";
@@ -8,13 +8,13 @@ import useAppStore from "@stores/appstore";
 import useLLMStore from "@stores/llmstore";
 import extractionPrompt from "@llm/prompts/extraction";
 import { researchQuery } from "@llm/utils/queries";
-import { ExtractionContext } from "@suite-types/context";
+import { ExtractionContext, ExtractionContextMap, ExtractionEnabledPaths } from "@suite-types/context";
 
 import ProcessingView from "@llm/components/ProcessingView";
 import ExtractionResults from "@llm/components/ExtractionResults";
 import InputView from "@llm/components/InputView";
-import { ExtractedItem } from "@llm/components/ExtractedItemListItem";
 import { glowingContainerStyle } from "@llm/utils/containerstyle";
+import { NotificationType } from "@suite/components/NotificationProvider";
 
 
 // Instructions and content constants
@@ -22,7 +22,7 @@ const EXTRACTION_INSTRUCTIONS = {
     processingMessages: {
         streaming: "AI is processing your data...",
         complete: "Processing complete",
-        waitingForResponse: "// Waiting for AI response...",
+        waitingForResponse: "Waiting for response...",
         analyzing: "Analyzing content and extracting structured data"
     },
 
@@ -34,11 +34,9 @@ const EXTRACTION_INSTRUCTIONS = {
     }
 };
 
-interface ExtractionFlowProps<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]> {
-    schema: T;
+interface ExtractionFlowProps<T extends ZodObject<ZodRawShape>, U = z.infer<T>> {
     onComplete: (items: U[]) => void;
     onCancel: () => void;
-    parentContext?: ExtractionContext;
 }
 
 type ExtractionStep = 'input' | 'processing' | 'results';
@@ -55,24 +53,32 @@ function extendSchema<T extends ZodObject<ZodRawShape>>(schema: T) {
     });
 }
 
-export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = ZodObject<ZodRawShape>[]>({
-    schema,
+export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = z.infer<T>>({
     onComplete,
     onCancel,
-    parentContext,
 }: ExtractionFlowProps<T, U>) {
+    // Local states
     const [step, setStep] = useState<ExtractionStep>('input');
     const [streamedChunks, setStreamedChunks] = useState<string>("");
     const [isStreaming, setIsStreaming] = useState(false);
-    const [extractedData, setExtractedData] = useState<U[]>([]);
-    const [context, setContext] = useState<ExtractionContext[]>(
-        parentContext ? [parentContext] : []
-    );
+    const [extractedData, setExtractedData] = useState<Array<{ data: U, description: string }>>([]);
+    const [context, setContext] = useState<ExtractionContext<U, T> | null>(null);
 
     // Global states
     const llmModel = useLLMStore((state) => state.llmModel);
     const tools = useLLMStore((state) => state.tools);
     const useWebSearch = useLLMStore((state) => state.useWebSearch);
+    const currentPath = useAppStore((state) => state.currentPath);
+    const openNotification = useAppStore((state) => state.openNotification);
+
+    // Effects
+    useEffect(() => {
+        if (currentPath && (currentPath as ExtractionEnabledPaths) in ExtractionContextMap) {
+            setContext(ExtractionContextMap[currentPath as ExtractionEnabledPaths] as unknown as ExtractionContext<U, T>);
+        } else {
+            openNotification("Error", NotificationType.ERROR, "Current path does not support extraction");
+        }
+    }, [currentPath]);
 
     // Global actions
     const setUseWebSearch = useLLMStore((state) => state.setUseWebSearch);
@@ -112,11 +118,16 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = Zod
                 inputQueries.push(new UserQuery(`File paths: ${filePaths.join(', ')}`));
             }
 
+            if (!context) {
+                openNotification("Error", NotificationType.ERROR, `Current path ${currentPath} is not in supported paths: ${Object.keys(ExtractionContextMap).join(', ')}`);
+                return;
+            }
+
             const { chunks, final } = await extractData({
                 input: inputQueries,
                 model: llmModel.value,
                 multiple: true,
-                schema: extendSchema(schema),
+                schema: extendSchema(context.schema),
                 schemaKey: "data",
                 client: client,
                 tools: tools.length > 0 ? tools : undefined,
@@ -145,8 +156,13 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = Zod
     };
 
     const handleComplete = () => {
-        // @ts-expect-error - extractedData is not typed
+        if (!context) {
+            openNotification("Error", NotificationType.ERROR, `Current path ${currentPath} is not in supported paths: ${Object.keys(ExtractionContextMap).join(', ')}`);
+            return;
+        }
+
         onComplete(extractedData.map((item) => item.data));
+        context.addFunction(extractedData.map((item) => item.data));
     };
 
     const handleBack = () => {
@@ -181,10 +197,9 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = Zod
                 {/* Results View - Replaces processing when complete */}
                 {step === 'results' && (
                     <>
-                        <Divider size="small" />
                         <div className="shadow-sm" style={containerStyle}>
                             <ExtractionResults
-                                extractedData={extractedData as ExtractedItem[]}
+                                extractedData={extractedData as Array<{ data: Record<string, unknown>, description: string }>}
                                 onBack={handleBack}
                                 onComplete={handleComplete}
                                 instructions={EXTRACTION_INSTRUCTIONS.resultsInstructions}
@@ -199,8 +214,7 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = Zod
                     onCancel={onCancel}
                     browseWeb={useWebSearch}
                     setBrowseWeb={setUseWebSearch}
-                    context={context}
-                    setContext={setContext}
+                    context={context as ExtractionContext<U, T>}
                 />
             </div>
         </div>
