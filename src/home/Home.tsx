@@ -1,188 +1,80 @@
-import React, { useEffect, useState } from "react";
-import { emit, listen } from "@tauri-apps/api/event";
-import { Button, Input, Select } from "antd";
-import { JsonView, defaultStyles } from "react-json-view-lite";
-import "react-json-view-lite/dist/index.css";
+import React, { useEffect, useState, useCallback } from "react";
 
 import {
-  DBEntries,
   EnzymeMLState,
-  exportToJSON,
   getState,
-  listEntries,
-  loadEntry,
-  loadJSON,
-  newEntry,
-  saveEntry,
 } from "@commands/dataio.ts";
-import { setTitle } from "@commands/enzmldoc.ts";
-import NotificationProvider, {
-  NotificationType,
-} from "@components/NotificationProvider.tsx";
-import useAppStore from "@stores/appstore.ts";
+import NotificationProvider from "@components/NotificationProvider.tsx";
+import { useRouterTauriListener } from "@suite/hooks/useTauriListener";
 
+import HomeOverviewTable from "./components/HomeOverviewTable";
+
+/**
+ * Home component serves as the main dashboard page of the application.
+ * 
+ * This component provides:
+ * - A comprehensive overview of all items in the current EnzymeML document
+ * - Real-time synchronization with the backend document state
+ * - Navigation handling for item selection
+ * - Notification management for user feedback
+ * 
+ * The component automatically fetches and maintains the current document state,
+ * listening for updates via Tauri events to ensure the UI stays synchronized
+ * with any backend changes.
+ * 
+ * @returns JSX element containing the home dashboard
+ */
 export default function Home() {
   // States
-  const [currentDoc, setCurrentDoc] = useState<EnzymeMLState | null>(null);
-  const [documents, setDocuments] = useState<DBEntries[]>();
+  const [, setCurrentDoc] = useState<EnzymeMLState | null>(null);
 
-  // Actions
-  const openNotification = useAppStore((state) => state.openNotification);
+  /**
+   * Fetches the current document state from the backend.
+   * Updates the local state with the retrieved EnzymeML document information.
+   */
+  const fetchState = useCallback(async () => {
+    try {
+      const state = await getState();
+      setCurrentDoc(state);
+    } catch (error) {
+      console.error("Error fetching state:", error);
+    }
+  }, []);
+
+  /**
+   * Combined data fetching function that orchestrates all data retrieval operations.
+   * Currently focuses on document state but can be extended for additional data sources.
+   */
+  const fetchAllData = useCallback(() => {
+    fetchState();
+  }, [fetchState]);
 
   // Effects
   useEffect(() => {
-    getState()
-      .then((state) => {
-        setCurrentDoc(state);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    fetchAllData();
+  }, [fetchAllData]);
 
-    listEntries()
-      .then((data) => {
-        setDocuments(data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }, []);
+  // Listen for updates from the backend to keep the UI synchronized
+  useRouterTauriListener("update_document", fetchAllData, [fetchAllData]);
 
-  useEffect(() => {
-    const unlisten = listen("update_document", () => {
-      getState()
-        .then((state) => {
-          setCurrentDoc(state);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-
-      listEntries()
-        .then((data) => {
-          setDocuments(data);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    });
-
-    // Clean up the event listener on component unmount
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, []);
-
-  // Handlers
-  const handleSaveEntry = () => {
-    saveEntry()
-      .then(() => {
-        openNotification(
-          "Success",
-          NotificationType.SUCCESS,
-          "Entry saved successfully."
-        );
-      })
-      .catch((error) => {
-        openNotification("Error", NotificationType.ERROR, error.message);
-      });
-  };
-
-  const handleNewEntry = () => {
-    newEntry().catch((error) => {
-      openNotification("Error", NotificationType.ERROR, error.message);
-    });
-  };
-
-  const handleDownload = () => {
-    exportToJSON().catch((error) => {
-      openNotification("Error", NotificationType.ERROR, error.message);
-    });
-  };
-
-  const handleLoadEntry = () => {
-    loadJSON()
-      .then(() => {
-        openNotification(
-          "Success",
-          NotificationType.SUCCESS,
-          "Entry has been loaded."
-        );
-      })
-      .catch((error) => {
-        openNotification("Error", NotificationType.ERROR, error.message);
-      });
-  };
-
-  const handleDBChange = (value: number) => {
-    loadEntry(value)
-      .then(() => {
-        emit("update_document").then(() => null);
-        openNotification(
-          "Success",
-          NotificationType.SUCCESS,
-          "Entry has been loaded."
-        );
-      })
-      .catch((error) => {
-        openNotification("Error", NotificationType.ERROR, error.message);
-      });
+  /**
+   * Handles item selection from the overview table.
+   * Currently logs the selection but can be extended to include navigation logic.
+   * 
+   * @param id - The unique identifier of the selected item
+   * @param type - The type of the selected item (e.g., "Small Molecule", "Protein")
+   * @param route - The route path associated with the item type
+   */
+  const handleItemSelect = (id: string, type: string, route: string) => {
+    console.log(`Selected ${type} with ID: ${id}, navigating to: ${route}`);
+    // Navigation logic can be added here if needed
   };
 
   return (
     <NotificationProvider>
-      <div
-        className={"h-screen"}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-        }}
-      >
-        <Input
-          className="text-2xl font-bold"
-          value={currentDoc?.title || ""}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setTitle(e.target.value)
-          }
-        />
-        <div className={"flex flex-row gap-2"}>
-          <Button onClick={handleNewEntry}>New Entry</Button>
-          <Button onClick={handleSaveEntry}>Save Entry</Button>
-          <Button onClick={handleLoadEntry}>Load Entry</Button>
-          <Button onClick={handleDownload}>Download</Button>
-          <Select
-            placeholder={"Select a document"}
-            onChange={handleDBChange}
-            options={documents?.map(([title, id]) => ({
-              label: title,
-              value: id,
-            }))}
-          />
-        </div>
-        <div className={"mt-2 h-screen"}>
-          <div
-            className={
-              "flex overflow-auto justify-center h-full rounded-2xl scrollbar-hide"
-            }
-          >
-            <div
-              className={"h-full w-[80%]"}
-              style={{
-                borderRadius: 10,
-                border: "1px solid #e5e5e5",
-              }}
-            >
-              <JsonView
-                data={currentDoc?.doc || {}}
-                shouldExpandNode={() => {
-                  return true;
-                }}
-                style={defaultStyles}
-              />
-            </div>
-          </div>
-        </div>
+      <div className="overflow-auto h-full">
+        {/* Overview Table - Full width with padding */}
+        <HomeOverviewTable onItemSelect={handleItemSelect} />
       </div>
     </NotificationProvider>
   );
