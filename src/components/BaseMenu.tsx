@@ -1,8 +1,10 @@
 import { Menu, theme } from "antd";
-import useAppStore from "../stores/appstore.ts";
+import { MenuProps } from "antd";
+
+import useAppStore from "@stores/appstore.ts";
 
 interface BaseMenuProps {
-    onClick?: (e: any) => void;
+    onClick?: MenuProps['onClick'];
     items: {
         key: string;
         icon?: React.ReactNode;
