@@ -150,6 +150,7 @@ async fn main() {
             smallmols::update_small_mol,
             smallmols::delete_small_mol,
             smallmols::list_small_mols,
+            smallmols::list_small_mol_smiles,
             smallmols::add_small_mol,
             smallmols::add_small_mols,
             // Vessels

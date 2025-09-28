@@ -1,4 +1,5 @@
 use enzymeml::prelude::{SmallMolecule, SmallMoleculeBuilder};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
@@ -151,6 +152,34 @@ pub fn list_small_mols(state: State<Arc<EnzymeMLState>>) -> Vec<(String, String)
         .small_molecules
         .iter()
         .map(|s| (s.id.clone(), s.name.clone()))
+        .collect()
+}
+
+/// Lists all small molecules in the EnzymeML document with their SMILES strings
+///
+/// This function retrieves all small molecules from the document and returns a simplified
+/// list containing the ID, name, and SMILES string of each small molecule. This is typically
+/// used for populating dropdown menus or selection lists in the frontend interface.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+///
+/// # Returns
+/// HashMap where each key is the ID of a small molecule and each value is the SMILES string of the small molecule
+///
+/// If a small molecule does not have a SMILES string, its ID is used as the SMILES string.
+#[tauri::command]
+pub fn list_small_mol_smiles(state: State<Arc<EnzymeMLState>>) -> HashMap<String, String> {
+    let state_doc = state.doc.lock().unwrap();
+    state_doc
+        .small_molecules
+        .iter()
+        .map(|s| {
+            (
+                s.id.clone(),
+                s.canonical_smiles.clone().unwrap_or_else(|| s.id.clone()),
+            )
+        })
         .collect()
 }
 

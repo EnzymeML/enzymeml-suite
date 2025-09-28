@@ -59,3 +59,15 @@ export async function deleteSmallMolecule(id: string): Promise<void> {
         throw new Error('Error invoking command: ' + error);
     }
 }
+
+/**
+ * Lists all small molecules with their SMILES strings
+ * @returns Promise with a record of all small molecules with their SMILES strings
+ */
+export async function listSmallMoleculesWithSMILES(): Promise<Record<string, string>> {
+    try {
+        return await invoke('list_small_mol_smiles', {});
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
