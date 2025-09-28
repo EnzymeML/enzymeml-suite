@@ -2,9 +2,77 @@ use enzymeml::prelude::{Protein, ProteinBuilder};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::actions::identifiers::PROTEIN_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+
+/// Adds a small molecule to the EnzymeML document
+///
+/// This function adds a protein to the document's proteins collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `object` - The protein object to add
+#[tauri::command]
+pub fn add_protein(
+    state: State<Arc<EnzymeMLState>>,
+    mut object: Protein,
+    app_handle: AppHandle,
+) -> String {
+    let mut state_guard = state.doc.lock().unwrap();
+    let id = generate_id(
+        &state_guard.proteins.iter().map(|s| s.id.clone()).collect(),
+        PROTEIN_PREFIX,
+    );
+    object.id = id.clone();
+    state_guard.proteins.push(object.clone());
+    drop(state_guard);
+    update_event!(app_handle, "update_proteins");
+    id
+}
+
+/// Adds multiple proteins to the EnzymeML document
+///
+/// This function adds multiple proteins to the document's proteins collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `data` - The vector of protein objects to add
+#[tauri::command]
+pub fn add_proteins(
+    state: State<Arc<EnzymeMLState>>,
+    mut data: Vec<Protein>,
+    app_handle: AppHandle,
+) -> Vec<String> {
+    let mut existing_ids: Vec<String> = state
+        .doc
+        .lock()
+        .unwrap()
+        .proteins
+        .iter()
+        .map(|s| s.id.clone())
+        .collect();
+
+    let mut ids = Vec::with_capacity(data.len());
+    let objects: Vec<Protein> = data
+        .iter_mut()
+        .map(|o| {
+            let id = generate_id(&existing_ids, PROTEIN_PREFIX);
+            ids.push(id.clone());
+            existing_ids.push(id.clone());
+            o.id = id;
+            o.clone()
+        })
+        .collect();
+
+    add_objects!(state.doc, proteins, objects);
+    update_event!(app_handle, "update_proteins");
+
+    ids
+}
 
 /// Creates a new protein in the EnzymeML document
 ///
@@ -20,7 +88,7 @@ pub fn create_protein(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -
     builder.name("New Protein".to_string());
     builder.constant(true);
 
-    let id = create_object!(state.doc, proteins, builder, "p", id);
+    let id = create_object!(state.doc, proteins, builder, PROTEIN_PREFIX, id);
 
     update_event!(app_handle, "update_proteins");
 

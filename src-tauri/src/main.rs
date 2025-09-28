@@ -16,35 +16,64 @@ use crate::states::{EnzymeMLState, JupyterState};
 use specta_typescript::Typescript;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
+/// API module for handling HTTP endpoints and server functionality
 pub(crate) mod api;
+/// Database initialization and connection handling
 mod db;
+/// Document utilities for EnzymeML document operations
 mod docutils;
+/// Data models and structures used throughout the application
 mod models;
+/// Database schema definitions
 mod schema;
+/// Application state management
 pub mod states;
+/// Unit definitions and conversions
 pub mod unit;
 
+/// Input/output operations and data handling
 pub mod io {
+    /// Data input/output operations
     pub mod dataio;
+    /// Database operations
     pub mod dbops;
+    /// Utility macros for I/O operations
     pub mod macros;
+    /// String array handling utilities
     pub mod stringarray;
 }
 
+/// Tauri command actions for frontend-backend communication
 pub mod actions {
+    /// EnzymeML document management commands
     pub mod enzmldoc;
+    /// Equation handling and management
     pub mod equations;
+    /// ID generation and management utilities
+    pub mod identifiers;
+    /// Jupyter notebook integration commands
     pub mod jupyter;
+    /// Utility macros for action implementations
     pub mod macros;
+    /// Measurement data handling commands
     pub mod measurements;
+    /// Parameter management commands
     pub mod parameters;
+    /// Protein entity management commands
     pub mod proteins;
+    /// Reaction entity management commands
     pub mod reactions;
+    /// Simulation execution and management
     pub mod simulation;
+    /// Small molecule entity management commands
     pub mod smallmols;
+    /// Unit definition and conversion commands
     pub mod units;
+    /// Utility functions for action implementations
     pub mod utils;
+    /// Vessel entity management commands
     pub mod vessels;
+    /// Window management commands
     pub mod windows;
 }
 
@@ -59,21 +88,23 @@ async fn main() {
     let tauri_state = Arc::clone(&app_state);
 
     // Jupyter commands
-    generate_bindings(
-        collect_commands![
-            jupyter::get_jupyter_sessions,
-            jupyter::kill_jupyter,
-            jupyter::start_jupyter,
-            jupyter::get_python_version,
-            jupyter::install_jupyter_lab,
-            jupyter::is_jupyter_lab_installed,
-            jupyter::get_jupyter_template_metadata,
-            jupyter::add_template_to_project,
-            jupyter::open_project_folder,
-        ],
-        collect_events![jupyter::JupyterInstallOutput, jupyter::JupyterInstallStatus,],
-        "../src/commands/jupyter.ts",
-    );
+    if cfg!(debug_assertions) {
+        generate_bindings(
+            collect_commands![
+                jupyter::get_jupyter_sessions,
+                jupyter::kill_jupyter,
+                jupyter::start_jupyter,
+                jupyter::get_python_version,
+                jupyter::install_jupyter_lab,
+                jupyter::is_jupyter_lab_installed,
+                jupyter::get_jupyter_template_metadata,
+                jupyter::add_template_to_project,
+                jupyter::open_project_folder,
+            ],
+            collect_events![jupyter::JupyterInstallOutput, jupyter::JupyterInstallStatus,],
+            "../src/commands/jupyter.ts",
+        );
+    }
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -92,17 +123,8 @@ async fn main() {
             // Initialize the database.
             db::init();
 
-            // Initialize the Stronghold plugin.
-            let salt_path = app
-                .path()
-                .app_local_data_dir()
-                .expect("could not resolve app local data path")
-                .join("salt.txt");
-
             // Initialize the Rocket server.
             let app_handle = app.handle().clone();
-
-            app_handle.plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
 
             spawn(async move {
                 create_rocket(rocket_state, Arc::new(app_handle))
@@ -140,6 +162,7 @@ async fn main() {
             enzmldoc::get_species_name,
             enzmldoc::set_title,
             enzmldoc::get_all_species,
+            enzmldoc::create_document,
             // Units
             units::get_unit,
             units::get_unit_group,
@@ -159,18 +182,24 @@ async fn main() {
             vessels::update_vessel,
             vessels::delete_vessel,
             vessels::list_vessels,
+            vessels::add_vessel,
+            vessels::add_vessels,
             // Proteins
             proteins::create_protein,
             proteins::get_protein,
             proteins::update_protein,
             proteins::delete_protein,
             proteins::list_proteins,
+            proteins::add_protein,
+            proteins::add_proteins,
             // Reactions
             reactions::create_reaction,
             reactions::get_reaction,
             reactions::update_reaction,
             reactions::delete_reaction,
             reactions::list_reactions,
+            reactions::add_reaction,
+            reactions::add_reactions,
             // Equations
             equations::update_equation,
             equations::get_equation,
@@ -194,6 +223,8 @@ async fn main() {
             measurements::update_measurement,
             measurements::delete_measurement,
             measurements::list_measurements,
+            measurements::add_measurement,
+            measurements::add_measurements,
             // Windows
             windows::open_visualisation,
             // Jupyter

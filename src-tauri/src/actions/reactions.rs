@@ -2,9 +2,77 @@ use enzymeml::prelude::{Reaction, ReactionBuilder};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::actions::identifiers::REACTION_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+
+/// Adds a small molecule to the EnzymeML document
+///
+/// This function adds a reaction to the document's reactions collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `object` - The reaction object to add
+#[tauri::command]
+pub fn add_reaction(
+    state: State<Arc<EnzymeMLState>>,
+    mut object: Reaction,
+    app_handle: AppHandle,
+) -> String {
+    let mut state_guard = state.doc.lock().unwrap();
+    let id = generate_id(
+        &state_guard.reactions.iter().map(|s| s.id.clone()).collect(),
+        REACTION_PREFIX,
+    );
+    object.id = id.clone();
+    state_guard.reactions.push(object.clone());
+    drop(state_guard);
+    update_event!(app_handle, "update_reactions");
+    id
+}
+
+/// Adds multiple reactions to the EnzymeML document
+///
+/// This function adds multiple reactions to the document's reactions collection.
+/// It emits an update event to notify the frontend of the changes.
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state containing the document data
+/// * `data` - The vector of reaction objects to add
+#[tauri::command]
+pub fn add_reactions(
+    state: State<Arc<EnzymeMLState>>,
+    mut data: Vec<Reaction>,
+    app_handle: AppHandle,
+) -> Vec<String> {
+    let mut existing_ids: Vec<String> = state
+        .doc
+        .lock()
+        .unwrap()
+        .reactions
+        .iter()
+        .map(|s| s.id.clone())
+        .collect();
+
+    let mut ids = Vec::with_capacity(data.len());
+    let objects: Vec<Reaction> = data
+        .iter_mut()
+        .map(|o| {
+            let id = generate_id(&existing_ids, REACTION_PREFIX);
+            ids.push(id.clone());
+            existing_ids.push(id.clone());
+            o.id = id;
+            o.clone()
+        })
+        .collect();
+
+    add_objects!(state.doc, reactions, objects);
+    update_event!(app_handle, "update_reactions");
+
+    ids
+}
 
 /// Creates a new reaction in the EnzymeML document
 ///
@@ -20,7 +88,7 @@ pub fn create_reaction(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) 
     builder.name("New Reaction".to_string());
     builder.reversible(false);
 
-    let id = create_object!(state.doc, reactions, builder, "r", id);
+    let id = create_object!(state.doc, reactions, builder, REACTION_PREFIX, id);
 
     update_event!(app_handle, "update_reactions");
 
