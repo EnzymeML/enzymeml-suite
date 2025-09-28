@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 // @ts-expect-error - SmilesDrawer is not typed
 import SmilesDrawer from "smiles-drawer";
-import { theme, Popover, Tag, Badge, Typography } from "antd";
+import { theme, Popover, Badge, Typography } from "antd";
 import useAppStore from "../../stores/appstore.ts";
 import { ReactionElement } from "enzymeml";
 import { listSmallMolecules } from "@suite/commands/smallmols.ts";
@@ -88,7 +88,7 @@ export default function ReactionDrawerContainer({
   // Determine the scale based on the length of the smiles string
   // Scale should go down if the smiles string is too long
   const scale = useMemo(() => {
-    return Math.min(0.9, 150 / smilesStr.length);
+    return Math.min(1.1, 160 / smilesStr.length);
   }, [smilesStr]);
 
 
