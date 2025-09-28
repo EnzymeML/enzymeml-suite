@@ -2,8 +2,24 @@ import { commands, JupyterSessionInfo, JupyterTemplate, PythonVersion } from '@c
 import { NotificationType } from '@components/NotificationProvider';
 
 export const isPythonInstalled = async (): Promise<boolean> => {
-    const result = await commands.getPythonVersion();
-    return result.status === 'ok';
+    try {
+        const result = await commands.getPythonVersion();
+        if (result.status === 'ok') {
+            if (result.data.status === 'ok') {
+                return true;
+            } else if (result.data.status === 'error') {
+                console.warn('Python installation check failed:', result.data.error);
+            } else if (result.data.status === 'not_found') {
+                console.warn('Python not found on system');
+            }
+        } else {
+            console.warn('Python version command failed:', result.error);
+        }
+        return false;
+    } catch (error) {
+        console.error('Python installation check error:', error);
+        return false;
+    }
 };
 
 export const getPythonVersion = async (): Promise<PythonVersion> => {
@@ -16,14 +32,19 @@ export const getPythonVersion = async (): Promise<PythonVersion> => {
 };
 
 export const isJupyterLabInstalled = async (): Promise<boolean> => {
-    const result = await commands.isJupyterLabInstalled();
+    try {
+        const result = await commands.isJupyterLabInstalled();
 
-    if (result.status === 'ok') {
-        return result.data;
-    } else {
+        if (result.status === 'ok') {
+            return result.data;
+        } else {
+            console.warn('JupyterLab installation check failed:', result.error);
+            return false;
+        }
+    } catch (error) {
+        console.error('JupyterLab installation check error:', error);
         return false;
     }
-
 };
 
 export const getJupyterTemplateMetadata = async (): Promise<JupyterTemplate[]> => {

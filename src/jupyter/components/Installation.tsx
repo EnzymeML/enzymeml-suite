@@ -1,13 +1,17 @@
-import { commands } from '@suite/commands/jupyter';
-import { Typography, theme, Steps, Divider, Button } from 'antd';
+import { commands, events } from '@suite/commands/jupyter';
+import { Typography, theme, Steps, Divider, Button, Tag, Space } from 'antd';
+import { PythonOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import { isPythonInstalled, isJupyterLabInstalled } from '../utils';
+import { isPythonInstalled, isJupyterLabInstalled, getPythonVersion } from '../utils';
 import { CHECK_INTERVAL } from '@jupyter/Jupyter';
+import useAppStore from '@stores/appstore';
+import { NotificationType } from '@components/NotificationProvider';
+import { PythonVersion } from '@commands/jupyter';
 
 const { Text } = Typography;
 
 /** URL for downloading Python from the official website */
-const PYTHON_DOWNLOAD_URL = "https://www.python.org/downloads/";
+const PYTHON_DOWNLOAD_URL = "https://www.anaconda.com/download/success";
 
 /**
  * Enumeration of installation steps for Python and JupyterLab setup
@@ -25,19 +29,22 @@ enum InstallationStep {
  * Component for the Python download and installation step
  * 
  * @param currentStep - The current installation step
+ * @param pythonVersion - The detected Python version (if any)
  * @returns JSX element with Python download instructions and button
  */
 function DownloadAndInstallPython(
     {
         currentStep,
+        pythonVersion,
     }: {
         currentStep: InstallationStep;
+        pythonVersion: PythonVersion | null;
     }
 ) {
     return (
         <div className="flex flex-col gap-2 items-start">
             <span className="text-xs font-light">
-                Get the latest Python version from the official website and install it. Make sure to check "Add Python to PATH" during installation.
+                We recommend installing Anaconda, which includes Python and JupyterLab out of the box. You can download it from the official website. Please make sure to check "Add Python to PATH" during installation.
             </span>
             {currentStep === InstallationStep.DOWNLOAD_PYTHON && (
                 <Button
@@ -50,6 +57,13 @@ function DownloadAndInstallPython(
                     Download Python
                 </Button>
             )}
+            {pythonVersion && (
+                <Space>
+                    <Tag icon={<PythonOutlined />} color="success">
+                        Python {pythonVersion.version}
+                    </Tag>
+                </Space>
+            )}
         </div >
     );
 }
@@ -59,15 +73,18 @@ function DownloadAndInstallPython(
  * 
  * @param currentStep - The current installation step
  * @param onInstallJupyter - Callback function to handle JupyterLab installation
+ * @param isLoading - Whether the installation is in progress
  * @returns JSX element with JupyterLab installation instructions and button
  */
 function InstallJupyterLab(
     {
         currentStep,
         onInstallJupyter,
+        isLoading,
     }: {
         currentStep: InstallationStep;
         onInstallJupyter: () => void;
+        isLoading: boolean;
     }
 ) {
     return (
@@ -81,8 +98,10 @@ function InstallJupyterLab(
                     variant="solid"
                     size="small"
                     color='primary'
+                    loading={isLoading}
+                    disabled={isLoading}
                     onClick={onInstallJupyter}>
-                    Install JupyterLab
+                    {isLoading ? 'Installing...' : 'Install JupyterLab'}
                 </Button>
             )}
         </div>
@@ -110,6 +129,13 @@ export default function Installation() {
     // States
     /** Current installation step state */
     const [currentStep, setCurrentStep] = useState(0);
+    /** Loading state for JupyterLab installation */
+    const [isInstallingJupyter, setIsInstallingJupyter] = useState(false);
+    /** Python version information */
+    const [pythonVersion, setPythonVersion] = useState<PythonVersion | null>(null);
+
+    // Global actions
+    const openNotification = useAppStore((state) => state.openNotification);
 
     /**
      * Checks the installation status of Python and JupyterLab
@@ -117,14 +143,25 @@ export default function Installation() {
      */
     const checkInstallationStatus = async () => {
         try {
+            console.log('Checking installation status...');
             const pythonInstalled = await isPythonInstalled();
+            console.log('Python installed:', pythonInstalled);
 
             if (!pythonInstalled) {
                 setCurrentStep(InstallationStep.DOWNLOAD_PYTHON);
                 return;
             }
 
+            // Get Python version when Python is detected
+            try {
+                const version = await getPythonVersion();
+                setPythonVersion(version);
+            } catch (error) {
+                console.warn('Failed to get Python version:', error);
+            }
+
             const jupyterInstalled = await isJupyterLabInstalled();
+            console.log('Jupyter installed:', jupyterInstalled);
 
             if (!jupyterInstalled) {
                 setCurrentStep(InstallationStep.INSTALL_JUPYTER);
@@ -132,17 +169,31 @@ export default function Installation() {
             }
 
             setCurrentStep(InstallationStep.COMPLETED);
+            // Clear loading state when installation is detected as complete
+            if (isInstallingJupyter) {
+                setIsInstallingJupyter(false);
+                openNotification(
+                    'Setup Complete!',
+                    NotificationType.SUCCESS,
+                    'Python and JupyterLab are both installed and ready to use.'
+                );
+            }
         } catch (error) {
             console.error('Failed to check installation status:', error);
+            openNotification(
+                'Status Check Failed',
+                NotificationType.WARNING,
+                'Unable to verify installation status. Please check your Python and pip installation.'
+            );
             // Default to first step on error
             setCurrentStep(InstallationStep.DOWNLOAD_PYTHON);
         }
     };
 
-    // Check installation status on every render
+    // Check installation status on component mount
     useEffect(() => {
         checkInstallationStatus();
-    });
+    }, []);
 
     // Set up periodic checking every CHECK_INTERVAL seconds as backup
     useEffect(() => {
@@ -155,13 +206,68 @@ export default function Installation() {
         return () => clearInterval(interval);
     }, [currentStep]);
 
+    // Listen for JupyterLab installation events
+    useEffect(() => {
+        const unlisten = events.jupyterInstallOutput.listen((event) => {
+            console.log('Jupyter install event:', event.payload);
+
+            if (event.payload.status === 'Success') {
+                openNotification(
+                    'Installation Complete',
+                    NotificationType.SUCCESS,
+                    'JupyterLab has been installed successfully and is ready to use.'
+                );
+                setIsInstallingJupyter(false);
+                checkInstallationStatus(); // Force check after successful installation
+            } else if (event.payload.status === 'Error') {
+                openNotification(
+                    'Installation Failed',
+                    NotificationType.ERROR,
+                    `JupyterLab installation failed: ${event.payload.output}`
+                );
+                setIsInstallingJupyter(false);
+            } else if (event.payload.status === 'Output') {
+                // Log installation progress for debugging
+                console.log('Installation progress:', event.payload.output);
+            }
+        });
+
+        return () => {
+            unlisten.then(f => f());
+        };
+    }, [openNotification, checkInstallationStatus]);
+
     /**
      * Handles the JupyterLab installation process
-     * Calls the installation command and relies on periodic checking for status updates
+     * Calls the installation command and relies on event listeners for status updates
      */
     const handleInstallJupyter = async () => {
-        await commands.installJupyterLab();
-        // The periodic check will automatically detect when installation is complete
+        openNotification(
+            'Starting Installation',
+            NotificationType.INFO,
+            'Installing JupyterLab and its dependencies. This may take a few minutes...'
+        );
+
+        setIsInstallingJupyter(true);
+        try {
+            const result = await commands.installJupyterLab();
+            if (result.status === 'error') {
+                openNotification(
+                    'Installation Command Failed',
+                    NotificationType.ERROR,
+                    `Failed to start installation: ${result.error}`
+                );
+                setIsInstallingJupyter(false);
+            }
+            // Event listeners will handle successful completion
+        } catch (error) {
+            openNotification(
+                'Installation Error',
+                NotificationType.ERROR,
+                `An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`
+            );
+            setIsInstallingJupyter(false);
+        }
     };
 
     // Styling
@@ -184,12 +290,12 @@ export default function Installation() {
     const stepItems = [
         {
             title: <span className="font-bold">Download & Install Python</span>,
-            description: <DownloadAndInstallPython currentStep={currentStep} />,
+            description: <DownloadAndInstallPython currentStep={currentStep} pythonVersion={pythonVersion} />,
             status: getStepStatus(InstallationStep.DOWNLOAD_PYTHON)
         },
         {
             title: <span className="font-bold">Install JupyterLab</span>,
-            description: <InstallJupyterLab currentStep={currentStep} onInstallJupyter={handleInstallJupyter} />,
+            description: <InstallJupyterLab currentStep={currentStep} onInstallJupyter={handleInstallJupyter} isLoading={isInstallingJupyter} />,
             status: getStepStatus(InstallationStep.INSTALL_JUPYTER)
         }
     ];
@@ -203,6 +309,13 @@ export default function Installation() {
                     <span className="text-xs font-light text-green-600">
                         Python and JupyterLab are both installed and ready to use.
                     </span>
+                    {pythonVersion && (
+                        <Space>
+                            <Tag icon={<PythonOutlined />} color="success">
+                                Python {pythonVersion.version}
+                            </Tag>
+                        </Space>
+                    )}
                 </div>
             ),
             status: 'finish' as const
