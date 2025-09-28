@@ -94,8 +94,8 @@
     "windows": [
       {
         "title": "EnzymeMLSuite",
-        "width": 1200,
-        "height": 800,
+        "width": 1000,
+        "height": 700,
         "minWidth": 1000,
         "minHeight": 400,
         "decorations": false,
