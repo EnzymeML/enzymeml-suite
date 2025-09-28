@@ -54,6 +54,8 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
   >([]);
   /** SMILES string representation of the reaction for visual display */
   const [reactionSMILES, setReactionSMILES] = useState<string>("");
+  /** Whether there are small molecules with valid SMILES strings */
+  const [hasValidSmallMolecules, setHasValidSmallMolecules] = useState<boolean>(false);
 
   // Context
   const { handleUpdateObject, form, data, locked } = React.useContext(context);
@@ -102,7 +104,12 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
     const reactantIds = reactants.map((reactant) => reactant.species_id);
     const productIds = products.map((product) => product.species_id);
     listSmallMoleculesWithSMILES().then((smallMolecules) => {
-      setReactionSMILES(createReactionSMILES(reactantIds, productIds, smallMolecules));
+      const validSmallMolecules = Object.values(smallMolecules).filter((smiles) => smiles !== "NO_SMILES");
+      setHasValidSmallMolecules(validSmallMolecules.length > 0);
+
+      if (validSmallMolecules.length > 0) {
+        setReactionSMILES(createReactionSMILES(reactantIds, productIds, smallMolecules));
+      }
     });
   }, [data.reactants, data.products]);
 
@@ -116,7 +123,7 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
       locked={locked}
     >
       {/* Visual reaction representation */}
-      {reactionSMILES.length > 0 && (
+      {reactionSMILES.length > 0 && hasValidSmallMolecules && (
         <ReactionDrawerContainer
           className="mb-10"
           smilesStr={reactionSMILES}

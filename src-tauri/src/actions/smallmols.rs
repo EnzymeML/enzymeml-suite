@@ -177,7 +177,9 @@ pub fn list_small_mol_smiles(state: State<Arc<EnzymeMLState>>) -> HashMap<String
         .map(|s| {
             (
                 s.id.clone(),
-                s.canonical_smiles.clone().unwrap_or_else(|| s.id.clone()),
+                s.canonical_smiles
+                    .clone()
+                    .unwrap_or_else(|| "NO_SMILES".to_string()),
             )
         })
         .collect()

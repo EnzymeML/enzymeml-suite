@@ -46,13 +46,8 @@ export default function MeasurementForm({
   // Add a debug wrapper for handleUpdateObject
   const handleUpdateMeasurement = React.useCallback(async () => {
     try {
-      console.log('Form data before update:', form.getFieldsValue());
-      console.log('Current data:', data);
-
       // Call the original handler
       await handleUpdateObject();
-
-      console.log('Update successful');
     } catch (error) {
       console.error('Update failed:', error);
     }
@@ -85,13 +80,16 @@ export default function MeasurementForm({
           field={field}
           subOpt={subOpt}
           availableSpecies={availableSpecies}
-          handleUpdateObject={handleUpdateObject}
+          handleUpdateObject={handleUpdateMeasurement}
           form={form}
         />
       ))}
       <Button
         type="dashed"
-        onClick={() => subOpt.add(handleAddSpecies())}
+        onClick={async () => {
+          const newSpecies = await handleAddSpecies();
+          subOpt.add(newSpecies);
+        }}
         block
       >
         + Add Species
@@ -130,7 +128,7 @@ export default function MeasurementForm({
           label={"Temperature"}
           unitTypes={[UnitTypes.TEMPERATURE]}
           required={false}
-          handleUpdateObject={handleUpdateObject}
+          handleUpdateObject={handleUpdateMeasurement}
           form={form}
         />
       </Form.Item>
