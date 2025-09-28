@@ -1,6 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { EnzymeMLDocument } from "enzymeml";
 
+export interface Stats {
+    small_molecules: number;
+    proteins: number;
+    reactions: number;
+    vessels: number;
+    measurements: number;
+}
+
 export async function setTitle(title?: string): Promise<void> {
 
     if (!title) {
@@ -49,6 +57,14 @@ export async function listAllNonConstantSpeciesIds(): Promise<string[]> {
 export async function getSpeciesNameByID(id: string): Promise<string> {
     try {
         return await invoke('get_species_name', { speciesId: id });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function getStats(): Promise<Stats> {
+    try {
+        return await invoke('get_stats');
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

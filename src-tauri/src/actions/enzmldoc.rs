@@ -10,6 +10,15 @@ use crate::schema::documents;
 use crate::states::EnzymeMLState;
 use crate::update_event;
 
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+pub struct Stats {
+    pub small_molecules: usize,
+    pub proteins: usize,
+    pub reactions: usize,
+    pub vessels: usize,
+    pub measurements: usize,
+}
+
 /// Sets the title of the EnzymeML document
 ///
 /// # Arguments
@@ -211,4 +220,23 @@ pub fn get_all_non_constant_species_ids(state: State<Arc<EnzymeMLState>>) -> Vec
                 .map(|s| s.id.clone()),
         )
         .collect()
+}
+
+/// Retrieves statistics about the current EnzymeML document
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+///
+/// # Returns
+/// Stats struct containing counts of all entity types in the document
+#[tauri::command]
+pub fn get_stats(state: State<Arc<EnzymeMLState>>) -> Stats {
+    let state_doc = state.doc.lock().unwrap();
+    Stats {
+        small_molecules: state_doc.small_molecules.len(),
+        proteins: state_doc.proteins.len(),
+        reactions: state_doc.reactions.len(),
+        vessels: state_doc.vessels.len(),
+        measurements: state_doc.measurements.len(),
+    }
 }

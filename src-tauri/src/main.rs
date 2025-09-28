@@ -163,6 +163,7 @@ async fn main() {
             enzmldoc::set_title,
             enzmldoc::get_all_species,
             enzmldoc::create_document,
+            enzmldoc::get_stats,
             // Units
             units::get_unit,
             units::get_unit_group,
