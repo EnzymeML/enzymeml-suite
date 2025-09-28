@@ -281,7 +281,12 @@ export default function FileMenu() {
         switch (key) {
             // Open Document
             case 'open-from-file':
-                loadJSON();
+                loadJSON().then(() => {
+                    openNotification('Entry loaded', NotificationType.SUCCESS, 'Your entry has been loaded successfully');
+                    navigate('/');
+                }).catch((error) => {
+                    openNotification('Error loading entry', NotificationType.ERROR, error.toString());
+                });
                 break;
             case 'new':
                 newEntry().then(() => {

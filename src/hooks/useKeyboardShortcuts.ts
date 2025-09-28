@@ -108,7 +108,14 @@ export function useFileMenuShortcuts({
 }: FileMenuShortcuts, enabled: boolean = true) {
     const shortcuts = [];
 
-    const openHandler = onOpen || (() => loadJSON());
+    const openHandler = onOpen || (() => {
+        loadJSON().then(() => {
+            openNotification('Entry loaded', NotificationType.SUCCESS, 'Your entry has been loaded successfully');
+            navigate?.('/');
+        }).catch((error) => {
+            openNotification('Error loading entry', NotificationType.ERROR, error.toString());
+        });
+    });
     const exportHandler = onExport || (() => exportToJSON());
     const closeHandler = onClose || (() => appWindow.close());
 
