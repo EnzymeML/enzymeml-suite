@@ -39,7 +39,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcutOptions[]) {
                     event.preventDefault();
                     event.stopPropagation();
                     shortcut.callback();
-                    break; // Only execute the first matching shortcut
+                    break;
                 }
             }
         };
