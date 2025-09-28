@@ -14,6 +14,7 @@ export default function WindowFrame(
 ) {
     return (
         <div className={"flex z-50 flex-col h-screen"}>
+            <div data-tauri-drag-region></div>
             <TitleBar useButtons={useButtons} />
             {children}
             <Footer />

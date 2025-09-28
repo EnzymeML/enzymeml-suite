@@ -25,7 +25,7 @@ pub async fn open_visualisation(app: tauri::AppHandle) -> Result<(), String> {
     .decorations(false)
     .transparent(true)
     .resizable(true)
-    .inner_size(1000_f64, 600_f64)
+    .inner_size(800_f64, 600_f64)
     .build()
     .map_err(|e| e.to_string())?;
 
