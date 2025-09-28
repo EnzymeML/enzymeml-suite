@@ -64,7 +64,7 @@ EnzymeML is a data exchange format that supports the comprehensive documentation
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/EnzymeML/enzymeml-suite.git 
    cd enzymeml-dashboard
    ```
 
