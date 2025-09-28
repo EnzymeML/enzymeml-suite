@@ -1,17 +1,18 @@
-import { AutoComplete, Form, Input, Radio, Select } from "antd";
-import { FormViewProps } from "../types.ts";
-import { Protein } from "enzymeml";
 import React, { ChangeEvent, useEffect, useState } from "react";
-import { listVessels } from "../commands/vessels.ts";
+import { AutoComplete, Form, Input, Radio, Select } from "antd";
 import { AutoCompleteProps } from "antd/lib";
-import { fetchFromUniProt, UniProtEntry } from "./fetchutils.ts";
 import { RiExternalLinkLine } from "react-icons/ri";
-import SpeciesReference from "../components/SpeciesReference.tsx";
-import DBEntryRow from "../components/DBEntryRow.tsx";
-import { Option } from "../types/options.ts";
-import { extractHref } from "../smallmols/SmallMoleculeForm.tsx";
-import useAppStore from "../stores/appstore.ts";
-import FormBase from "../components/FormBase.tsx";
+import { Protein } from "enzymeml";
+
+import { FormViewProps } from "@suite-types/types";
+import { listVessels } from "@commands/vessels";
+import { fetchFromUniProt, UniProtEntry } from "@proteins/fetchutils";
+import SpeciesReference from "@components/SpeciesReference";
+import DBEntryRow from "@components/DBEntryRow";
+import { Option } from "@suite-types/options";
+import { extractHref } from "@smallmols/SmallMoleculeForm";
+import useAppStore from "@stores/appstore";
+import FormBase from "@components/FormBase";
 
 function check(value: string | number | undefined | null): string | null {
   if (value === undefined || value === null) {

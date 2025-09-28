@@ -154,6 +154,7 @@ const useLLMStore = create<LLMState>()(
                             return null;
                         }
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     setItem: (name: string, value: any) => {
                         try {
                             const toStore = { ...value };

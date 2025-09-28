@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { KineticLawDefinition, KineticLawCategory } from '../reactions/types';
-import kineticLawsData from './assets/kineticLaws.json';
+import { KineticLawDefinition, KineticLawCategory } from '@reactions/types';
+import kineticLawsData from '@kineticlaw/assets/kineticLaws.json';
 
 // Interface matching the JSON structure
 export interface JsonKineticLaw {

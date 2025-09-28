@@ -1,23 +1,24 @@
 import "./style.css";
-import useAppStore from "../stores/appstore.ts";
 import React, { ComponentType, useCallback, useEffect, useState } from "react";
+import { Measurement } from "enzymeml";
+
 import {
   createMeasurement,
   deleteMeasurement,
   getMeasurement,
   listMeasurements,
   updateMeasurement,
-} from "../commands/measurements.ts";
-import DataProvider from "../components/DataProvider.tsx";
-import { Measurement } from "enzymeml";
-import DetailView from "../components/DetailView.tsx";
-import Collection from "../components/Collection.tsx";
-import EmptyPage from "../components/EmptyPage.tsx";
-import MeasurementForm from "./MeasurementForm.tsx";
-import { setCollectionIds } from "../tauri/listener.ts";
-import { useTauriListener } from "../hooks/useTauriListener";
+} from "@commands/measurements";
+import DataProvider from "@components/DataProvider";
+import useAppStore from "@stores/appstore";
+import DetailView from "@components/DetailView";
+import Collection from "@components/Collection";
+import EmptyPage from "@components/EmptyPage";
+import MeasurementForm from "@measurements/MeasurementForm";
+import { setCollectionIds } from "@tauri/listener";
+import { useRouterTauriListener } from "@hooks/useTauriListener";
 
-// @ts-ignore
+// @ts-expect-error - ChildProps is not typed
 const MeasurementContext = React.createContext<ChildProps<Measurement>>({});
 
 export default function Measurements() {
@@ -36,7 +37,7 @@ export default function Measurements() {
   }, [selectedId]);
 
   // Listen for updates only when component is mounted and visible
-  useTauriListener("update_measurements", setState);
+  useRouterTauriListener("update_measurements", setState);
 
   // Create the items for the Collapsible component
   const items = measurements.map(([id]) => {

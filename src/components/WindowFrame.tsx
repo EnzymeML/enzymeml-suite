@@ -1,6 +1,7 @@
 import React from "react";
-import TitleBar from "./TitleBar.tsx";
-import Footer from "./Footer.tsx";
+
+import TitleBar from "@components/TitleBar.tsx";
+import Footer from "@components/Footer.tsx";
 
 export default function WindowFrame(
     {
@@ -12,10 +13,10 @@ export default function WindowFrame(
     }
 ) {
     return (
-        <div className={"h-screen flex flex-col z-50"}>
-            <TitleBar useButtons={useButtons}/>
+        <div className={"flex z-50 flex-col h-screen"}>
+            <TitleBar useButtons={useButtons} />
             {children}
-            <Footer/>
+            <Footer />
         </div>
     )
 }

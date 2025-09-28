@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { EquationType, Reaction, ReactionElement } from "enzymeml";
 import {
   AutoCompleteProps,
   Button,
@@ -6,18 +8,15 @@ import {
   Radio,
   SelectProps,
 } from "antd";
-import { FormViewProps } from "../types.ts";
-import { EquationType, Reaction, ReactionElement } from "enzymeml";
-import React, { useEffect, useState } from "react";
-import FormBase from "../components/FormBase.tsx";
-import { listAllSpeciesIdsNames } from "../commands/enzmldoc.ts";
-import { mapSpeciesToOption } from "../measurements/MeasurementForm.tsx";
-import ReactionElementField from "./components/ReactionElementField.tsx";
-import ModifierElementField from "./components/ModifierElementField.tsx";
-import KineticLawDisplay from "../kineticlaw/KineticLawDisplay.tsx";
-import ReactionDrawerContainer from "./components/ReactionDrawerContainer.tsx";
-import createReactionSMILES from "./utils.ts";
-import { listSmallMoleculesWithSMILES } from "../commands/smallmols.ts";
+
+import { FormViewProps } from "@suite-types/types";
+import FormBase from "@components/FormBase";
+import { listAllSpeciesIdsNames } from "@commands/enzmldoc";
+import { mapSpeciesToOption } from "@measurements/MeasurementForm";
+import KineticLawDisplay from "@kineticlaw/KineticLawDisplay";
+
+import ReactionElementField from "@reactions/components/ReactionElementField";
+import ModifierElementField from "@reactions/components/ModifierElementField";
 
 export interface EquationDisplayProps {
   reactants: ReactionElement[];

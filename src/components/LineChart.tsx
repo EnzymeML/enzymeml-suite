@@ -1,9 +1,10 @@
-import { VisData } from "../commands/visualisation.ts";
 import { ResponsiveLine } from "@nivo/line";
 import { useEffect, useState } from "react";
-import useAppStore from "../stores/appstore.ts";
 import { theme } from "antd";
-import useVizStore from "../stores/vizstore.ts";
+
+import { VisData } from "@commands/visualisation.ts";
+import useAppStore from "@stores/appstore.ts";
+import useVizStore from "@stores/vizstore.ts";
 
 interface LineChartProps {
   data: VisData;
@@ -51,65 +52,64 @@ export default function LineChart({ data }: LineChartProps) {
   }, []);
 
   useEffect(() => {
-    if (true === true) {
-      const newChartTheme = {
-        crosshair: {
-          line: {
-            stroke: token.colorText,
-            strokeWidth: 1,
-            strokeDasharray: "2 2",
-          },
+    const newChartTheme = {
+      crosshair: {
+        line: {
+          stroke: token.colorText,
+          strokeWidth: 1,
+          strokeDasharray: "2 2",
         },
-        legends: {
+      },
+      legends: {
+        text: {
+          fill: token.colorTextLabel,
+          fontSize: 12,
+          whiteSpace: "pre-wrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        },
+      },
+      tooltip: {
+        container: {
+          background: token.colorBgContainer,
+          color: token.colorText,
+        },
+      },
+      grid: {
+        line: {
+          stroke: token.colorBorder,
+          strokeWidth: 1,
+          strokeDasharray: "2 2",
+        },
+      },
+      axis: {
+        legend: {
           text: {
-            fill: token.colorTextLabel,
-            fontSize: 12,
-            whiteSpace: "pre-wrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            fontSize: 18,
+            fill: token.colorText,
           },
         },
-        tooltip: {
-          container: {
-            background: token.colorBgContainer,
-            color: token.colorText,
+        ticks: {
+          text: {
+            fontSize: 14,
+            fill: token.colorText,
           },
-        },
-        grid: {
           line: {
             stroke: token.colorBorder,
             strokeWidth: 1,
-            strokeDasharray: "2 2",
           },
         },
-        axis: {
-          legend: {
-            text: {
-              fontSize: 18,
-              fill: token.colorText,
-            },
-          },
-          ticks: {
-            text: {
-              fontSize: 14,
-              fill: token.colorText,
-            },
-            line: {
-              stroke: token.colorBorder,
-              strokeWidth: 1,
-            },
-          },
-          domain: {
-            line: {
-              stroke: token.colorBorder,
-              strokeWidth: 1,
-            },
+        domain: {
+          line: {
+            stroke: token.colorBorder,
+            strokeWidth: 1,
           },
         },
-      };
+      },
+    };
 
-      setChartTheme(newChartTheme);
-    }
+    setChartTheme(newChartTheme);
+
   }, [darkMode]);
 
   return (
@@ -120,7 +120,7 @@ export default function LineChart({ data }: LineChartProps) {
       }}
     >
       <ResponsiveLine
-        // @ts-ignore
+        // @ts-expect-error - data is not typed
         data={data}
         theme={chartTheme}
         lineWidth={useLines ? 1.5 : 0}

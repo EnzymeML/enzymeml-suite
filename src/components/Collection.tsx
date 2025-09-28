@@ -1,9 +1,11 @@
 import { LayoutGroup } from "framer-motion";
 import React, { useCallback, memo } from "react";
-import FloatingCreate, { FloatingCreateRef } from "./FloatingCreate.tsx";
-import useAppStore from "../stores/appstore.ts";
 import { ZodObject, ZodRawShape } from "zod";
-import { ExtractionContext } from "../types/context.ts";
+
+import useAppStore from "@stores/appstore.ts";
+import { ExtractionContext } from "@suite-types/context";
+
+import FloatingCreate, { FloatingCreateRef } from "./FloatingCreate.tsx";
 
 interface CollectionProps<T> {
   items: React.ReactNode[];
@@ -15,7 +17,7 @@ interface CollectionProps<T> {
   context: ExtractionContext;
 }
 
-function Collection<T = any>({
+function Collection<T = unknown>({
   items,
   handleCreateObject,
   type,
@@ -50,7 +52,7 @@ function Collection<T = any>({
         handleCreate={onCreate}
         type={type}
         schema={schema}
-        addFunction={addFunction}
+        addFunction={addFunction as (items: unknown[]) => void}
         context={context}
       />
       <LayoutGroup>{items.map((element) => element)}</LayoutGroup>

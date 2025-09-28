@@ -1,10 +1,11 @@
-import Latex from 'react-latex-next'
 import 'katex/dist/katex.css'
-import { EquationDisplayProps } from "../ReactionForm.tsx";
 import { useEffect, useState } from "react";
-import { getSpeciesNameByID } from "../../commands/enzmldoc.ts";
+import Latex from 'react-latex-next'
 import { abs } from "mathjs";
 import { ReactionElement } from "enzymeml";
+
+import { EquationDisplayProps } from "@reactions/ReactionForm";
+import { getSpeciesNameByID } from "@commands/enzmldoc";
 
 const prepareElementString = async (reactionElement: ReactionElement) => {
     const speciesName = await getSpeciesNameByID(reactionElement.species_id)

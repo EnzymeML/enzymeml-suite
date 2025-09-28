@@ -1,7 +1,8 @@
 import React from 'react';
 import Latex from 'react-latex-next';
 import 'katex/dist/katex.css';
-import { asciiToLatex } from '../utilities/equationutils';
+
+import { asciiToLatex } from "@utilities/equationutils";
 
 interface LatexRendererProps {
     equation: string;

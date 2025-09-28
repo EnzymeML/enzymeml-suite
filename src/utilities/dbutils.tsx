@@ -1,4 +1,4 @@
-import DBEntryRow from "../components/DBEntryRow";
+import DBEntryRow from "@components/DBEntryRow";
 
 export type DBOption = {
     id: string | number;

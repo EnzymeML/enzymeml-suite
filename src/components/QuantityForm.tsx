@@ -1,4 +1,4 @@
-import { getUnitGroups, UnitMap, UnitTypes } from "../commands/units.ts";
+import { useEffect, useState } from "react";
 import {
   Form,
   FormInstance,
@@ -7,7 +7,8 @@ import {
   SelectProps,
   Space,
 } from "antd";
-import { useEffect, useState } from "react";
+
+import { getUnitGroups, UnitMap, UnitTypes } from "@commands/units.ts";
 
 interface QuantityFormProps {
   name: string | (string | number)[];
@@ -50,6 +51,7 @@ export default function QuantityForm({
         // This is done, because the unit is not a string, but an object
         const currentUnit = form.getFieldValue(unitPath);
         const unitName = Object.entries(data).find(
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           ([_, unit]) => JSON.stringify(unit) === JSON.stringify(currentUnit)
         )?.[0];
 

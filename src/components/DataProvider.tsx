@@ -6,10 +6,12 @@ import React, {
   useRef,
 } from "react";
 import { Form } from "antd";
-import { ChildProps, Identifiable } from "../types.ts";
-import Reveal from "../animations/Reveal.tsx";
-import NotificationProvider from "./NotificationProvider.tsx";
-import { ListenToEvent } from "../tauri/listener.ts";
+
+import { ChildProps, Identifiable } from "@suite-types/types";
+import Reveal from "@animations/Reveal.tsx";
+import { ListenToEvent } from "@tauri/listener.ts";
+
+import NotificationProvider from "@components/NotificationProvider";
 
 export type AlternativeStringCol<T, K extends keyof T> = T[K] extends string
   ? K

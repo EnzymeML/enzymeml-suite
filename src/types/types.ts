@@ -1,12 +1,12 @@
 import { FormInstance } from "antd";
-import { AlternativeStringCol } from "./components/DataProvider.tsx";
+import { AlternativeStringCol } from "@components/DataProvider";
 import React from "react";
 
 export interface Identifiable {
     id?: string;
     species_id?: string | null;
 
-    [key: string]: any
+    [key: string]: unknown
 }
 
 export interface ChildProps<T extends Identifiable> {

@@ -1,6 +1,6 @@
-import React from "react";
 import { Badge } from "antd";
-import useAppStore from "../stores/appstore.ts";
+
+import useAppStore from "@stores/appstore.ts";
 
 interface CardHeaderProps {
     id: string,

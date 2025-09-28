@@ -1,8 +1,9 @@
 import { useEffect, useRef, useMemo } from "react";
-// @ts-ignore
+// @ts-expect-error - SmilesDrawer is not typed
 import SmilesDrawer from "smiles-drawer";
 import { theme } from "antd";
-import useAppStore from "../../stores/appstore.ts";
+
+import useAppStore from "@stores/appstore";
 
 export const WIDTH = 200;
 const HEIGHT = WIDTH;
@@ -24,7 +25,7 @@ export default function SmileDrawerContainer({
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawerRef = useRef<any>(null);
+  const drawerRef = useRef<SmilesDrawer.Drawer | null>(null);
 
   // Styling
   const { token } = theme.useToken();
@@ -59,14 +60,7 @@ export default function SmileDrawerContainer({
       canvas.width = width * pixelRatio;
       canvas.height = height * pixelRatio;
 
-      // Set canvas display size
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      // Clear the canvas (no context scaling needed since drawer handles the resolution)
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Parse and draw the SMILES string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       SmilesDrawer.parse(smilesStr, function (tree: any) {
         if (drawerRef.current) {
           drawerRef.current.draw(tree, canvas, darkMode, false);

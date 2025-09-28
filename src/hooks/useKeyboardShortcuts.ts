@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createCrossPlatformShortcut } from '../utilities/osutils';
 
 interface KeyboardShortcutOptions {
     key: string;
@@ -67,4 +68,38 @@ export function useExtractionModalShortcuts(toggleModal: () => void, enabled: bo
             enabled,
         },
     ]);
+}
+
+/**
+ * File menu keyboard shortcuts interface
+ */
+export interface FileMenuShortcuts {
+    onOpen?: () => void;
+    onSave?: () => void;
+    onExport?: () => void;
+}
+
+/**
+ * Helper function to create shortcuts for file menu operations
+ * Supports cross-platform shortcuts:
+ * - Open: Cmd+O (Mac) / Ctrl+O (Windows/Linux)
+ * - Save: Cmd+S (Mac) / Ctrl+S (Windows/Linux)  
+ * - Export: Cmd+R (Mac) / Ctrl+R (Windows/Linux)
+ */
+export function useFileMenuShortcuts(callbacks: FileMenuShortcuts, enabled: boolean = true) {
+    const shortcuts = [];
+
+    if (callbacks.onOpen) {
+        shortcuts.push(...createCrossPlatformShortcut('o', callbacks.onOpen, enabled));
+    }
+
+    if (callbacks.onSave) {
+        shortcuts.push(...createCrossPlatformShortcut('s', callbacks.onSave, enabled));
+    }
+
+    if (callbacks.onExport) {
+        shortcuts.push(...createCrossPlatformShortcut('r', callbacks.onExport, enabled));
+    }
+
+    useKeyboardShortcuts(shortcuts);
 }

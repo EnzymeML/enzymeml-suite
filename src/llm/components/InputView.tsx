@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button, Flex, Input, Tag, theme } from "antd";
-import "./InputView.css";
 import { RiPlayLargeFill } from "react-icons/ri";
-import ButtonBar from "./ButtonBar";
-import { ExtractionContext } from "../../types/context";
+
+import "@llm/components/InputView.css";
+import ButtonBar from "@llm/components/ButtonBar";
+import { ExtractionContext } from "@suite-types/context";
 
 interface InputViewProps {
     onExtract: (input: string, filePaths: string[]) => void;

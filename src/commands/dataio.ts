@@ -1,6 +1,5 @@
-import {invoke} from '@tauri-apps/api/core';
-// @ts-ignore
-import {EnzymeMLDocument} from "enzymeml";
+import { invoke } from '@tauri-apps/api/core';
+import { EnzymeMLDocument } from "enzymeml";
 
 export type DBEntries = [string, number];
 
@@ -28,7 +27,7 @@ export async function saveEntry(): Promise<void> {
 
 export async function loadEntry(id: number): Promise<void> {
     try {
-        await invoke('load', {id: id});
+        await invoke('load', { id: id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
