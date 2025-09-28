@@ -8,3 +8,5 @@
 
 # The test database
 /db.sqlite
+
+**/.ipynb_checkpoints
