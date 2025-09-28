@@ -3,16 +3,16 @@ import Icon from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import useAppStore from "@stores/appstore.ts";
-import SmallMoleculeIcon from "@icons/smallmolecule.svg";
 import ProteinIcon from "@icons/protein.svg";
 import ReactionsIcon from "@icons/reactions1.svg";
 import MeasurementIcon from "@icons/measurements.svg";
 import ModelsIcon from "@icons/models.svg";
 import VesselsIcon from "@icons/vessels.svg";
 import HomeIcon from "@icons/home.svg";
+import { GiMolecule } from "react-icons/gi";
 
 // Metadata
-const ICON_SIZE = 20;
+export const ICON_SIZE = 20;
 
 const items = [
   {
@@ -34,7 +34,7 @@ const items = [
     icon: (
       <Icon
         style={{ fontSize: ICON_SIZE }}
-        component={SmallMoleculeIcon as unknown as React.ComponentType}
+        component={GiMolecule as unknown as React.ComponentType}
       />
     ),
     label: "Small Molecules",
