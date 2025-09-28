@@ -13,27 +13,34 @@ import { getBadgeColor } from "@components/CardHeader.tsx";
 
 interface Collection {
   fetchFun: () => Promise<[string, string][]>;
+  label: string;
 }
 
 // @ts-expect-error - AvailablePaths is not defined
 const pathMapping: { [key in AvailablePaths]: Collection } = {
   [AvailablePaths.SMALL_MOLECULES]: {
     fetchFun: listSmallMolecules,
+    label: "Small Molecules",
   },
   [AvailablePaths.VESSELS]: {
     fetchFun: listVessels,
+    label: "Vessels",
   },
   [AvailablePaths.PROTEINS]: {
     fetchFun: listProteins,
+    label: "Proteins",
   },
   [AvailablePaths.REACTIONS]: {
     fetchFun: listReactions,
+    label: "Reactions",
   },
   [AvailablePaths.MEASUREMENTS]: {
     fetchFun: listMeasurements,
+    label: "Measurements",
   },
   [AvailablePaths.MODELLING]: {
     fetchFun: async () => [],
+    label: "Model Actions",
   },
 };
 
