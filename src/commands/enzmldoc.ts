@@ -1,4 +1,5 @@
-import {invoke} from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
+import { EnzymeMLDocument } from "enzymeml";
 
 export async function setTitle(title?: string): Promise<void> {
 
@@ -7,7 +8,15 @@ export async function setTitle(title?: string): Promise<void> {
     }
 
     try {
-        await invoke('set_title', {title: title});
+        await invoke('set_title', { title: title });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function createDocument(enzmldoc: EnzymeMLDocument): Promise<void> {
+    try {
+        await invoke('create_document', { enzmldoc: enzmldoc });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
@@ -39,7 +48,7 @@ export async function listAllNonConstantSpeciesIds(): Promise<string[]> {
 
 export async function getSpeciesNameByID(id: string): Promise<string> {
     try {
-        return await invoke('get_species_name', {speciesId: id});
+        return await invoke('get_species_name', { speciesId: id });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }

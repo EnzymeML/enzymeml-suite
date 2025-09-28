@@ -1,6 +1,22 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Vessel } from "enzymeml";
 
+export async function addVessels(data: Vessel[]): Promise<void> {
+  try {
+    await invoke('add_vessels', { data });
+  } catch (error) {
+    throw new Error('Error invoking command: ' + error);
+  }
+}
+
+export async function addVessel(data: Vessel): Promise<void> {
+  try {
+    await invoke('add_vessel', { data });
+  } catch (error) {
+    throw new Error('Error invoking command: ' + error);
+  }
+}
+
 export async function createVessel(): Promise<string> {
   try {
     return await invoke("create_vessel", {});

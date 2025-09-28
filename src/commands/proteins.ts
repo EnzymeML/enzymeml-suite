@@ -1,6 +1,22 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Protein } from "enzymeml";
 
+export async function addProteins(data: Protein[]): Promise<void> {
+    try {
+        await invoke('add_proteins', { data });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function addProtein(data: Protein): Promise<void> {
+    try {
+        await invoke('add_protein', { data });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
 export async function createProtein(): Promise<string> {
     try {
         return await invoke('create_protein', {});
