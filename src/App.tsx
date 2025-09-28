@@ -23,6 +23,10 @@ import SubMenu from "@suite/components/SubMenu.tsx";
 import Modelling from "@suite/modelling/Modelling.tsx";
 import { commands } from "@suite/commands/jupyter.ts";
 import { useFileMenuShortcuts } from "@hooks/useKeyboardShortcuts";
+import ExtractModal from "@llm/ExtractModal";
+import { useExtractionModalShortcuts } from "@hooks/useKeyboardShortcuts";
+import { ExtractionContextMap } from "@suite-types/context";
+import useLLMStore from "@suite/stores/llmstore";
 
 const appWindow = getCurrentWebviewWindow()
 
@@ -57,6 +61,13 @@ function App() {
   // Actions
   const setCurrentPath = useAppStore((state) => state.setCurrentPath);
   const setSelectedId = useAppStore((state) => state.setSelectedId);
+
+  // Global states
+  const currentPath = useAppStore((state) => state.currentPath);
+  const extractionModalVisible = useLLMStore((state) => state.extractionModalVisible);
+
+  // Global actions
+  const setExtractionModalVisible = useLLMStore((state) => state.setExtractionModalVisible);
 
   // Navigation
   const navigate = useNavigate();
@@ -103,6 +114,14 @@ function App() {
     navigate,
   });
 
+  /**
+   * Sets up global keyboard shortcuts for toggling extraction modal
+   * - Cmd/Ctrl+L: Toggle extraction modal
+   */
+  useExtractionModalShortcuts(() => {
+    setExtractionModalVisible(!extractionModalVisible);
+  }, currentPath in ExtractionContextMap); // Only enable shortcuts when there are items (not on empty page)
+
   return (
     <Layout
       className={"pl-2 h-full antialiased"}
@@ -147,6 +166,9 @@ function App() {
             </AppContext.Provider>
           </div>
         </Content>
+        {currentPath in ExtractionContextMap && (
+          <ExtractModal />
+        )}
       </Layout>
     </Layout>
   );
