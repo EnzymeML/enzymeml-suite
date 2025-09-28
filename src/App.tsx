@@ -5,8 +5,10 @@ import {
   Route,
   Routes,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { ConfigProvider, Layout, theme } from "antd";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 import SmallMolecules from "@suite/smallmols/SmallMolecules.tsx";
 import Home from "@suite/home/Home.tsx";
@@ -21,8 +23,8 @@ import SubMenu from "@suite/components/SubMenu.tsx";
 import Modelling from "@suite/modelling/Modelling.tsx";
 import { commands } from "@suite/commands/jupyter.ts";
 import { useFileMenuShortcuts } from "@hooks/useKeyboardShortcuts";
-import { exportToJSON, loadJSON, saveEntry } from "@commands/dataio";
-import { NotificationType } from "./components/NotificationProvider";
+
+const appWindow = getCurrentWebviewWindow()
 
 /**
  * Context interface for managing selected items across the application
@@ -50,10 +52,14 @@ function App() {
   // States
   const darkMode = useAppStore((state) => state.darkMode);
   const location = useLocation();
+  const openNotification = useAppStore((state) => state.openNotification);
 
   // Actions
   const setCurrentPath = useAppStore((state) => state.setCurrentPath);
   const setSelectedId = useAppStore((state) => state.setSelectedId);
+
+  // Navigation
+  const navigate = useNavigate();
 
   // Styling
   const { token } = theme.useToken();
@@ -81,6 +87,21 @@ function App() {
       document.body.style.overflow = "";
     };
   }, []);
+
+  // Keyboard shortcuts
+  /**
+   * Sets up global keyboard shortcuts for file operations
+   * - Cmd/Ctrl+O: Open file
+   * - Cmd/Ctrl+S: Save entry
+   * - Cmd/Ctrl+R: Export to JSON
+   * - Cmd/Ctrl+N: New entry
+   * - Cmd/Ctrl+W: Close window
+   */
+  useFileMenuShortcuts({
+    openNotification,
+    appWindow,
+    navigate,
+  });
 
   return (
     <Layout
@@ -144,30 +165,12 @@ const WrappedApp: React.FC = () => {
   // States
   const darkMode = useAppStore((state) => state.darkMode);
   const themePreference = useAppStore((state) => state.themePreference);
-  const openNotification = useAppStore((state) => state.openNotification);
 
   // Actions
   const setDarkMode = useAppStore((state) => state.setDarkMode);
 
   // Event listeners
   const windowQuery = window.matchMedia("(prefers-color-scheme:dark)");
-
-  // Keyboard shortcuts
-  /**
-   * Sets up global keyboard shortcuts for file operations
-   * - Cmd/Ctrl+O: Open file
-   * - Cmd/Ctrl+S: Save entry
-   * - Cmd/Ctrl+R: Export to JSON
-   */
-  useFileMenuShortcuts({
-    onOpen: () => loadJSON(),
-    onSave: () => saveEntry().then(() => {
-      openNotification('Entry saved', NotificationType.SUCCESS, 'Your entry has been saved successfully');
-    }).catch((error) => {
-      openNotification('Error saving entry', NotificationType.ERROR, error.toString());
-    }),
-    onExport: () => exportToJSON(),
-  });
 
   // Callbacks
   /**

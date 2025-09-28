@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 import { createCrossPlatformShortcut } from '../utilities/osutils';
+import { loadJSON, saveEntry, exportToJSON, newEntry } from '../commands/dataio';
+import { NotificationType } from '../components/NotificationProvider';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 interface KeyboardShortcutOptions {
     key: string;
@@ -77,6 +80,11 @@ export interface FileMenuShortcuts {
     onOpen?: () => void;
     onSave?: () => void;
     onExport?: () => void;
+    onClose?: () => void;
+    onNew?: () => void;
+    openNotification: (message: string, type: NotificationType, description: string) => void;
+    navigate?: (path: string) => void;
+    appWindow: WebviewWindow;
 }
 
 /**
@@ -85,21 +93,43 @@ export interface FileMenuShortcuts {
  * - Open: Cmd+O (Mac) / Ctrl+O (Windows/Linux)
  * - Save: Cmd+S (Mac) / Ctrl+S (Windows/Linux)  
  * - Export: Cmd+R (Mac) / Ctrl+R (Windows/Linux)
+ * - New: Cmd+N (Mac) / Ctrl+N (Windows/Linux)
+ * - Close: Cmd+W (Mac) / Ctrl+W (Windows/Linux)
  */
-export function useFileMenuShortcuts(callbacks: FileMenuShortcuts, enabled: boolean = true) {
+export function useFileMenuShortcuts({
+    onOpen,
+    onSave,
+    onExport,
+    onClose,
+    onNew,
+    openNotification,
+    navigate,
+    appWindow
+}: FileMenuShortcuts, enabled: boolean = true) {
     const shortcuts = [];
 
-    if (callbacks.onOpen) {
-        shortcuts.push(...createCrossPlatformShortcut('o', callbacks.onOpen, enabled));
-    }
+    const openHandler = onOpen || (() => loadJSON());
+    const exportHandler = onExport || (() => exportToJSON());
+    const closeHandler = onClose || (() => appWindow.close());
 
-    if (callbacks.onSave) {
-        shortcuts.push(...createCrossPlatformShortcut('s', callbacks.onSave, enabled));
-    }
+    const saveHandler = onSave || (() => saveEntry().then(() => {
+        openNotification('Entry saved', NotificationType.SUCCESS, 'Your entry has been saved successfully');
+    }).catch((error) => {
+        openNotification('Error saving entry', NotificationType.ERROR, error.toString());
+    }));
 
-    if (callbacks.onExport) {
-        shortcuts.push(...createCrossPlatformShortcut('r', callbacks.onExport, enabled));
-    }
+    const newHandler = onNew || (() => newEntry().then(() => {
+        openNotification('New entry created', NotificationType.SUCCESS, 'Your new entry has been created successfully');
+        navigate?.('/');
+    }).catch((error) => {
+        openNotification('Error creating new entry', NotificationType.ERROR, error.toString());
+    }));
+
+    shortcuts.push(...createCrossPlatformShortcut('o', openHandler, enabled));
+    shortcuts.push(...createCrossPlatformShortcut('s', saveHandler, enabled));
+    shortcuts.push(...createCrossPlatformShortcut('r', exportHandler, enabled));
+    shortcuts.push(...createCrossPlatformShortcut('n', newHandler, enabled));
+    shortcuts.push(...createCrossPlatformShortcut('w', closeHandler, enabled));
 
     useKeyboardShortcuts(shortcuts);
 }
