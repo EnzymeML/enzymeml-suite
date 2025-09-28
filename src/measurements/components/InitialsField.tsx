@@ -32,7 +32,7 @@ export default function InitialsField({
     <Row gutter={16} align="middle">
       <Col span={14}>
         <Form.Item
-          name={[field.key, "species_id"]}
+          name={[field.name, "species_id"]}
           style={{ marginBottom: 0 }}
         >
           <Select
@@ -45,8 +45,8 @@ export default function InitialsField({
       </Col>
       <Col span={8}>
         <QuantityForm
-          name={[field.key, "initial"]}
-          unitPath={[field.key, "data_unit"]}
+          name={[field.name, "initial"]}
+          unitPath={["species_data", field.name, "data_unit"]}
           label="Initial"
           unitTypes={[UnitTypes.CONCENTRATION]}
           required={false}
