@@ -7,6 +7,9 @@ use tauri::{Emitter, State};
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
 
+#[cfg(target_os = "windows")]
+use std::collections::HashSet;
+
 use crate::states::{EnzymeMLState, JupyterSessionInfo, JupyterState};
 
 const PYTHON_VERSION_REGEX: &str = r"Python (\d+\.\d+\.\d+)";
@@ -703,7 +706,7 @@ fn setup_jupyter_env() -> Vec<(&'static str, String)> {
         let mut cands: Vec<PathBuf> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
 
-        let home = home_dir().unwrap_or_else(|| PathBuf::from("C:\\"));
+        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("C:\\"));
         let userprofile = std::env::var("USERPROFILE")
             .ok()
             .map(PathBuf::from)
@@ -837,6 +840,6 @@ fn setup_jupyter_env() -> Vec<(&'static str, String)> {
             format!("{}:{}", dedup.join(":"), current_path)
         };
 
-        return vec![("PATH", joined)];
+        vec![("PATH", joined)]
     }
 }
