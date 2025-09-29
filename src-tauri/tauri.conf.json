@@ -17,7 +17,7 @@
     ]
   },
   "productName": "EnzymeML Suite",
-  "mainBinaryName": "EnzymeML Suite",
+  "mainBinaryName": "EnzymeMLSuite",
   "version": "0.1.0",
   "identifier": "enzymeml-suite",
   "plugins": {},
