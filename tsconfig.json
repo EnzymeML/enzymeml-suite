@@ -62,6 +62,9 @@
       "@modelling/*": [
         "src/modelling/*"
       ],
+      "@parameters/*": [
+        "src/parameters/*"
+      ],
       "@proteins/*": [
         "src/proteins/*"
       ],

@@ -38,6 +38,7 @@ export default defineConfig(async () => ({
             "@llm": resolve(__dirname, "./src/llm"),
             "@measurements": resolve(__dirname, "./src/measurements"),
             "@modelling": resolve(__dirname, "./src/modelling"),
+            "@parameters": resolve(__dirname, "./src/parameters"),
             "@proteins": resolve(__dirname, "./src/proteins"),
             "@reactions": resolve(__dirname, "./src/reactions"),
             "@smallmols": resolve(__dirname, "./src/smallmols"),
