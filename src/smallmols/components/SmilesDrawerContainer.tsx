@@ -70,7 +70,7 @@ export default function SmileDrawerContainer({
   }, [smilesStr, darkMode, width, height, pixelRatio]); // Include all dependencies
 
   return (
-    <div className="flex justify-center items-center w-full h-full">
+    <div className="flex justify-center items-center mx-4 w-full h-full">
       <canvas
         ref={canvasRef}
         style={{
