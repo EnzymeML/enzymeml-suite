@@ -1,7 +1,7 @@
 import '../App.css';
 import React, { useCallback, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { ConfigProvider, Layout, theme, Typography } from "antd";
+import { ConfigProvider, Layout, theme } from "antd";
 
 import Visualisation from "@visualisation/Visualisation";
 import useAppStore from "@stores/appstore";
