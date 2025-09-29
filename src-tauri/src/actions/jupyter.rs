@@ -493,7 +493,9 @@ pub async fn start_jupyter(
                     port,
                     name.clone(),
                     &mut child,
-                ).is_ok() {
+                )
+                .is_ok()
+                {
                     return Ok(());
                 }
             }
