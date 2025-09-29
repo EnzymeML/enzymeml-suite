@@ -1,5 +1,5 @@
 import { Menu, theme } from "antd";
-import Icon from "@ant-design/icons";
+import Icon, { NumberOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import useAppStore from "@stores/appstore.ts";
@@ -70,6 +70,13 @@ export default function MainMenu() {
       icon: <Icon style={{ fontSize: ICON_SIZE }} component={MeasurementIcon} />,
       label: "Measurements",
       route: "/measurements",
+    },
+    {
+      key: "7",
+      // @ts-expect-error - icon is not typed
+      icon: <Icon style={{ fontSize: ICON_SIZE }} component={NumberOutlined} />,
+      label: "Parameters",
+      route: "/parameters",
     },
     // {
     //   key: "7",

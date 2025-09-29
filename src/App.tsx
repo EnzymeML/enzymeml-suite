@@ -10,13 +10,14 @@ import {
 import { ConfigProvider, Layout, theme } from "antd";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
+import useAppStore, { AvailablePaths } from "@suite/stores/appstore.ts";
 import SmallMolecules from "@suite/smallmols/SmallMolecules.tsx";
 import Home from "@suite/home/Home.tsx";
 import Measurements from "@suite/measurements/Measurements.tsx";
 import Vessels from "@suite/vessels/Vessels.tsx";
 import Proteins from "@suite/proteins/Proteins.tsx";
 import Reactions from "@suite/reactions/Reactions.tsx";
-import useAppStore, { AvailablePaths } from "@suite/stores/appstore.ts";
+import Parameters from "@parameters/Parameters";
 import WindowFrame from "@suite/components/WindowFrame.tsx";
 import MainMenu from "@suite/components/MainMenu.tsx";
 import SubMenu from "@suite/components/SubMenu.tsx";
@@ -162,6 +163,7 @@ function App() {
                 <Route path="/reactions" element={<Reactions />} />
                 <Route path="/measurements" element={<Measurements />} />
                 <Route path="/modelling" element={<Modelling />} />
+                <Route path="/parameters" element={<Parameters />} />
               </Routes>
             </AppContext.Provider>
           </div>
