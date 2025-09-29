@@ -5,7 +5,7 @@ import type { OptimizationFormValues, OptimizationResult } from "@modelling/type
 
 import OptimizationForm from "@modelling/components/OptimizationForm"
 import OptimizationResults from "@modelling/components/OptimizationResults"
-import Parameters from "@modelling/components/Parameters"
+import Parameters from "@suite/parameters/Parameters"
 
 const { Content } = Layout
 
