@@ -72,13 +72,13 @@ export default function MainMenu() {
       label: "Measurements",
       route: "/measurements",
     },
-    {
-      key: "7",
-      // @ts-expect-error - icon is not typed
-      icon: <Icon style={{ fontSize: ICON_SIZE }} component={ModelsIcon} />,
-      label: "Modelling",
-      route: "/modelling",
-    },
+    // {
+    //   key: "7",
+    //   // @ts-expect-error - icon is not typed
+    //   icon: <Icon style={{ fontSize: ICON_SIZE }} component={ModelsIcon} />,
+    //   label: "Modelling",
+    //   route: "/modelling",
+    // },
   ];
 
   // Handlers
