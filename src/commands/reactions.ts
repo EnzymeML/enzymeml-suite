@@ -50,7 +50,11 @@ export async function updateReaction(id: string, data: Reaction): Promise<void> 
             data.kinetic_law = null
         }
 
-        await invoke('update_reaction', { id: id, data: data });
+        if (data.kinetic_law) {
+            data.kinetic_law.species_id = "v";
+        }
+
+        await invoke('update_reaction', { data: data });
     } catch (error) {
         throw new Error('Error invoking command: ' + error);
     }
