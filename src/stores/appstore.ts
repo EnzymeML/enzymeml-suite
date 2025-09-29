@@ -13,6 +13,7 @@ export enum AvailablePaths {
     REACTIONS = '/reactions',
     MEASUREMENTS = '/measurements',
     MODELLING = '/modelling',
+    PARAMETERS = '/parameters',
 }
 
 interface AppState {
