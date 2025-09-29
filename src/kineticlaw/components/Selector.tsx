@@ -1,7 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Row, Typography, Button, Card, Badge, theme, Modal } from 'antd';
-import { CloseOutlined } from '@ant-design/icons';
+import { Row, Typography, Button, Card, Badge, theme, Modal, Col } from 'antd';
 
 import { KINETIC_LAW_CATEGORIES } from '@kineticlaw/kineticLaws';
 import { KineticLawDefinition } from '@reactions/types';
@@ -11,8 +9,6 @@ import CardTitle from '@components/CardTitle';
 import CollapsibleParametersCard from '@kineticlaw/components/CollapsibleParametersCard';
 import { createColoredSymbolsMap, getEquationSize } from '@kineticlaw/utils';
 import KineticLawMenu from '@kineticlaw/components/KineticLawMenu';
-
-const DEFAULT_DESCRIPTION = 'Select a Kinetic Law';
 
 const { Text } = Typography;
 
@@ -56,7 +52,7 @@ const KineticLawLibraryCard: React.FC<KineticLawLibraryCardProps> = ({ selectedL
     return (
         <Card
             title={
-                <CardTitle title="Kinetic Laws" description={DEFAULT_DESCRIPTION} />
+                <CardTitle title="Kinetic Laws" description={''} />
             }
             size="small"
             className="h-full"
@@ -68,7 +64,6 @@ const KineticLawLibraryCard: React.FC<KineticLawLibraryCardProps> = ({ selectedL
             styles={{
                 header: {
                     backgroundColor: token.colorBgElevated,
-                    borderBottom: `1px solid ${token.colorBorder}`,
                     minHeight: '40px',
                     padding: '0 16px'
                 },
@@ -88,7 +83,7 @@ const KineticLawLibraryCard: React.FC<KineticLawLibraryCardProps> = ({ selectedL
     );
 };
 
-const LawInfoCard: React.FC<LawInfoCardProps> = ({ selectedLaw, onDeselect }) => {
+const LawInfoCard: React.FC<LawInfoCardProps> = ({ selectedLaw }) => {
     const { token } = theme.useToken();
     const [isExpanded, setIsExpanded] = React.useState(false);
 
@@ -112,25 +107,12 @@ const LawInfoCard: React.FC<LawInfoCardProps> = ({ selectedLaw, onDeselect }) =>
 
     return (
         <div
-            className="relative p-6 rounded-lg transition-shadow duration-200"
+            className="relative p-6 rounded-lg"
             style={{
                 backgroundColor: token.colorBgContainer,
                 boxShadow: token.boxShadowTertiary
             }}
         >
-            {/* Close button positioned absolutely in top right */}
-            <Button
-                type="text"
-                size="small"
-                icon={<CloseOutlined />}
-                onClick={onDeselect}
-                className="flex absolute top-4 right-4 justify-center items-center w-8 h-8 transition-all duration-200"
-                style={{
-                    color: token.colorTextTertiary
-                }}
-                title="Close detail view"
-            />
-
             {/* Header with title and badge */}
             <div className="pr-12 mb-4">
                 <h3
@@ -248,7 +230,6 @@ const EquationDisplayCard: React.FC<EquationDisplayCardProps> = ({ equation, sel
                     </Text>
                 }
                 size="default"
-                className="transition-shadow duration-200"
                 style={{
                     boxShadow: token.boxShadowTertiary,
                     backgroundColor: token.colorBgContainer,
@@ -262,7 +243,7 @@ const EquationDisplayCard: React.FC<EquationDisplayCardProps> = ({ equation, sel
                 }}
             >
                 <div
-                    className="relative p-6 text-center min-h-[80px] flex items-center justify-center overflow-auto w-full cursor-pointer transition-colors duration-200 hover:bg-opacity-80"
+                    className="relative p-6 text-center min-h-[80px] flex items-center justify-center overflow-auto w-full cursor-pointer hover:bg-opacity-80"
                     style={{
                         backgroundColor: token.colorFillQuaternary,
                         border: `1px solid ${token.colorBorder}`,
@@ -308,21 +289,11 @@ const KineticLawDetailView: React.FC<KineticLawDetailViewProps> = ({ selectedLaw
             ref={scrollContainerRef}
             className="overflow-y-auto pr-2 h-full scrollbar-hide"
         >
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                    delay: 0.2,
-                    duration: 0.3,
-                    ease: "easeOut"
-                }}
-            >
-                <div className="flex flex-col gap-4 mb-10">
-                    <LawInfoCard selectedLaw={selectedLaw} onDeselect={onDeselect} />
-                    <EquationDisplayCard equation={selectedLaw.equation} selectedLaw={selectedLaw} />
-                    <CollapsibleParametersCard selectedLaw={selectedLaw} />
-                </div>
-            </motion.div>
+            <div className="flex flex-col gap-4">
+                <LawInfoCard selectedLaw={selectedLaw} onDeselect={onDeselect} />
+                <EquationDisplayCard equation={selectedLaw.equation} selectedLaw={selectedLaw} />
+                <CollapsibleParametersCard selectedLaw={selectedLaw} />
+            </div>
         </div>
     );
 };
@@ -332,51 +303,16 @@ const Selector: React.FC<SelectorProps> = ({ selectedLaw, onLawSelect, onDeselec
         <div className="relative h-full">
             <Row gutter={16} className="h-full">
                 {/* Menu - Full width when no selection, partial when selected */}
-                <motion.div
-                    initial={false}
-                    animate={{
-                        width: selectedLaw ? '41.66667%' : '100%',
-                        paddingRight: selectedLaw ? '8px' : '0px'
-                    }}
-                    transition={{
-                        duration: 0.4,
-                        ease: [0.4, 0.0, 0.2, 1]
-                    }}
-                    className="h-full"
-                >
+                <Col span={selectedLaw ? 10 : 24} className="h-full">
                     <KineticLawLibraryCard selectedLaw={selectedLaw} onLawSelect={onLawSelect} />
-                </motion.div>
+                </Col>
 
-                {/* Detail View - Slides in from right when law is selected */}
-                <AnimatePresence>
-                    {selectedLaw && (
-                        <motion.div
-                            initial={{
-                                width: '0%',
-                                opacity: 0,
-                                x: 50
-                            }}
-                            animate={{
-                                width: '58.33333%',
-                                opacity: 1,
-                                x: 0
-                            }}
-                            exit={{
-                                width: '0%',
-                                opacity: 0,
-                                x: 50
-                            }}
-                            transition={{
-                                duration: 0.4,
-                                ease: [0.4, 0.0, 0.2, 1],
-                                opacity: { duration: 0.3 }
-                            }}
-                            className="pl-2 h-full"
-                        >
-                            <KineticLawDetailView selectedLaw={selectedLaw} onDeselect={onDeselect} />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* Detail View - Shows when law is selected */}
+                {selectedLaw && (
+                    <Col span={14} className="h-full">
+                        <KineticLawDetailView selectedLaw={selectedLaw} onDeselect={onDeselect} />
+                    </Col>
+                )}
             </Row>
         </div>
     );

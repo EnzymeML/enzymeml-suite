@@ -56,11 +56,13 @@ export default function KineticLawDisplay({
                     width: 'fit-content',
                     maxWidth: '400px',
                 }}
-                bodyStyle={{
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    minHeight: '40px',
+                styles={{
+                    body: {
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        minHeight: '40px',
+                    }
                 }}
             >
                 {kineticLaw && kineticLaw.equation ? (
@@ -96,7 +98,7 @@ export default function KineticLawDisplay({
                         </Button>
                     </div>
                 )}
-            </Card>
+            </Card >
 
             <KineticLawBuilder
                 reactionId={reactionId}

@@ -42,7 +42,7 @@ export async function getReaction(id: string): Promise<Reaction> {
     }
 }
 
-export async function updateReaction(id: string, data: Reaction): Promise<void> {
+export async function updateReaction(_id: string, data: Reaction): Promise<void> {
     try {
         const kineticLaw = data.kinetic_law;
 

@@ -32,6 +32,7 @@ export default function KineticLawBuilder({
     const [currentStep, setCurrentStep] = useState(0);
     const [selectedLaw, setSelectedLaw] = useState<KineticLawDefinition | null>(null);
     const [equation, setEquation] = useState<string>('');
+    const [assignments, setAssignments] = useState<Record<string, string>>({});
     const [availableSpecies, setAvailableSpecies] = useState<SpeciesInfo[]>([]);
     const [form] = Form.useForm();
 
@@ -39,14 +40,42 @@ export default function KineticLawBuilder({
     const { token } = theme.useToken();
     const darkMode = useAppStore((state) => state.darkMode);
 
+    // Helper function to apply assignments to equation for preview
+    const applyAssignmentsToEquation = (baseEquation: string, assignmentsToApply: Record<string, string>): string => {
+        if (!selectedLaw) return baseEquation;
+
+        let updatedEquation = baseEquation;
+
+        selectedLaw.species.forEach(placeholder => {
+            const assignedId = assignmentsToApply[placeholder.id];
+            if (assignedId) {
+                // Replace placeholder with assigned species ID
+                const placeholderPattern = new RegExp(`\\b${placeholder.id}\\b`, 'g');
+                updatedEquation = updatedEquation.replace(placeholderPattern, assignedId);
+            }
+        });
+
+        return updatedEquation;
+    };
+
     useEffect(() => {
         if (open) {
             fetchAvailableSpecies();
             if (!kineticLaw?.equation) {
                 setCurrentStep(0);
-                setSelectedLaw(null);
-                setEquation('');
-                form.resetFields();
+                setAssignments({});
+
+                // Initially select SBO:0000047 by default
+                const defaultLaw = KINETIC_LAWS.find(law => law.id === 'SBO:0000047');
+                if (defaultLaw) {
+                    setSelectedLaw(defaultLaw);
+                    setEquation(defaultLaw.equation);
+                    form.setFieldsValue({ lawId: defaultLaw.id });
+                } else {
+                    setSelectedLaw(null);
+                    setEquation('');
+                    form.resetFields();
+                }
             }
         }
     }, [open, form, kineticLaw]);
@@ -83,6 +112,7 @@ export default function KineticLawBuilder({
         const law = KINETIC_LAWS.find(l => l.id === lawId);
         setSelectedLaw(law || null);
         setEquation(law?.equation || '');
+        setAssignments({}); // Reset assignments when selecting a new law
 
         if (law) {
             const resetValues: Record<string, undefined> = {};
@@ -96,33 +126,21 @@ export default function KineticLawBuilder({
     const handleDeselect = () => {
         setSelectedLaw(null);
         setEquation('');
+        setAssignments({});
         form.resetFields();
     };
 
     const handleSpeciesAssignment = (placeholderId: string, speciesId: string) => {
         if (!selectedLaw) return;
 
-        let updatedEquation = selectedLaw.equation;
-        const formValues = form.getFieldsValue();
-
         // Update form value
         form.setFieldsValue({ [`species_${placeholderId}`]: speciesId });
 
-        // Replace all assigned species in equation
-        selectedLaw.species.forEach(placeholder => {
-            const assignedId = placeholder.id === placeholderId ? speciesId : formValues[`species_${placeholder.id}`];
-            if (assignedId) {
-                // First, try to replace placeholder without brackets (original format)
-                const placeholderPattern = new RegExp(`\\b${placeholder.id}\\b`, 'g');
-                updatedEquation = updatedEquation.replace(placeholderPattern, `[${assignedId}]`);
-
-                // Also replace if placeholder already has brackets (in case of re-assignment)
-                const bracketedPlaceholderPattern = new RegExp(`\\[${placeholder.id}\\]`, 'g');
-                updatedEquation = updatedEquation.replace(bracketedPlaceholderPattern, `[${assignedId}]`);
-            }
-        });
-
-        setEquation(updatedEquation);
+        // Update assignments record
+        setAssignments(prev => ({
+            ...prev,
+            [placeholderId]: speciesId
+        }));
     };
 
     const handleNext = () => {
@@ -147,16 +165,20 @@ export default function KineticLawBuilder({
     };
 
     const handleApply = () => {
-        onOk(equation, 'rateLaw');
+        if (!selectedLaw) return;
+
+        // Generate final equation with all assignments applied
+        const finalEquation = applyAssignmentsToEquation(selectedLaw.equation, assignments);
+        onOk(finalEquation, 'rateLaw');
     };
 
     return (
         <Modal
-            title={"Kinetic Law Builder"}
             open={open}
             onCancel={onCancel}
-            width="80%"
+            width="100%"
             height="80%"
+            centered
             maskClosable={false}
             footer={null}
             styles={{
@@ -175,7 +197,7 @@ export default function KineticLawBuilder({
                 body: {
                     padding: 0,
                     backgroundColor: token.colorBgLayout,
-                    height: 'calc(85vh - 100px)',
+                    height: 'calc(90vh - 100px)',
                     borderRadius: token.borderRadius
                 },
                 mask: {
@@ -215,7 +237,7 @@ export default function KineticLawBuilder({
 
                 {/* Footer Actions */}
                 <div
-                    className="flex justify-between items-center px-6 py-4 mx-2 rounded-b-lg border-t"
+                    className="flex justify-between items-center px-4 py-4 mx-4 rounded-b-lg border-t"
                     style={{
                         borderColor: token.colorBorder,
                         backgroundColor: token.colorBgElevated
@@ -241,6 +263,7 @@ export default function KineticLawBuilder({
                         {currentStep === 1 && (
                             <Button
                                 onClick={handlePrevious}
+                                size="small"
                                 style={{
                                     borderRadius: token.borderRadiusSM,
                                     height: '36px'
@@ -253,12 +276,8 @@ export default function KineticLawBuilder({
                             <Button
                                 type="primary"
                                 onClick={handleNext}
+                                size='middle'
                                 disabled={!canProceedToStep2()}
-                                style={{
-                                    borderRadius: token.borderRadiusSM,
-                                    height: '36px',
-                                    fontWeight: 500
-                                }}
                             >
                                 Next: Assign Species
                             </Button>
@@ -266,6 +285,7 @@ export default function KineticLawBuilder({
                         {currentStep === 1 && (
                             <Button
                                 type="primary"
+                                size="small"
                                 onClick={handleApply}
                                 disabled={!canApply()}
                                 style={{
@@ -282,4 +302,4 @@ export default function KineticLawBuilder({
             </div>
         </Modal>
     );
-} 
+}
