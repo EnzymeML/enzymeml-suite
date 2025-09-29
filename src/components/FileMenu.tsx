@@ -304,7 +304,11 @@ export default function FileMenu() {
                 });
                 break;
             case 'export':
-                exportToJSON();
+                exportToJSON().then((path) => {
+                    openNotification('Entry exported', NotificationType.SUCCESS, 'Your entry has been exported successfully to ' + path);
+                }).catch((error) => {
+                    openNotification('Error exporting entry', NotificationType.ERROR, error.toString());
+                });
                 break;
             case 'close':
                 appWindow.close();
