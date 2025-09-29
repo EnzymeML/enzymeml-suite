@@ -88,7 +88,7 @@ export default function ReactionDrawerContainer({
   // Determine the scale based on the length of the smiles string
   // Scale should go down if the smiles string is too long
   const scale = useMemo(() => {
-    return Math.min(1.1, 160 / smilesStr.length);
+    return Math.min(0.8, 160 / smilesStr.length);
   }, [smilesStr]);
 
 
