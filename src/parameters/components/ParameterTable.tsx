@@ -24,7 +24,9 @@ type InputNumberProps = GetProps<typeof InputNumber>
  * Extended parameter type that includes additional metadata for table display
  */
 type ParameterRow = Parameter & {
+    /** Indicates if this parameter is global across all reactions */
     is_global?: boolean
+    /** Array of reaction IDs that use this parameter */
     reaction_ids?: string[]
 }
 
@@ -42,18 +44,29 @@ interface ParameterTableProps {
 
 /**
  * Formats numeric values for display in input fields
+ * 
+ * @param v - The numeric value to format
+ * @returns Formatted string representation of the value
  */
 const numberFormatter: InputNumberProps["formatter"] = (v) =>
     v === undefined || v === null ? "" : String(v)
 
 /**
  * Parses string input back to numeric values
+ * 
+ * @param v - The string value to parse
+ * @returns Parsed numeric value, defaults to 0 for invalid input
  */
 const numberParser: InputNumberProps["parser"] = (v) =>
     v === undefined || v === null ? 0 : Number(String(v).replace(/\s/g, ""))
 
 /**
  * Generates CSS class names for table rows with zebra striping and border handling
+ * 
+ * @param _ - Unused record parameter
+ * @param idx - Current row index
+ * @param maxIndex - Total number of rows
+ * @returns CSS class name string for the row
  */
 const rowClassName = (_: unknown, idx: number, maxIndex: number) => {
     let className = "param-row"
@@ -73,6 +86,12 @@ const cellPadding = { padding: "8px 12px" }
 
 /**
  * Renders a column title with an info tooltip
+ * 
+ * @param props - Component props
+ * @param props.title - The column title text
+ * @param props.tooltip - Tooltip text to display on hover
+ * @param props.token - Ant Design theme token for styling
+ * @returns JSX element with title and info icon
  */
 function ColumnTitle({ title, tooltip, token }: {
     title: string
@@ -99,6 +118,9 @@ function ColumnTitle({ title, tooltip, token }: {
 
 /**
  * Formats numeric values for display, using scientific notation only for very large or very small numbers
+ * 
+ * @param value - The numeric value to format
+ * @returns Formatted string representation of the value
  */
 const formatValue = (value: number): string => {
     if (!Number.isFinite(value)) return "0"
@@ -116,6 +138,9 @@ const formatValue = (value: number): string => {
 
 /**
  * Formats parameter symbols for display by adding underscores before trailing numbers
+ * 
+ * @param symbol - The parameter symbol to format
+ * @returns LaTeX-formatted symbol string with proper subscript notation
  */
 const formatSymbolForDisplay = (symbol: string): string => {
     // If symbol subscript is grater 1 and contains numbers, wrap in braces
@@ -140,16 +165,28 @@ const formatSymbolForDisplay = (symbol: string): string => {
 /**
  * ParameterTable component displays parameters in an editable table format.
  * 
+ * This component provides a comprehensive interface for viewing and editing parameter data:
+ * 
  * Features:
- * - Displays parameter symbols using LaTeX rendering
- * - Shows current values with color-coded tags
+ * - Displays parameter symbols using LaTeX rendering for mathematical notation
+ * - Shows current values with color-coded tags (green for positive values)
  * - Provides inline editing for initial values, upper bounds, and lower bounds
- * - Supports sorting by numeric values
+ * - Supports sorting by numeric values in all columns
  * - Auto-saves changes on blur or Enter key press
- * - Responsive design with consistent styling
+ * - Responsive design with consistent styling and zebra striping
+ * - Theme-aware styling that adapts to dark/light mode
+ * - Form validation to ensure numeric inputs
+ * - Tooltips for column headers explaining each field's purpose
+ * 
+ * The table uses Ant Design components with custom styling and integrates with
+ * the EnzymeML backend for parameter updates. Changes are automatically saved
+ * and the parent component is refreshed to reflect updates.
  * 
  * @param props - Component props
- * @returns Rendered parameter table
+ * @param props.parameters - Array of parameters to display in the table
+ * @param props.loading - Loading state indicator for the table
+ * @param props.onRefresh - Optional callback to refresh data after updates
+ * @returns Rendered parameter table wrapped in a themed card container
  */
 const ParameterTable: React.FC<ParameterTableProps> = ({
     parameters,
@@ -164,6 +201,9 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
 
     /**
      * Creates initial form values mapping for all editable fields
+     * This ensures the form is properly initialized with current parameter values
+     * 
+     * @returns Object mapping form field names to their initial values
      */
     const initialValues = useMemo(() => {
         const obj: Record<string, unknown> = {}
@@ -177,6 +217,7 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
 
     /**
      * Container styling with theme-aware colors and borders
+     * Adapts to dark/light mode and provides consistent visual appearance
      */
     const containerStyle = React.useMemo(
         () => ({
@@ -195,9 +236,13 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
     /**
      * Saves a single numeric field value to the backend
      * 
-     * @param id - Parameter ID
-     * @param field - Field name to update
-     * @param value - New numeric value
+     * This function handles the persistence of parameter field updates.
+     * It validates the input value and only saves if it's a valid number.
+     * After saving, it triggers a refresh to update the UI with the latest data.
+     * 
+     * @param id - Parameter ID to update
+     * @param field - Field name to update (initial_value, upper_bound, or lower_bound)
+     * @param value - New numeric value to save
      */
     const saveField = async (
         id: string,
@@ -211,6 +256,16 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
 
     /**
      * Editable number input component for parameter fields
+     * 
+     * This component provides inline editing functionality for numeric parameter fields.
+     * It includes form validation, auto-save on blur/enter, and proper formatting.
+     * The component only saves when the value has actually changed to avoid unnecessary updates.
+     * 
+     * @param props - Component props
+     * @param props.id - Parameter ID
+     * @param props.field - Field name being edited
+     * @param props.value - Current field value
+     * @returns Form item with number input for inline editing
      */
     const EditableNumber: React.FC<{
         id: string
@@ -254,6 +309,15 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
 
     /**
      * Table column definitions with sorting and rendering logic
+     * 
+     * Defines the structure and behavior of each table column:
+     * - Symbol: LaTeX-rendered mathematical symbols
+     * - Value: Color-coded current parameter values
+     * - Initial Guess: Editable starting values for optimization
+     * - Upper Bound: Editable maximum constraints
+     * - Lower Bound: Editable minimum constraints
+     * 
+     * All numeric columns support sorting and have consistent styling.
      */
     const columns: TableColumnsType<ParameterRow> = [
         {
