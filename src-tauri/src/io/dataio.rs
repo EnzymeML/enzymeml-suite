@@ -332,13 +332,13 @@ pub async fn handle_file_drop(
                             .file_name()
                             .and_then(|name| name.to_str())
                             .unwrap_or("Unknown");
-                        results.push(format!("✅ Loaded EnzymeML document: {}", file_name));
+                        results.push(format!("Loaded EnzymeML document: {}", file_name));
 
                         // Emit navigation event to go to home
                         app_handle.emit("navigate_to", "/").ok();
                     }
                     Err(e) => {
-                        results.push(format!("❌ Failed to load {}: {}", file_path, e));
+                        results.push(format!("Failed to load {}: {}", file_path, e));
                     }
                 }
             }
@@ -352,7 +352,7 @@ pub async fn handle_file_drop(
                             .and_then(|name| name.to_str())
                             .unwrap_or("Unknown");
                         results.push(format!(
-                            "✅ Imported {} measurements from: {}",
+                            "Imported {} measurements from: {}",
                             count, file_name
                         ));
 
@@ -360,13 +360,13 @@ pub async fn handle_file_drop(
                         app_handle.emit("navigate_to", "/measurements").ok();
                     }
                     Err(e) => {
-                        results.push(format!("❌ Failed to import {}: {}", file_path, e));
+                        results.push(format!("Failed to import {}: {}", file_path, e));
                     }
                 }
             }
             _ => {
                 results.push(format!(
-                    "❌ Unsupported file type: {} (only .json and .xlsx files are supported)",
+                    "Unsupported file type: {} (only .json and .xlsx files are supported)",
                     file_path
                 ));
             }
