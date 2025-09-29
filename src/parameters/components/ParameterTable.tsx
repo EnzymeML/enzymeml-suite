@@ -98,6 +98,46 @@ function ColumnTitle({ title, tooltip, token }: {
 }
 
 /**
+ * Formats numeric values for display, using scientific notation only for very large or very small numbers
+ */
+const formatValue = (value: number): string => {
+    if (!Number.isFinite(value)) return "0"
+
+    const absValue = Math.abs(value)
+
+    // Use scientific notation for very large or very small numbers
+    if (absValue >= 10000 || (absValue > 0 && absValue < 0.0001)) {
+        return value.toExponential(3)
+    }
+
+    // Use regular decimal notation for numbers in the normal range, truncated to 3 decimals
+    return Number(value.toFixed(3)).toString()
+}
+
+/**
+ * Formats parameter symbols for display by adding underscores before trailing numbers
+ */
+const formatSymbolForDisplay = (symbol: string): string => {
+    // If symbol subscript is grater 1 and contains numbers, wrap in braces
+    if (symbol.includes('_') && symbol.slice(1).includes('\\d')) {
+        return symbol.charAt(0) + '_{' + symbol.slice(1) + '}'
+    }
+
+    // If symbol already contains underscore or is single character, return as-is
+    if (symbol.includes('_') || symbol.length <= 1) {
+        return symbol
+    }
+
+    // Add underscore after first character for symbols longer than 1 character
+    const subscript = symbol.slice(1)
+    if (subscript.length > 1) {
+        return symbol.charAt(0) + '_{' + subscript + '}'
+    } else {
+        return symbol.charAt(0) + '_' + subscript
+    }
+}
+
+/**
  * ParameterTable component displays parameters in an editable table format.
  * 
  * Features:
@@ -191,8 +231,9 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
         >
             <InputNumber
                 size="small"
+                className="text-xs"
                 controls={false}
-                style={{ width: "40%" }}
+                style={{ width: "60%" }}
                 formatter={numberFormatter}
                 parser={numberParser}
                 placeholder="-"
@@ -229,7 +270,7 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
             align: "center",
             ellipsis: true,
             onCell: () => ({ style: cellPadding }),
-            render: (text: string) => <LatexRenderer equation={text} inline />,
+            render: (text: string) => <LatexRenderer equation={formatSymbolForDisplay(text)} inline />,
         },
         {
             title: (
@@ -249,7 +290,7 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
             showSorterTooltip: false,
             render: (value: number) => (
                 <Tag color={value > 0.0 ? "green" : "default"}>
-                    {Number.isFinite(value) ? value.toExponential(4) : "0"}
+                    {formatValue(value)}
                 </Tag>
             ),
         },
