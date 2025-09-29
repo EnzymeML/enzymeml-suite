@@ -7,7 +7,6 @@ import useAppStore from "@stores/appstore.ts";
 import ProteinIcon from "@icons/protein.svg";
 import ReactionsIcon from "@icons/reactions1.svg";
 import MeasurementIcon from "@icons/measurements.svg";
-import ModelsIcon from "@icons/models.svg";
 import VesselsIcon from "@icons/vessels.svg";
 import HomeIcon from "@icons/home.svg";
 
