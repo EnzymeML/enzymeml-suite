@@ -74,7 +74,7 @@ export default function InputView<T extends ZodObject<ZodRawShape>, U = z.infer<
                 </Tag>
             </Flex>
             <Flex align="center">
-                <Input
+                <Input.TextArea
                     size="large"
                     className="text-sm"
                     placeholder="Describe what you want to extract..."
@@ -83,6 +83,8 @@ export default function InputView<T extends ZodObject<ZodRawShape>, U = z.infer<
                     onKeyDown={handleKeyPress}
                     variant="borderless"
                     autoFocus
+                    autoSize={{ minRows: 1, maxRows: 6 }}
+                    style={{ resize: 'none' }}
                 />
                 <Button
                     variant="filled"

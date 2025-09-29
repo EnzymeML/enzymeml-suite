@@ -71,10 +71,24 @@ export default function Visualisation() {
         // Fetch all measurements for the dropdown
         listMeasurements().then((measurementList) => {
             setMeasurements(measurementList);
+
+            // Get the list of valid measurement IDs
+            const validIds = measurementList.map(([id]) => id);
+
+            // If the currently selected measurement is not in the valid list, clear it
+            if (selectedMeasId && !validIds.includes(selectedMeasId)) {
+                console.log(`Clearing invalid measurement ID: ${selectedMeasId}`);
+                setSelectedMeasurement(null);
+            }
+
+            // If no measurement is currently selected and we have measurements, select the first one
+            if (!selectedMeasId && measurementList.length > 0) {
+                setSelectedMeasurement(measurementList[0][0]); // measurementList[0][0] is the first measurement's ID
+            }
         }).catch((err) => {
             console.error('Error fetching measurements:', err);
         });
-    }, []);
+    }, [selectedMeasId, setSelectedMeasurement]);
 
     /**
      * Effect to load measurement data when a measurement is selected.
@@ -84,12 +98,17 @@ export default function Visualisation() {
         if (!selectedMeasId) {
             return;
         }
+
         // Set the name
         getMeasurement(selectedMeasId).then(
             (data) => {
                 setMeasurementName(data.name);
             }
-        )
+        ).catch((err) => {
+            console.error('Error fetching measurement:', err);
+            // Clear the invalid measurement
+            setSelectedMeasurement(null);
+        });
 
         // Set the data
         getDataPoints(selectedMeasId).then(
@@ -98,11 +117,13 @@ export default function Visualisation() {
             }
         ).catch(
             (err) => {
-                console.error(err);
+                console.error('Error fetching data points:', err);
+                // Clear the invalid measurement
+                setSelectedMeasurement(null);
             }
         )
 
-    }, [selectedMeasId]);
+    }, [selectedMeasId, setSelectedMeasurement]);
 
     // Early returns for loading states
     if (!measurementName) {

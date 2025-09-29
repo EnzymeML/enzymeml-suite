@@ -23,7 +23,10 @@ import MainMenu from "@suite/components/MainMenu.tsx";
 import SubMenu from "@suite/components/SubMenu.tsx";
 import Modelling from "@suite/modelling/Modelling.tsx";
 import { commands } from "@suite/commands/jupyter.ts";
+import { handleFileDrop } from "@suite/commands/dataio.ts";
 import { useFileMenuShortcuts } from "@hooks/useKeyboardShortcuts";
+import { NotificationType } from "@suite/components/NotificationProvider";
+import { useDragDropTauriListener, useNavigationTauriListener } from "@hooks/useTauriListener";
 import ExtractModal from "@llm/ExtractModal";
 import { useExtractionModalShortcuts } from "@hooks/useKeyboardShortcuts";
 import { ExtractionContextMap } from "@suite-types/context";
@@ -72,6 +75,44 @@ function App() {
 
   // Navigation
   const navigate = useNavigate();
+
+  // Drag and Drop Handler using Tauri native events
+  /**
+   * Handle files dropped into the application window
+   * Uses Tauri's native drag-drop events which provide file paths directly
+   */
+  const handleDragDrop = useCallback(async (filePaths: string[]) => {
+    try {
+      const result = await handleFileDrop(filePaths);
+
+      // Show success notification with the results
+      openNotification(
+        'Files Processed',
+        NotificationType.SUCCESS,
+        result
+      );
+    } catch (error) {
+      // Show error notification
+      openNotification(
+        'File Drop Error',
+        NotificationType.ERROR,
+        `Failed to process dropped files: ${error}`
+      );
+    }
+  }, [openNotification]);
+
+  /**
+   * Handle navigation events emitted from Rust commands
+   */
+  const handleNavigation = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
+
+  // Set up Tauri event listeners
+  useDragDropTauriListener(handleDragDrop);
+
+  // Listen for navigation events from Rust commands
+  useNavigationTauriListener(handleNavigation);
 
   // Styling
   const { token } = theme.useToken();
@@ -132,6 +173,7 @@ function App() {
         borderLeftWidth: 1,
         borderRightWidth: 1,
         borderStyle: "solid",
+        position: 'relative',
       }}
     >
       <Sider
