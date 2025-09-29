@@ -1,14 +1,14 @@
 import '../App.css';
 import React, { useCallback, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { ConfigProvider, Layout, theme } from "antd";
+import { ConfigProvider, Layout, theme, Typography } from "antd";
 
 import Visualisation from "@visualisation/Visualisation";
 import useAppStore from "@stores/appstore";
-import Select from "@visualisation/Select";
 import WindowFrame from "@components/WindowFrame";
 import Options from "@visualisation/Options";
 import { listen } from "@tauri-apps/api/event";
+import { BrowserRouter as Router } from 'react-router-dom';
 
 const { Content, Sider } = Layout;
 
@@ -30,7 +30,7 @@ function VisWindow() {
                 borderStyle: 'solid',
             }}
         >
-            <Sider className={"overflow-y-scroll mr-2 scrollbar-hide"}
+            {/* <Sider className={"overflow-y-scroll mr-2 scrollbar-hide"}
                 style={{
                     background: darkMode ? token.colorBgBase : token.colorBgLayout,
                     borderRadius: token.borderRadiusLG,
@@ -42,7 +42,7 @@ function VisWindow() {
                 <div className={"flex flex-col gap-2"}>
                     <Select />
                 </div>
-            </Sider>
+            </Sider> */}
             <Content className={"overflow-y-scroll mx-2 w-full h-full scrollbar-hide"}>
                 <Visualisation />
             </Content>
@@ -120,10 +120,12 @@ const WrappedApp: React.FC = () => {
 
     return (
         <ConfigProvider theme={{ algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
-            <WindowFrame useButtons={false}>
-                <VisWindow />
-            </WindowFrame>
-        </ConfigProvider>
+            <Router>
+                <WindowFrame useButtons={false}>
+                    <VisWindow />
+                </WindowFrame>
+            </Router >
+        </ConfigProvider >
     )
 }
 
