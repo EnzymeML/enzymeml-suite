@@ -159,35 +159,8 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             dataIndex: "name",
             key: "name",
             width: "40%",
-            render: (text: string, record) => (
-                <Space>
-                    <Text strong>{text}</Text>
-                    {record.type === "Vessel" && (
-                        <Tag color="orange">
-                            Vessel
-                        </Tag>
-                    )}
-                    {record.type === "Small Molecule" && (
-                        <Tag color="blue">
-                            Molecule
-                        </Tag>
-                    )}
-                    {record.type === "Protein" && (
-                        <Tag color="green">
-                            Protein
-                        </Tag>
-                    )}
-                    {record.type === "Reaction" && (
-                        <Tag color="purple">
-                            Reaction
-                        </Tag>
-                    )}
-                    {record.type === "Measurement" && (
-                        <Tag color="cyan">
-                            Measurement
-                        </Tag>
-                    )}
-                </Space>
+            render: (text: string) => (
+                <Text strong>{text}</Text>
             ),
         },
         {
@@ -203,9 +176,24 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
                 { text: "Measurement", value: "Measurement" },
             ],
             onFilter: (value, record) => record.type === value,
-            render: (type: string) => (
-                <Text type="secondary">{type}</Text>
-            ),
+            render: (type: string) => {
+                if (type === "Vessel") {
+                    return <Tag color="orange">Vessel</Tag>;
+                }
+                if (type === "Small Molecule") {
+                    return <Tag color="blue">Molecule</Tag>;
+                }
+                if (type === "Protein") {
+                    return <Tag color="green">Protein</Tag>;
+                }
+                if (type === "Reaction") {
+                    return <Tag color="purple">Reaction</Tag>;
+                }
+                if (type === "Measurement") {
+                    return <Tag color="cyan">Measurement</Tag>;
+                }
+                return <Text type="secondary">{type}</Text>;
+            },
         },
         {
             title: "ID",

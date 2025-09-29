@@ -1,7 +1,6 @@
 import { Menu, theme } from "antd";
 import Icon from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { GiMolecule } from "react-icons/gi";
 
 import useAppStore from "@stores/appstore.ts";
 import ProteinIcon from "@icons/protein.svg";
@@ -9,6 +8,7 @@ import ReactionsIcon from "@icons/reactions1.svg";
 import MeasurementIcon from "@icons/measurements.svg";
 import VesselsIcon from "@icons/vessels.svg";
 import HomeIcon from "@icons/home.svg";
+import SmallMoleculeIcon from "@icons/smallmolecule.svg";
 
 // Metadata
 export const ICON_SIZE = 20;
@@ -45,12 +45,8 @@ export default function MainMenu() {
     },
     {
       key: "3",
-      icon: (
-        <Icon
-          style={{ fontSize: ICON_SIZE }}
-          component={GiMolecule as unknown as React.ComponentType}
-        />
-      ),
+      // @ts-expect-error - icon is not typed
+      icon: <Icon style={{ fontSize: ICON_SIZE }} component={SmallMoleculeIcon} />,
       label: "Small Molecules",
       route: "/small-molecules",
     },
@@ -75,13 +71,13 @@ export default function MainMenu() {
       label: "Measurements",
       route: "/measurements",
     },
-    {
-      key: "7",
-      // @ts-expect-error - icon is not typed
-      icon: <Icon style={{ fontSize: ICON_SIZE }} component={ModelsIcon} />,
-      label: "Modelling",
-      route: "/modelling",
-    },
+    // {
+    //   key: "7",
+    //   // @ts-expect-error - icon is not typed
+    //   icon: <Icon style={{ fontSize: ICON_SIZE }} component={ModelsIcon} />,
+    //   label: "Modelling",
+    //   route: "/modelling",
+    // },
   ];
 
   // Handlers

@@ -91,7 +91,7 @@ const KineticLawMenu: React.FC<KineticLawMenuProps> = ({ onSelect, selectedLawId
                     placeholder="Search kinetic laws..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
-                    size="small"
+                    size="middle"
                     allowClear
                     style={{
                         borderRadius: token.borderRadiusSM
