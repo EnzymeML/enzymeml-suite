@@ -95,6 +95,7 @@
     },
     "windows": [
       {
+        "dragDropEnabled": true,
         "title": "EnzymeMLSuite",
         "width": 1000,
         "height": 700,
