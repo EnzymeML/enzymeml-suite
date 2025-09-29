@@ -5,7 +5,7 @@ import { KineticLawDefinition, SpeciesInfo } from '@reactions/types';
 import LatexRenderer from '@components/LatexRenderer';
 
 import SpeciesAssignmentCard from '@kineticlaw/components/SpeciesAssignmentCard';
-import { SPECIES_ROLE_COLORS, createColoredSymbolsMap, getEquationSize } from '@kineticlaw/utils';
+import { createColoredSymbolsMap, getEquationSize } from '@kineticlaw/utils';
 
 const { Text } = Typography;
 
@@ -80,58 +80,6 @@ const SpeciesMapping: React.FC<SpeciesMappingProps> = ({
                         </div>
                     </div>
                 </Card>
-
-                {/* Color Legend */}
-                {selectedLaw && selectedLaw.species.length > 0 && (
-                    <Card
-                        title={
-                            <Text strong style={{ fontSize: '13px', color: token.colorText }}>
-                                Species Role Legend
-                            </Text>
-                        }
-                        size="small"
-                        styles={{
-                            header: {
-                                backgroundColor: token.colorBgElevated,
-                                borderBottom: `1px solid ${token.colorBorder}`,
-                                minHeight: '40px'
-                            },
-                            body: { padding: '12px' }
-                        }}
-                        style={{
-                            border: `1px solid ${token.colorBorder}`,
-                            borderRadius: token.borderRadius,
-                            boxShadow: token.boxShadowTertiary,
-                            backgroundColor: token.colorBgContainer
-                        }}
-
-                    >
-                        <Space wrap size="middle">
-                            {Object.entries(SPECIES_ROLE_COLORS).map(([role, color]) => {
-                                // Only show roles that exist in the current law
-                                const hasRole = selectedLaw.species.some(s => s.role === role);
-                                if (!hasRole) return null;
-
-                                return (
-                                    <Space key={role} size="small" align="center">
-                                        <div
-                                            style={{
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: color,
-                                                borderRadius: '2px',
-                                                border: `1px solid ${token.colorBorder}`
-                                            }}
-                                        />
-                                        <Text style={{ fontSize: '12px', color: token.colorTextSecondary }}>
-                                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                                        </Text>
-                                    </Space>
-                                );
-                            })}
-                        </Space>
-                    </Card>
-                )}
 
                 {/* Species Assignment */}
                 <SpeciesAssignmentCard

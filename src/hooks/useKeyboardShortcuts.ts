@@ -116,7 +116,11 @@ export function useFileMenuShortcuts({
             openNotification('Error loading entry', NotificationType.ERROR, error.toString());
         });
     });
-    const exportHandler = onExport || (() => exportToJSON());
+    const exportHandler = onExport || (() => exportToJSON().then((path) => {
+        openNotification('Entry exported', NotificationType.SUCCESS, 'Your entry has been exported successfully to ' + path);
+    }).catch((error) => {
+        openNotification('Error exporting entry', NotificationType.ERROR, error.toString());
+    }));
     const closeHandler = onClose || (() => appWindow.close());
 
     const saveHandler = onSave || (() => saveEntry().then(() => {

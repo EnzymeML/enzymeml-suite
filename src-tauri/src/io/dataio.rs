@@ -131,8 +131,11 @@ pub async fn export_to_json(
     state: State<'_, Arc<EnzymeMLState>>,
     app_handle: AppHandle,
 ) -> Result<PathBuf, String> {
-    let state_doc = state.doc.lock().unwrap();
-    let title = state_doc.name.clone().replace(" ", "_").to_lowercase();
+    let title = {
+        let state_doc = state.doc.lock().unwrap();
+        state_doc.name.clone().replace(" ", "_").to_lowercase()
+    };
+
     let dialog_result = app_handle
         .dialog()
         .file()
