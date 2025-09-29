@@ -111,7 +111,7 @@ export default function ReactionDrawerContainer({
     const moleculeOptions = {
       width,
       height,
-      padding: 10,
+      padding: 5,
       bondLength: 20,
       debug: false,
       atomVisualization: "default",
