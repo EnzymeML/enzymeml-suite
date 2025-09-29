@@ -35,6 +35,7 @@ const menuItems: { [key in AvailablePaths]: SubMenuProps | null } = {
   [AvailablePaths.PROTEINS]: null,
   [AvailablePaths.REACTIONS]: null,
   [AvailablePaths.HOME]: null,
+  [AvailablePaths.PARAMETERS]: null,
   [AvailablePaths.MODELLING]: {
     title: "Model Actions",
     items: [
