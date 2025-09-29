@@ -1,7 +1,8 @@
-use enzymeml::prelude::{Reaction, ReactionBuilder};
+use enzymeml::prelude::{Equation, Reaction, ReactionBuilder};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::actions::equations::process_equation;
 use crate::actions::identifiers::REACTION_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
@@ -20,17 +21,22 @@ pub fn add_reaction(
     state: State<Arc<EnzymeMLState>>,
     mut object: Reaction,
     app_handle: AppHandle,
-) -> String {
+) -> Result<String, String> {
     let mut state_guard = state.doc.lock().unwrap();
     let id = generate_id(
         &state_guard.reactions.iter().map(|s| s.id.clone()).collect(),
         REACTION_PREFIX,
     );
+
+    // Process the kinetic law
+    process_kinetic_law(&state, &object.kinetic_law, &app_handle)?;
+
     object.id = id.clone();
     state_guard.reactions.push(object.clone());
     drop(state_guard);
     update_event!(app_handle, "update_reactions");
-    id
+
+    Ok(id)
 }
 
 /// Adds multiple reactions to the EnzymeML document
@@ -46,7 +52,7 @@ pub fn add_reactions(
     state: State<Arc<EnzymeMLState>>,
     mut data: Vec<Reaction>,
     app_handle: AppHandle,
-) -> Vec<String> {
+) -> Result<Vec<String>, String> {
     let mut existing_ids: Vec<String> = state
         .doc
         .lock()
@@ -60,18 +66,23 @@ pub fn add_reactions(
     let objects: Vec<Reaction> = data
         .iter_mut()
         .map(|o| {
+            // Process the kinetic law
+            if let Err(e) = process_kinetic_law(&state, &o.kinetic_law, &app_handle) {
+                return Err(format!("Could not process equation: {}", e));
+            }
+
             let id = generate_id(&existing_ids, REACTION_PREFIX);
             ids.push(id.clone());
             existing_ids.push(id.clone());
             o.id = id;
-            o.clone()
+            Ok(o.clone())
         })
-        .collect();
+        .collect::<Result<Vec<Reaction>, String>>()?;
 
     add_objects!(state.doc, reactions, objects);
     update_event!(app_handle, "update_reactions");
 
-    ids
+    Ok(ids)
 }
 
 /// Creates a new reaction in the EnzymeML document
@@ -110,6 +121,9 @@ pub fn update_reaction(
     data: Reaction,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    // Process the kinetic law
+    process_kinetic_law(&state, &data.kinetic_law, &app_handle)?;
+
     let id = update_object!(state.doc, reactions, data, id);
 
     update_event!(app_handle, &id);
@@ -170,4 +184,24 @@ pub fn delete_reaction(
     update_event!(app_handle, "update_reactions");
 
     Ok(())
+}
+
+/// Processes a kinetic law to extract and create necessary parameters
+///
+/// # Arguments
+/// * `state` - The shared EnzymeML document state
+/// * `kinetic_law` - The kinetic law to process
+///
+/// # Returns
+/// Result indicating success or failure
+fn process_kinetic_law(
+    state: &State<Arc<EnzymeMLState>>,
+    kinetic_law: &Option<Equation>,
+    app_handle: &AppHandle,
+) -> Result<(), String> {
+    kinetic_law.as_ref().map_or(Ok(()), |law| {
+        process_equation(state, law).map_err(|e| e.to_string())?;
+        update_event!(app_handle, "update_parameters");
+        Ok(())
+    })
 }

@@ -311,7 +311,10 @@ fn has_species_id(equation: &mut Equation, reaction: &Reaction) -> bool {
 ///
 /// # Returns
 /// Result indicating success or failure
-fn process_equation(state: &State<Arc<EnzymeMLState>>, equation: &Equation) -> Result<(), String> {
+pub fn process_equation(
+    state: &State<Arc<EnzymeMLState>>,
+    equation: &Equation,
+) -> Result<(), String> {
     let mut doc = state.doc.lock().unwrap();
     let mut param_buffer = state.param_buffer.lock().unwrap();
 
