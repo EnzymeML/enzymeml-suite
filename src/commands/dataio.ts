@@ -81,3 +81,27 @@ export async function importMeasurement(): Promise<number> {
         throw new Error('Error invoking command: ' + error);
     }
 }
+
+export async function loadJSONFromPath(filePath: string): Promise<void> {
+    try {
+        await invoke('load_json_from_path', { filePath });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function importExcelFromPath(filePath: string): Promise<number> {
+    try {
+        return await invoke('import_excel_from_path', { filePath });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}
+
+export async function handleFileDrop(filePaths: string[]): Promise<string> {
+    try {
+        return await invoke('handle_file_drop', { filePaths });
+    } catch (error) {
+        throw new Error('Error invoking command: ' + error);
+    }
+}

@@ -196,6 +196,186 @@ pub async fn load_json(
     }
 }
 
+/// Loads a JSON document from a specific file path (for drag and drop)
+///
+/// Loads an EnzymeML document from a specified file path without opening a file dialog.
+/// This function is designed for drag-and-drop functionality where the file path
+/// is already known. The document content is read, deserialized, and loaded into
+/// the application state. An update event is emitted to refresh the frontend.
+///
+/// # Arguments
+/// * `file_path` - The path to the JSON file to load
+/// * `state` - The shared EnzymeML document state
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result indicating success or failure
+#[tauri::command]
+pub async fn load_json_from_path(
+    file_path: String,
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let path = PathBuf::from(&file_path);
+
+    // Validate file extension
+    if let Some(extension) = path.extension() {
+        if extension != "json" {
+            return Err("Only JSON files are supported for EnzymeML documents".to_string());
+        }
+    } else {
+        return Err("File must have a .json extension".to_string());
+    }
+
+    // Read and parse the file
+    let json = std::fs::read_to_string(&path)
+        .map_err(|err| format!("Failed to read file {}: {}", file_path, err))?;
+
+    let doc = deserialize_doc(json.as_str())
+        .map_err(|err| format!("Failed to parse EnzymeML document: {}", err))?;
+
+    // Update the state
+    let mut state_doc = state.doc.lock().unwrap();
+    *state_doc = doc;
+
+    // Notify the frontend
+    update_event!(app_handle, "update_document");
+
+    Ok(())
+}
+
+/// Imports measurements from an Excel file at a specific path (for drag and drop)
+///
+/// Imports measurement data from an Excel file at a specified path without opening
+/// a file dialog. This function is designed for drag-and-drop functionality.
+/// The measurements are added to the current EnzymeML document.
+///
+/// # Arguments
+/// * `file_path` - The path to the Excel file to import
+/// * `state` - The shared EnzymeML document state
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result containing either the number of imported measurements or an error message
+#[tauri::command]
+pub async fn import_excel_from_path(
+    file_path: String,
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<usize, String> {
+    let path = PathBuf::from(&file_path);
+
+    // Validate file extension
+    if let Some(extension) = path.extension() {
+        if extension != "xlsx" {
+            return Err(
+                "Only Excel files (.xlsx) are supported for measurement imports".to_string(),
+            );
+        }
+    } else {
+        return Err("File must have a .xlsx extension".to_string());
+    }
+
+    let mut state_doc = state.doc.lock().unwrap();
+    let prev_amnt_meas = state_doc.measurements.len();
+
+    state_doc
+        .add_from_excel(path, true)
+        .map_err(|err| format!("Failed to import Excel file: {}", err))?;
+
+    update_event!(app_handle, "update_measurements");
+
+    Ok(state_doc.measurements.len() - prev_amnt_meas)
+}
+
+/// Handles file drop events by processing dropped files
+///
+/// Processes files dropped into the application window. Supports JSON files (EnzymeML documents)
+/// and Excel files (.xlsx for measurement data). The function validates file extensions,
+/// loads the appropriate content, and emits notifications about the results.
+///
+/// # Arguments
+/// * `file_paths` - Array of file paths that were dropped
+/// * `state` - The shared EnzymeML document state
+/// * `app_handle` - Handle to the Tauri application for event emission
+///
+/// # Returns
+/// Result containing a summary of the processing results
+#[tauri::command]
+pub async fn handle_file_drop(
+    file_paths: Vec<String>,
+    state: State<'_, Arc<EnzymeMLState>>,
+    app_handle: AppHandle,
+) -> Result<String, String> {
+    if file_paths.is_empty() {
+        return Err("No files provided".to_string());
+    }
+
+    let mut results = Vec::new();
+
+    for file_path in file_paths {
+        let path = std::path::Path::new(&file_path);
+
+        // Get file extension
+        let extension = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.to_lowercase());
+
+        match extension.as_deref() {
+            Some("json") => {
+                match load_json_from_path(file_path.clone(), state.clone(), app_handle.clone())
+                    .await
+                {
+                    Ok(()) => {
+                        let file_name = path
+                            .file_name()
+                            .and_then(|name| name.to_str())
+                            .unwrap_or("Unknown");
+                        results.push(format!("✅ Loaded EnzymeML document: {}", file_name));
+
+                        // Emit navigation event to go to home
+                        app_handle.emit("navigate_to", "/").ok();
+                    }
+                    Err(e) => {
+                        results.push(format!("❌ Failed to load {}: {}", file_path, e));
+                    }
+                }
+            }
+            Some("xlsx") => {
+                match import_excel_from_path(file_path.clone(), state.clone(), app_handle.clone())
+                    .await
+                {
+                    Ok(count) => {
+                        let file_name = path
+                            .file_name()
+                            .and_then(|name| name.to_str())
+                            .unwrap_or("Unknown");
+                        results.push(format!(
+                            "✅ Imported {} measurements from: {}",
+                            count, file_name
+                        ));
+
+                        // Emit navigation event to go to measurements
+                        app_handle.emit("navigate_to", "/measurements").ok();
+                    }
+                    Err(e) => {
+                        results.push(format!("❌ Failed to import {}: {}", file_path, e));
+                    }
+                }
+            }
+            _ => {
+                results.push(format!(
+                    "❌ Unsupported file type: {} (only .json and .xlsx files are supported)",
+                    file_path
+                ));
+            }
+        }
+    }
+
+    Ok(results.join("\n"))
+}
+
 /// Creates a new empty EnzymeML document
 ///
 /// Initializes a fresh, empty EnzymeML document in the application state, replacing

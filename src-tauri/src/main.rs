@@ -151,6 +151,9 @@ async fn main() {
             io::dataio::export_measurements,
             io::dataio::import_excel_meas,
             io::dataio::load_json,
+            io::dataio::load_json_from_path,
+            io::dataio::import_excel_from_path,
+            io::dataio::handle_file_drop,
             // Database
             io::dbops::save_mol_to_db,
             io::dbops::filter_small_mols,
