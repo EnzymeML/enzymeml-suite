@@ -1,18 +1,17 @@
 use std::{collections::HashMap, net::TcpListener, path::PathBuf, sync::Arc};
 
+use python_launcher::all_executables;
 use regex::Regex;
 use specta;
 use std::fs::create_dir_all;
+use std::process::Command;
 use tauri::{Emitter, State};
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
 
-#[cfg(target_os = "windows")]
-use std::collections::HashSet;
+use crate::states::{EnzymeMLState, JupyterSessionInfo, JupyterState, PythonInstallation};
 
-use crate::states::{EnzymeMLState, JupyterSessionInfo, JupyterState};
-
-const PYTHON_VERSION_REGEX: &str = r"Python (\d+\.\d+\.\d+)";
+const PYTHON_VERSION_REGEX: &str = r"Python (\d+\.\d+\.\d+(?:\.\w+)?)";
 const PROJECTS_DIR: &str = "enzymeml-suite/projects";
 
 /// Macro for embedding Jupyter notebook templates at compile time
@@ -35,13 +34,6 @@ macro_rules! jupyter_template {
             )),
         );
     };
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct PythonVersion {
-    status: String,
-    version: Option<String>,
-    error: Option<String>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, tauri_specta::Event, Clone)]
@@ -96,75 +88,183 @@ lazy_static::lazy_static! {
 
 }
 
-/// Retrieves the Python version installed on the system
+/// Detects all available Python installations on the system
 ///
-/// This function executes the `python3 --version` command (or `python` on Windows)
-/// to determine the currently installed Python version. It parses the output using
-/// a regex pattern to extract the version number.
+/// This function uses the python_launcher crate to find all Python executables
+/// and ranks them by priority (anaconda > homebrew > others). It stores the
+/// detected installations in the JupyterState and automatically selects the
+/// highest priority one if no selection has been made.
 ///
 /// # Arguments
-/// * `app_handle` - The Tauri application handle for executing shell commands
+/// * `jupyter_state` - The shared Jupyter state for storing detected Pythons
 ///
 /// # Returns
 /// A `Result` containing:
-/// - `Ok(PythonVersion)` with status "ok" and version string if Python is found and parsed successfully
-/// - `Ok(PythonVersion)` with status "error" and error message if Python is found but version parsing fails
-/// - `Ok(PythonVersion)` with status "not_found" if Python is not found or command execution fails
-/// - `Err(String)` if the shell command cannot be executed
+/// - `Ok(Vec<PythonInstallation>)` with all detected Python installations
+/// - `Err(String)` if the operation fails
 #[tauri::command]
 #[specta::specta]
-pub async fn get_python_version(app_handle: tauri::AppHandle) -> Result<PythonVersion, String> {
-    let command = if cfg!(target_os = "windows") {
-        "python"
-    } else {
-        "python3"
-    };
+pub fn detect_python_installations(
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<Vec<PythonInstallation>, String> {
+    let mut installations = Vec::new();
 
-    let output = app_handle
-        .shell()
-        .command(command)
-        .arg("--version")
-        .envs(setup_jupyter_env())
-        .output()
-        .await
-        .map_err(|e| format!("Failed to get python version: {e}"))?;
+    // Detect all Python executables using python_launcher
+    for (_, path) in all_executables().into_iter() {
+        let path_str = path.to_string_lossy().to_string();
 
-    if output.status.success() {
-        // If no match, read the stdout and look for the version
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        if let Some(caps) = Regex::new(PYTHON_VERSION_REGEX).unwrap().captures(&stdout) {
-            return Ok(PythonVersion {
-                status: "ok".to_string(),
-                version: Some(caps[1].to_string()),
-                error: None,
-            });
+        // Get version for this Python
+        if let Ok(output) = Command::new(&path).arg("--version").output() {
+            if output.status.success() {
+                let version_output = String::from_utf8_lossy(&output.stdout);
+                if let Some(caps) = Regex::new(PYTHON_VERSION_REGEX)
+                    .unwrap()
+                    .captures(&version_output)
+                {
+                    let version = caps[1].to_string();
+                    let (source, priority) = determine_python_source(&path_str);
+
+                    installations.push(PythonInstallation {
+                        path: path_str,
+                        version,
+                        source,
+                        priority,
+                    });
+                }
+            }
         }
-
-        // If no match, turn the stderr into a string and return the error
-        let stderr = String::from_utf8_lossy(&output.stderr);
-
-        // If no match, return the error
-        return Ok(PythonVersion {
-            status: "error".to_string(),
-            version: None,
-            error: Some(stderr.to_string()),
-        });
     }
 
-    Ok(PythonVersion {
-        status: "not_found".to_string(),
-        version: None,
-        error: None,
-    })
+    // Sort by priority (lower is better)
+    installations.sort_by_key(|p| p.priority);
+
+    // Store detected installations
+    *jupyter_state.detected_pythons.lock().unwrap() = installations.clone();
+
+    // Auto-select the best one if nothing is selected yet
+    let mut selected = jupyter_state.selected_python_path.lock().unwrap();
+    if selected.is_none() && !installations.is_empty() {
+        *selected = Some(installations[0].path.clone());
+    }
+
+    Ok(installations)
+}
+
+/// Lists all detected Python installations
+///
+/// # Arguments
+/// * `jupyter_state` - The shared Jupyter state containing detected Pythons
+///
+/// # Returns
+/// A `Result` containing:
+/// - `Ok(Vec<PythonInstallation>)` with all detected Python installations
+/// - `Err(String)` if the operation fails
+#[tauri::command]
+#[specta::specta]
+pub fn list_detected_pythons(
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<Vec<PythonInstallation>, String> {
+    Ok(jupyter_state.detected_pythons.lock().unwrap().clone())
+}
+
+/// Gets the currently selected Python installation path
+///
+/// # Arguments
+/// * `jupyter_state` - The shared Jupyter state containing the selected Python
+///
+/// # Returns
+/// A `Result` containing:
+/// - `Ok(Option<String>)` with the selected Python path if set
+/// - `Err(String)` if the operation fails
+#[tauri::command]
+#[specta::specta]
+pub fn get_selected_python(
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<Option<String>, String> {
+    Ok(jupyter_state.selected_python_path.lock().unwrap().clone())
+}
+
+/// Sets the preferred Python installation path
+///
+/// # Arguments
+/// * `jupyter_state` - The shared Jupyter state to update
+/// * `path` - The path to the Python executable to use
+///
+/// # Returns
+/// A `Result` containing:
+/// - `Ok(())` if the path is set successfully
+/// - `Err(String)` if the operation fails
+#[tauri::command]
+#[specta::specta]
+pub fn set_selected_python(
+    jupyter_state: State<'_, Arc<JupyterState>>,
+    path: String,
+) -> Result<(), String> {
+    // Verify the path exists in detected pythons
+    let detected = jupyter_state.detected_pythons.lock().unwrap();
+    if !detected.iter().any(|p| p.path == path) {
+        return Err(format!(
+            "Python path not found in detected installations: {}",
+            path
+        ));
+    }
+    drop(detected);
+
+    *jupyter_state.selected_python_path.lock().unwrap() = Some(path);
+    Ok(())
+}
+
+/// Determines the source and priority of a Python installation based on its path
+///
+/// # Arguments
+/// * `path` - The path to the Python executable
+///
+/// # Returns
+/// A tuple of (source_name, priority) where lower priority is better
+fn determine_python_source(path: &str) -> (String, u8) {
+    let path_lower = path.to_lowercase();
+
+    // Anaconda/Miniconda (highest priority)
+    if path_lower.contains("anaconda")
+        || path_lower.contains("miniconda")
+        || path_lower.contains("conda")
+    {
+        return ("anaconda".to_string(), 1);
+    }
+
+    // Homebrew (second priority)
+    if path_lower.contains("homebrew")
+        || path_lower.contains("/opt/homebrew")
+        || path_lower.contains("/usr/local")
+    {
+        return ("homebrew".to_string(), 2);
+    }
+
+    // Python.org installations
+    if path_lower.contains("python.framework") || path_lower.contains("programs/python") {
+        return ("python.org".to_string(), 3);
+    }
+
+    // System Python (lowest priority)
+    if path_lower.contains("/usr/bin")
+        || path_lower.contains("/bin")
+        || path_lower.contains("system32")
+    {
+        return ("system".to_string(), 4);
+    }
+
+    // Unknown/other
+    ("other".to_string(), 5)
 }
 
 /// Checks if JupyterLab is installed on the system
 ///
-/// This function executes the `jupyter lab --version` command to determine
-/// if JupyterLab is available in the system PATH.
+/// This function executes the `jupyter lab --version` command using the selected
+/// Python installation to determine if JupyterLab is available.
 ///
 /// # Arguments
 /// * `app_handle` - The Tauri application handle for executing shell commands
+/// * `jupyter_state` - The shared Jupyter state containing selected Python path
 ///
 /// # Returns
 /// A `Result` containing:
@@ -173,13 +273,24 @@ pub async fn get_python_version(app_handle: tauri::AppHandle) -> Result<PythonVe
 /// - `Err(String)` if the shell command cannot be executed
 #[tauri::command]
 #[specta::specta]
-pub async fn is_jupyter_lab_installed(app_handle: tauri::AppHandle) -> Result<bool, String> {
-    // Method 1: Try jupyter lab --version
+pub async fn is_jupyter_lab_installed(
+    app_handle: tauri::AppHandle,
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<bool, String> {
+    let selected_python = jupyter_state.selected_python_path.lock().unwrap().clone();
+
+    if selected_python.is_none() {
+        return Ok(false);
+    }
+
+    let python_path = selected_python.unwrap();
+
+    // Try jupyter-lab --version using selected Python's environment
     let jupyter_lab_check = app_handle
         .shell()
         .command("jupyter-lab")
         .arg("--version")
-        .envs(setup_jupyter_env())
+        .envs(setup_jupyter_env(&python_path))
         .output()
         .await;
 
@@ -189,17 +300,18 @@ pub async fn is_jupyter_lab_installed(app_handle: tauri::AppHandle) -> Result<bo
         }
     }
 
-    Ok(true)
+    Ok(false)
 }
 
-/// Installs JupyterLab using pip
+/// Installs JupyterLab using pip with the selected Python installation
 ///
-/// This function executes the `pip install jupyterlab jupyter ipywidgets` command
-/// to install JupyterLab and its dependencies on the system. The installation
-/// process is streamed and emits events to the frontend for real-time progress updates.
+/// This function executes the `python -m pip install jupyterlab jupyter ipywidgets` command
+/// using the selected Python installation to install JupyterLab and its dependencies.
+/// The installation process is streamed and emits events to the frontend for real-time progress updates.
 ///
 /// # Arguments
 /// * `app_handle` - The Tauri application handle for executing shell commands and emitting events
+/// * `jupyter_state` - The shared Jupyter state containing selected Python path
 ///
 /// # Returns
 /// A `Result` containing:
@@ -208,27 +320,42 @@ pub async fn is_jupyter_lab_installed(app_handle: tauri::AppHandle) -> Result<bo
 ///
 /// # Errors
 /// Returns an error if:
+/// - No Python is selected
 /// - The pip command cannot be executed (pip not found in PATH)
 /// - The installation process fails (e.g., network issues, permission problems)
 /// - JupyterLab package cannot be found or installed
 /// - Insufficient disk space or system resources
 #[tauri::command]
 #[specta::specta]
-pub async fn install_jupyter_lab(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub async fn install_jupyter_lab(
+    app_handle: tauri::AppHandle,
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<(), String> {
+    let selected_python = jupyter_state.selected_python_path.lock().unwrap().clone();
+
+    if selected_python.is_none() {
+        return Err(
+            "No Python installation selected. Please select a Python installation first."
+                .to_string(),
+        );
+    }
+
+    let python_path = selected_python.unwrap();
+
     // Emit initial status
     app_handle
         .emit(
             "jupyter-install",
             JupyterInstallOutput {
                 status: JupyterInstallStatus::Output,
-                output: "Starting JupyterLab installation with python3 -m pip...".to_string(),
+                output: format!("Starting JupyterLab installation with {}...", python_path),
             },
         )
         .ok();
 
     let (mut rx, _child) = app_handle
         .shell()
-        .command("python")
+        .command(&python_path)
         .arg("-m")
         .arg("pip")
         .arg("install")
@@ -237,7 +364,7 @@ pub async fn install_jupyter_lab(app_handle: tauri::AppHandle) -> Result<(), Str
         .arg("ipywidgets")
         .arg("--break-system-packages")
         .arg("--user")
-        .envs(setup_jupyter_env())
+        .envs(setup_jupyter_env(&python_path))
         .spawn()
         .map_err(|e| format!("spawn failed: {e}"))?;
 
@@ -463,6 +590,16 @@ pub async fn start_jupyter(
         write_template(&template_name, &enzmldoc_state)?;
     }
 
+    // Get the selected Python path
+    let selected_python = jupyter_state.selected_python_path.lock().unwrap().clone();
+    if selected_python.is_none() {
+        return Err(
+            "No Python installation selected. Please select a Python installation first."
+                .to_string(),
+        );
+    }
+    let python_path = selected_python.unwrap();
+
     // Spawn the Jupyter Lab process with the specified configuration
     // - Uses the sanitized document name as the working directory
     // - Disables port retries to fail fast if port is occupied
@@ -476,7 +613,7 @@ pub async fn start_jupyter(
         .arg("--port")
         .arg(port.to_string())
         .current_dir(&jupyter_dir)
-        .envs(setup_jupyter_env())
+        .envs(setup_jupyter_env(&python_path))
         .spawn()
         .map_err(|e| format!("spawn failed: {e}"))?;
 
@@ -691,35 +828,73 @@ fn get_project_path(state: &State<'_, Arc<EnzymeMLState>>) -> PathBuf {
         .join(folder_name)
 }
 
+/// Helper to add a path to the candidates list if it exists
 fn push_if_exists(list: &mut Vec<PathBuf>, p: PathBuf) {
     if p.exists() {
         list.push(p);
     }
 }
 
-fn setup_jupyter_env() -> Vec<(&'static str, String)> {
+/// Sets up the environment for Jupyter commands by ensuring Python and its packages are in PATH
+///
+/// This function creates a comprehensive PATH that includes the selected Python installation
+/// and common locations where Jupyter might be installed (user site-packages, conda, homebrew, etc.)
+///
+/// # Arguments
+/// * `python_path` - The path to the selected Python executable
+///
+/// # Returns
+/// A vector of (key, value) tuples to be used as environment variables
+fn setup_jupyter_env(python_path: &str) -> Vec<(&'static str, String)> {
+    use std::collections::HashSet;
+
     let current_path = std::env::var("PATH").unwrap_or_default();
+    let mut cands: Vec<PathBuf> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+
+    // Add the directory containing the selected Python first
+    let python_dir = PathBuf::from(python_path).parent().map(|p| p.to_path_buf());
+    if let Some(dir) = python_dir {
+        push_if_exists(&mut cands, dir.clone());
+
+        // Add common script/bin directories relative to Python
+        #[cfg(target_os = "windows")]
+        {
+            push_if_exists(&mut cands, dir.join("Scripts"));
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            push_if_exists(&mut cands, dir.join("bin"));
+        }
+    }
+
+    let home = dirs::home_dir().unwrap_or_else(|| {
+        #[cfg(target_os = "windows")]
+        {
+            PathBuf::from("C:\\")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            PathBuf::from("/")
+        }
+    });
 
     #[cfg(target_os = "windows")]
     {
-        let mut cands: Vec<PathBuf> = Vec::new();
-        let mut seen: HashSet<String> = HashSet::new();
-
-        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("C:\\"));
         let userprofile = std::env::var("USERPROFILE")
             .ok()
             .map(PathBuf::from)
             .unwrap_or_else(|| home.clone());
 
-        // 1) User Conda
-        for root in ["anaconda3", "miniconda3"] {
+        // User Conda environments
+        for root in ["anaconda3", "miniconda3", "mambaforge"] {
             let base = userprofile.join(root);
             push_if_exists(&mut cands, base.join("Scripts"));
+            push_if_exists(&mut cands, base.join("Library").join("bin"));
             push_if_exists(&mut cands, base.clone());
         }
 
-        // 2) User pip/pipx style scripts
-        // pip user scripts (python.org per-user) sometimes land here:
+        // User pip scripts
         push_if_exists(
             &mut cands,
             userprofile
@@ -728,117 +903,113 @@ fn setup_jupyter_env() -> Vec<(&'static str, String)> {
                 .join("Python")
                 .join("Scripts"),
         );
-        // pipx default (varies, this covers common case)
         push_if_exists(&mut cands, userprofile.join(".local").join("bin"));
 
-        // 3) python.org per-user installs
+        // Python.org per-user installs
         if let Ok(local_appdata) = std::env::var("LOCALAPPDATA") {
             let lad = PathBuf::from(local_appdata);
-            for vers in ["Python313", "Python312", "Python311"] {
+            for vers in ["Python313", "Python312", "Python311", "Python310"] {
                 let base = lad.join("Programs").join("Python").join(vers);
                 push_if_exists(&mut cands, base.join("Scripts"));
                 push_if_exists(&mut cands, base.clone());
             }
         }
 
-        // 4) ProgramData Anaconda (machine-wide)
-        for base in ["C:\\ProgramData\\Anaconda3"] {
-            let base = PathBuf::from(base);
+        // ProgramData Anaconda (machine-wide)
+        for base_str in ["C:\\ProgramData\\Anaconda3", "C:\\ProgramData\\Miniconda3"] {
+            let base = PathBuf::from(base_str);
+            push_if_exists(&mut cands, base.join("Scripts"));
+            push_if_exists(&mut cands, base.join("Library").join("bin"));
+            push_if_exists(&mut cands, base.clone());
+        }
+
+        // Global python.org installs
+        for base_str in [
+            "C:\\Python313",
+            "C:\\Python312",
+            "C:\\Python311",
+            "C:\\Python310",
+        ] {
+            let base = PathBuf::from(base_str);
             push_if_exists(&mut cands, base.join("Scripts"));
             push_if_exists(&mut cands, base.clone());
         }
 
-        // 5) Global python.org installs
-        for base in ["C:\\Python313", "C:\\Python312", "C:\\Python311"] {
-            let base = PathBuf::from(base);
-            push_if_exists(&mut cands, base.join("Scripts"));
-            push_if_exists(&mut cands, base.clone());
-        }
-
-        // 6) System
+        // System paths
         for sys in ["C:\\Windows\\System32", "C:\\Windows"] {
             push_if_exists(&mut cands, PathBuf::from(sys));
         }
-
-        // Dedup preserving order
-        let mut dedup: Vec<String> = Vec::new();
-        for p in cands {
-            let s = p.to_string_lossy().to_string();
-            if seen.insert(s.clone()) {
-                dedup.push(s);
-            }
-        }
-
-        // Build final PATH
-        let joined = if current_path.is_empty() {
-            dedup.join(";")
-        } else if dedup.is_empty() {
-            current_path
-        } else {
-            format!("{};{}", dedup.join(";"), current_path)
-        };
-
-        return vec![("PATH", joined)];
     }
 
     #[cfg(not(target_os = "windows"))]
     {
-        use std::collections::HashSet;
-
-        let mut cands: Vec<PathBuf> = Vec::new();
-        let mut seen: HashSet<String> = HashSet::new();
-
-        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
-
-        // 1) User Conda (highest priority)
-        for root in ["anaconda3", "miniconda3"] {
+        // User Conda (highest priority)
+        for root in ["anaconda3", "miniconda3", "mambaforge", "miniforge3"] {
             let base = home.join(root);
             push_if_exists(&mut cands, base.join("condabin"));
             push_if_exists(&mut cands, base.join("bin"));
             push_if_exists(&mut cands, base.clone());
         }
 
-        // 2) pipx / user-local bin
+        // User local bin (pip install --user)
         push_if_exists(&mut cands, home.join(".local").join("bin"));
 
-        // 3) Homebrew
-        push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/bin")); // Apple Silicon
-        push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/sbin"));
-        push_if_exists(&mut cands, PathBuf::from("/usr/local/bin")); // Intel / older
-        push_if_exists(&mut cands, PathBuf::from("/usr/local/sbin"));
+        // Homebrew (macOS)
+        #[cfg(target_os = "macos")]
+        {
+            push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/bin")); // Apple Silicon
+            push_if_exists(&mut cands, PathBuf::from("/opt/homebrew/sbin"));
+            push_if_exists(&mut cands, PathBuf::from("/usr/local/bin")); // Intel
+            push_if_exists(&mut cands, PathBuf::from("/usr/local/sbin"));
 
-        // 4) Python.org Frameworks
-        for v in ["3.13", "3.12", "3.11"] {
-            push_if_exists(
-                &mut cands,
-                PathBuf::from(format!(
-                    "/Library/Frameworks/Python.framework/Versions/{v}/bin"
-                )),
-            );
-        }
-
-        // 5) System bins
-        push_if_exists(&mut cands, PathBuf::from("/usr/bin"));
-        push_if_exists(&mut cands, PathBuf::from("/bin"));
-
-        // Dedup preserving order
-        let mut dedup: Vec<String> = Vec::new();
-        for p in cands {
-            let s = p.to_string_lossy().to_string();
-            if seen.insert(s.clone()) {
-                dedup.push(s);
+            // Python.org Frameworks (macOS)
+            for v in ["3.13", "3.12", "3.11", "3.10"] {
+                push_if_exists(
+                    &mut cands,
+                    PathBuf::from(format!(
+                        "/Library/Frameworks/Python.framework/Versions/{}/bin",
+                        v
+                    )),
+                );
             }
         }
 
-        // Build final PATH
-        let joined = if current_path.is_empty() {
-            dedup.join(":")
-        } else if dedup.is_empty() {
-            current_path
-        } else {
-            format!("{}:{}", dedup.join(":"), current_path)
-        };
+        // Linux common paths
+        #[cfg(target_os = "linux")]
+        {
+            push_if_exists(&mut cands, PathBuf::from("/usr/local/bin"));
+            push_if_exists(&mut cands, PathBuf::from("/usr/local/sbin"));
+        }
 
-        vec![("PATH", joined)]
+        // System bins (all Unix-like)
+        push_if_exists(&mut cands, PathBuf::from("/usr/bin"));
+        push_if_exists(&mut cands, PathBuf::from("/bin"));
+        push_if_exists(&mut cands, PathBuf::from("/usr/sbin"));
+        push_if_exists(&mut cands, PathBuf::from("/sbin"));
     }
+
+    // Dedup preserving order
+    let mut dedup: Vec<String> = Vec::new();
+    for p in cands {
+        let s = p.to_string_lossy().to_string();
+        if seen.insert(s.clone()) {
+            dedup.push(s);
+        }
+    }
+
+    // Build final PATH with platform-specific separator
+    #[cfg(target_os = "windows")]
+    let separator = ";";
+    #[cfg(not(target_os = "windows"))]
+    let separator = ":";
+
+    let joined = if current_path.is_empty() {
+        dedup.join(separator)
+    } else if dedup.is_empty() {
+        current_path
+    } else {
+        format!("{}{}{}", dedup.join(separator), separator, current_path)
+    };
+
+    vec![("PATH", joined)]
 }

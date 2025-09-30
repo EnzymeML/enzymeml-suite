@@ -1,31 +1,126 @@
 import { useState, useEffect } from 'react';
-import { Space, Typography, theme, Tooltip, Divider, Tag, Button } from 'antd';
-import { FolderOpenOutlined, PythonOutlined } from '@ant-design/icons';
+import { Space, Typography, theme, Tooltip, Divider, Tag, Button, Dropdown, Spin } from 'antd';
+import { FolderOpenOutlined, PythonOutlined, DownOutlined } from '@ant-design/icons';
+import type { MenuProps } from 'antd';
 
 import useAppStore from '@stores/appstore';
 import SessionList from '@jupyter/components/SessionList';
 import { NotificationType } from '@components/NotificationProvider';
-import { PythonVersion } from '@commands/jupyter';
-import { getPythonVersion, openProjectFolder } from '@jupyter/utils';
+import { PythonInstallation } from '@commands/jupyter';
+import {
+    detectPythonInstallations,
+    getSelectedPython,
+    setSelectedPython,
+    openProjectFolder
+} from '@jupyter/utils';
 
 const { Text } = Typography;
 
+/**
+ * Gets a color for the tag based on the Python source
+ */
+const getSourceColor = (source: string): string => {
+    switch (source.toLowerCase()) {
+        case 'anaconda':
+            return 'green';
+        case 'homebrew':
+            return 'blue';
+        case 'python.org':
+            return 'cyan';
+        case 'system':
+            return 'orange';
+        default:
+            return 'default';
+    }
+};
+
+/**
+ * Gets a display name for the Python source
+ */
+const getSourceDisplayName = (source: string): string => {
+    switch (source.toLowerCase()) {
+        case 'anaconda':
+            return 'Anaconda';
+        case 'homebrew':
+            return 'Homebrew';
+        case 'python.org':
+            return 'Python.org';
+        case 'system':
+            return 'System';
+        default:
+            return 'Other';
+    }
+};
+
 export default function Sessions() {
     // States
-    const [pythonVersion, setPythonVersion] = useState<PythonVersion | null>(null);
+    const [pythons, setPythons] = useState<PythonInstallation[]>([]);
+    const [selectedPath, setSelectedPath] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
     // Global actions
     const openNotification = useAppStore(state => state.openNotification);
+    const triggerInstallCheck = useAppStore(state => state.triggerJupyterCheck);
 
+    // Load Python installations and selected Python on mount
     useEffect(() => {
-        getPythonVersion().then(result => {
-            try {
-                setPythonVersion(result);
-            } catch (error) {
-                openNotification('Error', NotificationType.ERROR, 'Failed to get Python version' + error);
-            }
-        });
+        loadPythonInstallations();
     }, []);
+
+    const loadPythonInstallations = async () => {
+        setLoading(true);
+        try {
+            // Detect Python installations (this also auto-selects the best one)
+            const detected = await detectPythonInstallations();
+            setPythons(detected);
+
+            // Get the currently selected Python
+            const selected = await getSelectedPython();
+            setSelectedPath(selected);
+        } catch (error) {
+            openNotification('Error', NotificationType.ERROR, 'Failed to detect Python installations: ' + error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePythonSelect = async (path: string) => {
+        try {
+            const success = await setSelectedPython(path, openNotification);
+            if (success) {
+                setSelectedPath(path);
+                setDropdownOpen(false);
+
+                // Trigger installation check to verify JupyterLab with new Python
+                triggerInstallCheck?.();
+            }
+        } catch (error) {
+            openNotification('Error', NotificationType.ERROR, 'Failed to select Python: ' + error);
+        }
+    };
+
+    // Find the currently selected Python installation details
+    const selectedPython = pythons.find(p => p.path === selectedPath);
+
+    // Create dropdown menu items
+    const menuItems: MenuProps['items'] = pythons.map((python) => ({
+        key: python.path,
+        label: (
+            <div className="flex flex-col gap-1 py-1">
+                <div className="flex gap-2 items-center">
+                    <Text strong>{python.version}</Text>
+                    <Tag color={getSourceColor(python.source)} style={{ margin: 0 }}>
+                        {getSourceDisplayName(python.source)}
+                    </Tag>
+                </div>
+                <Text type="secondary" style={{ fontSize: '9px' }} ellipsis>
+                    {python.path}
+                </Text>
+            </div>
+        ),
+        onClick: () => handlePythonSelect(python.path),
+    }));
 
     // Styling
     const { token } = theme.useToken();
@@ -57,11 +152,31 @@ export default function Sessions() {
                                     />
                                 </Tooltip>
                             </div>
-                            <Tooltip title="Detected Python version">
-                                <Tag icon={<PythonOutlined />} color="success" >
-                                    {pythonVersion?.version}
-                                </Tag>
-                            </Tooltip>
+                            {loading ? (
+                                <Spin size="small" />
+                            ) : (
+                                <Dropdown
+                                    menu={{ items: menuItems }}
+                                    trigger={['click']}
+                                    open={dropdownOpen}
+                                    onOpenChange={setDropdownOpen}
+                                    disabled={pythons.length === 0}
+                                >
+                                    <Tag
+                                        icon={<PythonOutlined />}
+                                        color={selectedPython ? getSourceColor(selectedPython.source) : 'default'}
+                                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                                    >
+                                        {selectedPython ? (
+                                            <>
+                                                {selectedPython.version} <DownOutlined style={{ fontSize: '10px' }} />
+                                            </>
+                                        ) : (
+                                            'No Python'
+                                        )}
+                                    </Tag>
+                                </Dropdown>
+                            )}
                         </div>
                         <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
                             Opens a Jupyter Lab session in the browser for further programmatic analysis.

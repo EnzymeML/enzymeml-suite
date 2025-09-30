@@ -46,6 +46,19 @@ impl From<&Arc<EnzymeMLState>> for ExposedEnzymeMLState {
         }
     }
 }
+/// Represents a detected Python installation
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct PythonInstallation {
+    /// Path to the Python executable
+    pub path: String,
+    /// Version string (e.g., "3.11.5")
+    pub version: String,
+    /// Source/type of installation (e.g., "anaconda", "homebrew", "system")
+    pub source: String,
+    /// Priority rank (lower is better: anaconda=1, homebrew=2, others=3)
+    pub priority: u8,
+}
+
 /// State management for Jupyter Lab sessions
 ///
 /// This struct maintains a thread-safe collection of active Jupyter Lab sessions
@@ -54,6 +67,10 @@ impl From<&Arc<EnzymeMLState>> for ExposedEnzymeMLState {
 pub struct JupyterState {
     /// Thread-safe vector of active Jupyter sessions
     pub sessions: Mutex<Vec<JupyterSession>>,
+    /// Thread-safe vector of detected Python installations
+    pub detected_pythons: Mutex<Vec<PythonInstallation>>,
+    /// Thread-safe path to the selected/preferred Python executable
+    pub selected_python_path: Mutex<Option<String>>,
 }
 
 /// Represents an active Jupyter Lab session
@@ -217,7 +234,10 @@ impl JupyterState {
     /// the removed session (so the caller can decide what to do with it).
     pub fn remove_session_by_id(&self, id: &str) -> Option<JupyterSession> {
         let mut sessions = self.sessions.lock().unwrap();
-        sessions.iter().position(|s| s.id == id).map(|pos| sessions.remove(pos))
+        sessions
+            .iter()
+            .position(|s| s.id == id)
+            .map(|pos| sessions.remove(pos))
     }
 }
 
@@ -254,6 +274,8 @@ impl Default for JupyterState {
     fn default() -> Self {
         JupyterState {
             sessions: Mutex::new(Vec::new()),
+            detected_pythons: Mutex::new(Vec::new()),
+            selected_python_path: Mutex::new(None),
         }
     }
 }

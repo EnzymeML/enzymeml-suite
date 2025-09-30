@@ -79,6 +79,8 @@ pub mod actions {
 
 #[tokio::main]
 async fn main() {
+    let _ = fix_path_env::fix();
+
     // Initialize state and clone for both tauri and warp
     // Fetch env variable TESTING to determine if we are in testing mode
 
@@ -94,7 +96,10 @@ async fn main() {
                 jupyter::get_jupyter_sessions,
                 jupyter::kill_jupyter,
                 jupyter::start_jupyter,
-                jupyter::get_python_version,
+                jupyter::detect_python_installations,
+                jupyter::list_detected_pythons,
+                jupyter::get_selected_python,
+                jupyter::set_selected_python,
                 jupyter::install_jupyter_lab,
                 jupyter::is_jupyter_lab_installed,
                 jupyter::get_jupyter_template_metadata,
@@ -235,7 +240,10 @@ async fn main() {
             jupyter::start_jupyter,
             jupyter::get_jupyter_sessions,
             jupyter::kill_jupyter,
-            jupyter::get_python_version,
+            jupyter::detect_python_installations,
+            jupyter::list_detected_pythons,
+            jupyter::get_selected_python,
+            jupyter::set_selected_python,
             jupyter::install_jupyter_lab,
             jupyter::is_jupyter_lab_installed,
             jupyter::get_jupyter_template_metadata,
