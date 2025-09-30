@@ -24,6 +24,7 @@ interface AppState {
     databasesToUse: string[]
     currentPath: AvailablePaths
     selectedId: string | null
+    jupyterCheckTrigger: number
     // Actions
     setThemePreference: (themePreference: string) => void
     setOpenNotification: (openNotification: openNotificationType) => void
@@ -31,6 +32,7 @@ interface AppState {
     setDatabasesToUse: (databasesToUse: string[]) => void
     setCurrentPath: (currentPath: AvailablePaths) => void
     setSelectedId: (selectedId: string | null) => void
+    triggerJupyterCheck: () => void
 }
 
 const useAppStore = create<AppState>()(
@@ -44,6 +46,7 @@ const useAppStore = create<AppState>()(
                 databasesToUse: ['pubchem', 'uniprot'],
                 currentPath: AvailablePaths.HOME,
                 selectedId: null,
+                jupyterCheckTrigger: 0,
 
                 // Actions
                 setThemePreference: (themePreference) => set(() => {
@@ -65,7 +68,8 @@ const useAppStore = create<AppState>()(
                     return {
                         selectedId: selectedId
                     }
-                })
+                }),
+                triggerJupyterCheck: () => set((state) => ({ jupyterCheckTrigger: state.jupyterCheckTrigger + 1 }))
             }),
             {
                 name: 'bear-storage',

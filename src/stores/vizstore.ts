@@ -1,5 +1,5 @@
-import {create} from 'zustand'
-import {devtools, persist} from 'zustand/middleware'
+import { create } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
 
 export interface SelectedMeasurement {
     id: string,
@@ -12,7 +12,7 @@ interface VizWindowState {
     useLines: boolean,
     usePoints: boolean,
     // Actions
-    setSelectedMeasurement: (id: string) => void,
+    setSelectedMeasurement: (id: string | null) => void,
     setUseLines: (useLines: boolean) => void,
     setUsePoints: (usePoints: boolean) => void,
 }
@@ -26,9 +26,9 @@ const useVizStore = create<VizWindowState>()(
                 useLines: true,
                 usePoints: false,
                 // Actions
-                setSelectedMeasurement: (id: string) => set({selectedMeasurement: id}),
-                setUseLines: (useLines: boolean) => set({useLines}),
-                setUsePoints: (usePoints: boolean) => set({usePoints}),
+                setSelectedMeasurement: (id: string | null) => set({ selectedMeasurement: id }),
+                setUseLines: (useLines: boolean) => set({ useLines }),
+                setUsePoints: (usePoints: boolean) => set({ usePoints }),
             }),
             {
                 name: 'viz-storage',
