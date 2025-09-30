@@ -100,39 +100,97 @@ async startJupyter(template: string | null) : Promise<Result<null, string>> {
 }
 },
 /**
- * Retrieves the Python version installed on the system
+ * Detects all available Python installations on the system
  * 
- * This function executes the `python3 --version` command (or `python` on Windows)
- * to determine the currently installed Python version. It parses the output using
- * a regex pattern to extract the version number.
+ * This function uses the python_launcher crate to find all Python executables
+ * and ranks them by priority (anaconda > homebrew > others). It stores the
+ * detected installations in the JupyterState and automatically selects the
+ * highest priority one if no selection has been made.
  * 
  * # Arguments
- * * `app_handle` - The Tauri application handle for executing shell commands
+ * * `jupyter_state` - The shared Jupyter state for storing detected Pythons
  * 
  * # Returns
  * A `Result` containing:
- * - `Ok(PythonVersion)` with status "ok" and version string if Python is found and parsed successfully
- * - `Ok(PythonVersion)` with status "error" and error message if Python is found but version parsing fails
- * - `Ok(PythonVersion)` with status "not_found" if Python is not found or command execution fails
- * - `Err(String)` if the shell command cannot be executed
+ * - `Ok(Vec<PythonInstallation>)` with all detected Python installations
+ * - `Err(String)` if the operation fails
  */
-async getPythonVersion() : Promise<Result<PythonVersion, string>> {
+async detectPythonInstallations() : Promise<Result<PythonInstallation[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("get_python_version") };
+    return { status: "ok", data: await TAURI_INVOKE("detect_python_installations") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
 /**
- * Installs JupyterLab using pip
+ * Lists all detected Python installations
  * 
- * This function executes the `pip install jupyterlab jupyter ipywidgets` command
- * to install JupyterLab and its dependencies on the system. The installation
- * process is streamed and emits events to the frontend for real-time progress updates.
+ * # Arguments
+ * * `jupyter_state` - The shared Jupyter state containing detected Pythons
+ * 
+ * # Returns
+ * A `Result` containing:
+ * - `Ok(Vec<PythonInstallation>)` with all detected Python installations
+ * - `Err(String)` if the operation fails
+ */
+async listDetectedPythons() : Promise<Result<PythonInstallation[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_detected_pythons") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Gets the currently selected Python installation path
+ * 
+ * # Arguments
+ * * `jupyter_state` - The shared Jupyter state containing the selected Python
+ * 
+ * # Returns
+ * A `Result` containing:
+ * - `Ok(Option<String>)` with the selected Python path if set
+ * - `Err(String)` if the operation fails
+ */
+async getSelectedPython() : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_selected_python") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Sets the preferred Python installation path
+ * 
+ * # Arguments
+ * * `jupyter_state` - The shared Jupyter state to update
+ * * `path` - The path to the Python executable to use
+ * 
+ * # Returns
+ * A `Result` containing:
+ * - `Ok(())` if the path is set successfully
+ * - `Err(String)` if the operation fails
+ */
+async setSelectedPython(path: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_selected_python", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Installs JupyterLab using pip with the selected Python installation
+ * 
+ * This function executes the `python -m pip install jupyterlab jupyter ipywidgets` command
+ * using the selected Python installation to install JupyterLab and its dependencies.
+ * The installation process is streamed and emits events to the frontend for real-time progress updates.
  * 
  * # Arguments
  * * `app_handle` - The Tauri application handle for executing shell commands and emitting events
+ * * `jupyter_state` - The shared Jupyter state containing selected Python path
  * 
  * # Returns
  * A `Result` containing:
@@ -141,6 +199,7 @@ async getPythonVersion() : Promise<Result<PythonVersion, string>> {
  * 
  * # Errors
  * Returns an error if:
+ * - No Python is selected
  * - The pip command cannot be executed (pip not found in PATH)
  * - The installation process fails (e.g., network issues, permission problems)
  * - JupyterLab package cannot be found or installed
@@ -157,11 +216,12 @@ async installJupyterLab() : Promise<Result<null, string>> {
 /**
  * Checks if JupyterLab is installed on the system
  * 
- * This function executes the `jupyter lab --version` command to determine
- * if JupyterLab is available in the system PATH.
+ * This function executes the `jupyter lab --version` command using the selected
+ * Python installation to determine if JupyterLab is available.
  * 
  * # Arguments
  * * `app_handle` - The Tauri application handle for executing shell commands
+ * * `jupyter_state` - The shared Jupyter state containing selected Python path
  * 
  * # Returns
  * A `Result` containing:
@@ -276,7 +336,26 @@ export type JupyterInstallStatus = "Success" | "Error" | "Output"
  */
 export type JupyterSessionInfo = { id: string; url: string; port: number }
 export type JupyterTemplate = { name: string; description: string; template_path: string; repository: string; category: string }
-export type PythonVersion = { status: string; version: string | null; error: string | null }
+/**
+ * Represents a detected Python installation
+ */
+export type PythonInstallation = { 
+/**
+ * Path to the Python executable
+ */
+path: string; 
+/**
+ * Version string (e.g., "3.11.5")
+ */
+version: string; 
+/**
+ * Source/type of installation (e.g., "anaconda", "homebrew", "system")
+ */
+source: string; 
+/**
+ * Priority rank (lower is better: anaconda=1, homebrew=2, others=3)
+ */
+priority: number }
 
 /** tauri-specta globals **/
 
