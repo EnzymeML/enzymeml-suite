@@ -223,9 +223,11 @@ function App() {
  * Handles theme management, keyboard shortcuts, and system preferences
  */
 const WrappedApp: React.FC = () => {
-  // Initialize Python version check
-  commands.getPythonVersion().then(result => {
-    console.log(result);
+  // Initialize Python detection on app start
+  commands.detectPythonInstallations().then(result => {
+    if (result.status === 'ok') {
+      console.log('Detected Python installations:', result.data);
+    }
   });
 
   // States
