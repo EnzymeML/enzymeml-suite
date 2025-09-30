@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Spin, theme, Typography } from "antd";
 // @ts-expect-error - ignore
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -60,24 +61,58 @@ export default function ProcessingView({
     const { token } = theme.useToken();
     /** Current dark mode state for theme-aware syntax highlighting */
     const darkMode = useAppStore((state) => state.darkMode);
+    /** Ref to the scrollable container for auto-scrolling */
+    const contentRef = useRef<HTMLDivElement>(null);
+    /** Track whether the container is scrolled from the top */
+    const [isScrolled, setIsScrolled] = useState(false);
 
     /** Show spinner when streaming but no chunks have arrived yet */
     const showSpinner = isStreaming && !streamedChunks;
 
+    /** Auto-scroll to bottom when new content streams in */
+    useEffect(() => {
+        if (contentRef.current && streamedChunks) {
+            contentRef.current.scrollTop = contentRef.current.scrollHeight;
+            // Check if we're scrolled after auto-scrolling
+            handleScroll();
+        }
+    }, [streamedChunks]);
+
+    /** Handle scroll events to show/hide top fade */
+    const handleScroll = () => {
+        if (contentRef.current) {
+            setIsScrolled(contentRef.current.scrollTop > 0);
+        }
+    };
+
     return (
         <div
-            className="flex overflow-hidden flex-col gap-4"
+            className="flex overflow-hidden relative flex-col gap-4"
             style={{
                 borderRadius: token.borderRadius,
                 minHeight: '50px',
                 maxHeight: '400px'
             }}
         >
+            {/* Top Fade Overlay - Shows when scrolled */}
+            {isScrolled && streamedChunks && (
+                <div
+                    className="absolute top-0 right-0 left-0 z-10 pointer-events-none"
+                    style={{
+                        height: '60px',
+                        background: `linear-gradient(to bottom, ${token.colorBgContainer} 0%, transparent 100%)`,
+                    }}
+                />
+            )}
 
             {/* Content Display - Fixed Height with Scroll */}
             <div
-                className="overflow-hidden scrollbar-hide"
-
+                ref={contentRef}
+                className="overflow-y-auto scrollbar-hide"
+                style={{
+                    maxHeight: '400px'
+                }}
+                onScroll={handleScroll}
             >
                 {showSpinner ? (
                     // Loading state: Display spinner and waiting message
