@@ -1,33 +1,78 @@
-import { commands, JupyterSessionInfo, JupyterTemplate, PythonVersion } from '@commands/jupyter';
+import { commands, JupyterSessionInfo, JupyterTemplate, PythonInstallation } from '@commands/jupyter';
 import { NotificationType } from '@components/NotificationProvider';
 
-export const isPythonInstalled = async (): Promise<boolean> => {
-    try {
-        const result = await commands.getPythonVersion();
-        if (result.status === 'ok') {
-            if (result.data.status === 'ok') {
-                return true;
-            } else if (result.data.status === 'error') {
-                console.warn('Python installation check failed:', result.data.error);
-            } else if (result.data.status === 'not_found') {
-                console.warn('Python not found on system');
-            }
-        } else {
-            console.warn('Python version command failed:', result.error);
-        }
-        return false;
-    } catch (error) {
-        console.error('Python installation check error:', error);
-        return false;
-    }
-};
-
-export const getPythonVersion = async (): Promise<PythonVersion> => {
-    const result = await commands.getPythonVersion();
+/**
+ * Detects all available Python installations on the system
+ */
+export const detectPythonInstallations = async (): Promise<PythonInstallation[]> => {
+    const result = await commands.detectPythonInstallations();
     if (result.status === 'ok') {
         return result.data;
     } else {
         throw new Error(result.error);
+    }
+};
+
+/**
+ * Lists all detected Python installations
+ */
+export const listDetectedPythons = async (): Promise<PythonInstallation[]> => {
+    const result = await commands.listDetectedPythons();
+    if (result.status === 'ok') {
+        return result.data;
+    } else {
+        throw new Error(result.error);
+    }
+};
+
+/**
+ * Gets the currently selected Python installation path
+ */
+export const getSelectedPython = async (): Promise<string | null> => {
+    const result = await commands.getSelectedPython();
+    if (result.status === 'ok') {
+        return result.data;
+    } else {
+        throw new Error(result.error);
+    }
+};
+
+/**
+ * Sets the preferred Python installation path and verifies JupyterLab installation
+ */
+export const setSelectedPython = async (
+    path: string,
+    openNotification: (title: string, type: NotificationType, message: string) => void
+): Promise<boolean> => {
+    try {
+        const result = await commands.setSelectedPython(path);
+        if (result.status === 'ok') {
+            openNotification(
+                'Python Selected',
+                NotificationType.SUCCESS,
+                'Python installation selected successfully'
+            );
+            return true;
+        } else {
+            openNotification('Error', NotificationType.ERROR, result.error);
+            return false;
+        }
+    } catch (error) {
+        openNotification('Error', NotificationType.ERROR, 'Failed to select Python installation: ' + error);
+        return false;
+    }
+};
+
+/**
+ * Checks if Python is installed by detecting available installations
+ */
+export const isPythonInstalled = async (): Promise<boolean> => {
+    try {
+        const pythons = await listDetectedPythons();
+        return pythons.length > 0;
+    } catch (error) {
+        console.error('Python installation check error:', error);
+        return false;
     }
 };
 

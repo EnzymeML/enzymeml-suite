@@ -43,6 +43,7 @@ export default function JupyterSessionManager({ children }: JupyterSessionManage
 
     // Global Store
     const darkMode = useAppStore((state) => state.darkMode);
+    const jupyterCheckTrigger = useAppStore((state) => state.jupyterCheckTrigger);
 
     /** Check installation status of Python and JupyterLab */
     const checkInstallationStatus = async () => {
@@ -65,7 +66,14 @@ export default function JupyterSessionManager({ children }: JupyterSessionManage
         checkInstallationStatus();
     }, []);
 
-    // Also set up periodic checking every 5 seconds
+    // Re-check when Python selection changes
+    useEffect(() => {
+        if (jupyterCheckTrigger > 0) {
+            checkInstallationStatus();
+        }
+    }, [jupyterCheckTrigger]);
+
+    // Also set up periodic checking every 2 seconds
     useEffect(() => {
         const interval = setInterval(checkInstallationStatus, CHECK_INTERVAL);
         return () => clearInterval(interval);

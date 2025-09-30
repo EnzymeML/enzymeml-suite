@@ -2,11 +2,11 @@ import { commands, events } from '@suite/commands/jupyter';
 import { Typography, theme, Steps, Divider, Button, Tag, Space } from 'antd';
 import { PythonOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import { isPythonInstalled, isJupyterLabInstalled, getPythonVersion } from '../utils';
+import { isPythonInstalled, isJupyterLabInstalled, getSelectedPython, listDetectedPythons } from '../utils';
 import { CHECK_INTERVAL } from '@jupyter/Jupyter';
 import useAppStore from '@stores/appstore';
 import { NotificationType } from '@components/NotificationProvider';
-import { PythonVersion } from '@commands/jupyter';
+import { PythonInstallation } from '@commands/jupyter';
 
 const { Text } = Typography;
 
@@ -29,16 +29,16 @@ enum InstallationStep {
  * Component for the Python download and installation step
  * 
  * @param currentStep - The current installation step
- * @param pythonVersion - The detected Python version (if any)
+ * @param selectedPython - The selected Python installation (if any)
  * @returns JSX element with Python download instructions and button
  */
 function DownloadAndInstallPython(
     {
         currentStep,
-        pythonVersion,
+        selectedPython,
     }: {
         currentStep: InstallationStep;
-        pythonVersion: PythonVersion | null;
+        selectedPython: PythonInstallation | null;
     }
 ) {
     return (
@@ -57,10 +57,10 @@ function DownloadAndInstallPython(
                     Download Python
                 </Button>
             )}
-            {pythonVersion && (
+            {selectedPython && (
                 <Space>
                     <Tag icon={<PythonOutlined />} color="success">
-                        Python {pythonVersion.version}
+                        Python {selectedPython.version} ({selectedPython.source})
                     </Tag>
                 </Space>
             )}
@@ -131,8 +131,8 @@ export default function Installation() {
     const [currentStep, setCurrentStep] = useState(0);
     /** Loading state for JupyterLab installation */
     const [isInstallingJupyter, setIsInstallingJupyter] = useState(false);
-    /** Python version information */
-    const [pythonVersion, setPythonVersion] = useState<PythonVersion | null>(null);
+    /** Selected Python installation information */
+    const [selectedPython, setSelectedPython] = useState<PythonInstallation | null>(null);
 
     // Global actions
     const openNotification = useAppStore((state) => state.openNotification);
@@ -149,15 +149,20 @@ export default function Installation() {
 
             if (!pythonInstalled) {
                 setCurrentStep(InstallationStep.DOWNLOAD_PYTHON);
+                setSelectedPython(null);
                 return;
             }
 
-            // Get Python version when Python is detected
+            // Get selected Python and find its details
             try {
-                const version = await getPythonVersion();
-                setPythonVersion(version);
+                const selectedPath = await getSelectedPython();
+                if (selectedPath) {
+                    const pythons = await listDetectedPythons();
+                    const python = pythons.find(p => p.path === selectedPath);
+                    setSelectedPython(python || null);
+                }
             } catch (error) {
-                console.warn('Failed to get Python version:', error);
+                console.warn('Failed to get Python details:', error);
             }
 
             const jupyterInstalled = await isJupyterLabInstalled();
@@ -290,7 +295,7 @@ export default function Installation() {
     const stepItems = [
         {
             title: <span className="font-bold">Download & Install Python</span>,
-            description: <DownloadAndInstallPython currentStep={currentStep} pythonVersion={pythonVersion} />,
+            description: <DownloadAndInstallPython currentStep={currentStep} selectedPython={selectedPython} />,
             status: getStepStatus(InstallationStep.DOWNLOAD_PYTHON)
         },
         {
@@ -309,10 +314,10 @@ export default function Installation() {
                     <span className="text-xs font-light text-green-600">
                         Python and JupyterLab are both installed and ready to use.
                     </span>
-                    {pythonVersion && (
+                    {selectedPython && (
                         <Space>
                             <Tag icon={<PythonOutlined />} color="success">
-                                Python {pythonVersion.version}
+                                Python {selectedPython.version} ({selectedPython.source})
                             </Tag>
                         </Space>
                     )}
