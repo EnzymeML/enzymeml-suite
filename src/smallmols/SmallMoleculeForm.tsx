@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AutoComplete, Col, Form, Input, Radio, Row, Select } from "antd";
 import { RiExternalLinkLine } from "react-icons/ri";
-import capitalize from "antd/lib/_util/capitalize";
 import { AutoCompleteProps } from "antd/lib";
 import { SmallMolecule } from "enzymeml";
 
@@ -86,7 +85,7 @@ export default React.memo(
       }
 
       const name = form.getFieldValue("name");
-      form.setFieldsValue({ name: capitalize(name) });
+      form.setFieldsValue({ name });
 
       handleUpdateObject();
     }, [form, handleUpdateObject]);
