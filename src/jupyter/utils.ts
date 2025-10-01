@@ -2,6 +2,18 @@ import { commands, JupyterSessionInfo, JupyterTemplate, PythonInstallation } fro
 import { NotificationType } from '@components/NotificationProvider';
 
 /**
+ * Adds a custom Python env to the EnzymeML Suite
+ */
+export const addPythonEnv = async (): Promise<null> => {
+    const result = await commands.addPythonEnv();
+    if (result.status === 'ok') {
+        return result.data;
+    } else {
+        throw new Error(result.error);
+    }
+}
+
+/**
  * Detects all available Python installations on the system
  */
 export const detectPythonInstallations = async (): Promise<PythonInstallation[]> => {
@@ -24,6 +36,20 @@ export const listDetectedPythons = async (): Promise<PythonInstallation[]> => {
         throw new Error(result.error);
     }
 };
+
+/**
+ * Retrieves all custom Python environments that have been manually added by the user
+ */
+export const listCustomPythonEnvs = async (): Promise<PythonInstallation[]> => {
+    const result = await commands.listCustomPythonEnvs();
+    console.log(result)
+    if (result.status === 'ok') {
+        return result.data;
+    } else {
+        console.error('Failed to list custom Python environments:', result.error);
+        return [];
+    }
+}
 
 /**
  * Gets the currently selected Python installation path
