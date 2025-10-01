@@ -16,6 +16,7 @@ import useAppStore from '@stores/appstore';
 import { formatKeyboardShortcut } from '@utilities/osutils';
 import { NotificationType } from '@components/NotificationProvider';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MAX_RECENT_ENTRIES = 10;
 
 const appWindow = getCurrentWebviewWindow()
@@ -250,14 +251,11 @@ export default function FileMenu() {
      * Dynamically adds recent document entries to the "Open Document" submenu
      * Each entry displays with an EnzymeML logo (colored or mono based on theme)
      */
-    allEntries.forEach((entry, index) => {
-        if (index >= MAX_RECENT_ENTRIES) {
-            return;
-        }
+    allEntries.forEach((entry) => {
         if (searchInput.length !== 0 && !entry[0].toLowerCase().startsWith(searchInput.toLowerCase())) {
             return;
         }
-        const openMenuItem = items[3];
+        const openMenuItem = items[4];
         if (openMenuItem && 'children' in openMenuItem && openMenuItem.children) {
             openMenuItem.children.push({
                 key: `entry-${entry[1].toString()}`,
