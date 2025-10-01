@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Space, Typography, theme, Tooltip, Divider, Tag, Button, Dropdown, Spin } from 'antd';
-import { FolderOpenOutlined, PythonOutlined, DownOutlined } from '@ant-design/icons';
+import { FolderOpenOutlined, PythonOutlined, DownOutlined, PlusOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
 import useAppStore from '@stores/appstore';
@@ -11,7 +11,8 @@ import {
     detectPythonInstallations,
     getSelectedPython,
     setSelectedPython,
-    openProjectFolder
+    openProjectFolder,
+    addPythonEnv,
 } from '@jupyter/utils';
 
 const { Text } = Typography;
@@ -71,8 +72,9 @@ export default function Sessions() {
     const loadPythonInstallations = async () => {
         setLoading(true);
         try {
-            // Detect Python installations (this also auto-selects the best one)
+            // Detect Python installations (this also auto-selects the best one and includes custom envs)
             const detected = await detectPythonInstallations();
+
             setPythons(detected);
 
             // Get the currently selected Python
@@ -100,6 +102,17 @@ export default function Sessions() {
         }
     };
 
+    const handleAddPythonEnv = async () => {
+        try {
+            await addPythonEnv();
+            // Reload Python installations after adding a new environment
+            await loadPythonInstallations();
+            openNotification('Success', NotificationType.SUCCESS, 'Python environment added successfully');
+        } catch (error) {
+            openNotification('Error', NotificationType.ERROR, 'Failed to add Python environment: ' + error);
+        }
+    };
+
     // Find the currently selected Python installation details
     const selectedPython = pythons.find(p => p.path === selectedPath);
 
@@ -121,6 +134,30 @@ export default function Sessions() {
         ),
         onClick: () => handlePythonSelect(python.path),
     }));
+
+    menuItems.push(
+        {
+            key: "custom-setter",
+            label: (
+                <div className="flex justify-center w-full">
+                    <Tooltip
+                        title={"Add a custom local Python environment. This is particularly useful, when automatic detection fails."}
+                        mouseEnterDelay={2}
+                        placement='bottom'
+                    >
+                        <Button
+                            icon={<PlusOutlined />}
+                            variant='filled'
+                            onClick={handleAddPythonEnv}
+                            size='small'
+                            className="w-full"
+                        />
+                    </Tooltip>
+                </div>
+            )
+        }
+    )
+
 
     // Styling
     const { token } = theme.useToken();
