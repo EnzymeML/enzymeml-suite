@@ -273,7 +273,7 @@ pub async fn add_python_env(
         return Err("The provided path is a directory, but a Python executable file is required. Please specify the full path to the Python executable (e.g., /path/to/python or /path/to/python.exe)".to_string());
     }
 
-    let check = app.shell().command(&path).arg("--version").output().await;
+    let check = app.shell().command(path).arg("--version").output().await;
 
     match check {
         Ok(output) => {
