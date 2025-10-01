@@ -105,9 +105,11 @@ async startJupyter(template: string | null) : Promise<Result<null, string>> {
  * This function uses the python_launcher crate to find all Python executables
  * and ranks them by priority (anaconda > homebrew > others). It stores the
  * detected installations in the JupyterState and automatically selects the
- * highest priority one if no selection has been made.
+ * highest priority one if no selection has been made. Also loads custom Python
+ * environments from the config store.
  * 
  * # Arguments
+ * * `app` - The Tauri application handle for accessing the store
  * * `jupyter_state` - The shared Jupyter state for storing detected Pythons
  * 
  * # Returns
@@ -176,6 +178,70 @@ async getSelectedPython() : Promise<Result<string | null, string>> {
 async setSelectedPython(path: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_selected_python", { path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Adds a custom Python environment to the config store
+ * 
+ * This function validates a Python executable path, extracts its version information,
+ * and persists it to the config store's `custom_python_envs` array. The custom
+ * environment will be merged with auto-detected installations on subsequent detections.
+ * The newly added Python environment is automatically selected as the active Python.
+ * 
+ * # Arguments
+ * * `app` - The Tauri application handle for executing shell commands and accessing the store
+ * * `jupyter_state` - The shared Jupyter state for managing Python installations
+ * * `path` - The path to the Python executable to add
+ * 
+ * # Returns
+ * A `Result` containing:
+ * - `Ok(())` if the Python environment is added and persisted successfully
+ * - `Err(String)` if the operation fails, containing the error message
+ * 
+ * # Errors
+ * Returns an error if:
+ * - The provided path is a directory instead of an executable file
+ * - The Python executable cannot be verified (invalid Python installation)
+ * - The version cannot be parsed from the Python output
+ * - The config store cannot be accessed or saved
+ */
+async addPythonEnv() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_python_env") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Retrieves all custom Python environments from the configuration store
+ * 
+ * This function accesses the application's configuration store to retrieve the list
+ * of custom Python environments that have been manually added by the user. These
+ * custom environments are stored separately from auto-detected Python installations
+ * and persist across application restarts. If no custom environments have been
+ * configured yet, the function initializes an empty array in the store for future use.
+ * 
+ * # Arguments
+ * * `app` - The Tauri application handle used for accessing the configuration store
+ * 
+ * # Returns
+ * A `Result` containing:
+ * - `Ok(Vec<PythonInstallation>)` with all custom Python environments from the store
+ * - `Err(String)` if the operation fails, containing a descriptive error message
+ * 
+ * # Errors
+ * Returns an error if:
+ * - The configuration store cannot be accessed or opened
+ * - The stored custom Python environments data is corrupted or cannot be parsed
+ * - The store cannot be saved when initializing an empty array
+ */
+async listCustomPythonEnvs() : Promise<Result<PythonInstallation[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_custom_python_envs") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -355,7 +421,11 @@ source: string;
 /**
  * Priority rank (lower is better: anaconda=1, homebrew=2, others=3)
  */
-priority: number }
+priority: number; 
+/**
+ * Is a custom python installation
+ */
+is_custom: boolean }
 
 /** tauri-specta globals **/
 
