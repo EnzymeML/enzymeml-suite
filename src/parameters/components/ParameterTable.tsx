@@ -380,25 +380,6 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
         {
             title: (
                 <ColumnTitle
-                    title="Upper Bound"
-                    tooltip="Maximum allowed value for this parameter during optimization"
-                    token={token}
-                />
-            ),
-            dataIndex: "upper_bound",
-            key: "upper_bound",
-            width: "20%",
-            align: "center",
-            onCell: () => ({ style: cellPadding }),
-            sorter: (a, b) => (a.upper_bound || 0) - (b.upper_bound || 0),
-            showSorterTooltip: false,
-            render: (value: number, record) => (
-                <EditableNumber id={record.id} field="upper_bound" value={value} />
-            ),
-        },
-        {
-            title: (
-                <ColumnTitle
                     title="Lower Bound"
                     tooltip="Minimum allowed value for this parameter during optimization"
                     token={token}
@@ -413,6 +394,25 @@ const ParameterTable: React.FC<ParameterTableProps> = ({
             showSorterTooltip: false,
             render: (value: number, record) => (
                 <EditableNumber id={record.id} field="lower_bound" value={value} />
+            ),
+        },
+        {
+            title: (
+                <ColumnTitle
+                    title="Upper Bound"
+                    tooltip="Maximum allowed value for this parameter during optimization"
+                    token={token}
+                />
+            ),
+            dataIndex: "upper_bound",
+            key: "upper_bound",
+            width: "20%",
+            align: "center",
+            onCell: () => ({ style: cellPadding }),
+            sorter: (a, b) => (a.upper_bound || 0) - (b.upper_bound || 0),
+            showSorterTooltip: false,
+            render: (value: number, record) => (
+                <EditableNumber id={record.id} field="upper_bound" value={value} />
             ),
         },
     ]
