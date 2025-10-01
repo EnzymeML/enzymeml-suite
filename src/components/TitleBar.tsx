@@ -1,6 +1,6 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Badge, theme } from "antd";
-import Icon, { OpenAIOutlined, PythonOutlined, QuestionCircleOutlined, SaveOutlined } from "@ant-design/icons";
+import Icon, { OpenAIOutlined, PythonOutlined, SaveOutlined } from "@ant-design/icons";
 
 import EnzymeMLLogoMono from "@icons/enzymeml_logo.svg";
 import EnzymeMLLogoCol from "@icons/enzymeml_logo_coloured.svg";
@@ -135,8 +135,6 @@ function TitleButtons() {
             <SaveOutlined onClick={saveEntryAndNotify} />
             {/* User Settings */}
             <UserSettings />
-            {/* Help/Documentation */}
-            <QuestionCircleOutlined />
         </div >
     );
 }
