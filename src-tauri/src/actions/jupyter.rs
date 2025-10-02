@@ -115,6 +115,7 @@ pub fn detect_python_installations(
     jupyter_state: State<'_, Arc<JupyterState>>,
 ) -> Result<Vec<PythonInstallation>, String> {
     let mut installations = Vec::new();
+    let pattern = Regex::new(PYTHON_VERSION_REGEX).unwrap();
 
     // Detect all Python executables using python_launcher
     for (_, path) in all_executables().into_iter() {
@@ -124,10 +125,7 @@ pub fn detect_python_installations(
         if let Ok(output) = Command::new(&path).arg("--version").output() {
             if output.status.success() {
                 let version_output = String::from_utf8_lossy(&output.stdout);
-                if let Some(caps) = Regex::new(PYTHON_VERSION_REGEX)
-                    .unwrap()
-                    .captures(&version_output)
-                {
+                if let Some(caps) = pattern.captures(&version_output) {
                     let version = caps[1].to_string();
                     let (source, priority) = determine_python_source(&path_str);
 
