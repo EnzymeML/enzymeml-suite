@@ -35,6 +35,7 @@ pub fn get_config_store_path() -> Result<PathBuf, String> {
 /// # Returns
 ///
 /// A `String` representing the new unique ID.
+#[allow(clippy::ptr_arg)]
 pub fn generate_id(ids: &Vec<String>, prefix: &str) -> String {
     let mut i = 1;
     let mut id = format!("{}{}", prefix, i);
