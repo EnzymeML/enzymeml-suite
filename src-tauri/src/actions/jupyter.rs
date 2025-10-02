@@ -5,13 +5,17 @@ use regex::Regex;
 use specta;
 use std::fs::create_dir_all;
 use std::process::Command;
-use tauri::{Emitter, State};
+use tauri::{AppHandle, Emitter, State};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
+use tauri_plugin_store::StoreExt;
 
+use crate::actions::utils::get_config_store_path;
 use crate::states::{EnzymeMLState, JupyterSessionInfo, JupyterState, PythonInstallation};
 
 const PYTHON_VERSION_REGEX: &str = r"Python (\d+\.\d+\.\d+(?:\.\w+)?)";
+const PYTHON_ENVS_KEY: &str = "custom_python_envs";
 const PROJECTS_DIR: &str = "enzymeml-suite/projects";
 
 /// Macro for embedding Jupyter notebook templates at compile time
@@ -93,9 +97,11 @@ lazy_static::lazy_static! {
 /// This function uses the python_launcher crate to find all Python executables
 /// and ranks them by priority (anaconda > homebrew > others). It stores the
 /// detected installations in the JupyterState and automatically selects the
-/// highest priority one if no selection has been made.
+/// highest priority one if no selection has been made. Also loads custom Python
+/// environments from the config store.
 ///
 /// # Arguments
+/// * `app` - The Tauri application handle for accessing the store
 /// * `jupyter_state` - The shared Jupyter state for storing detected Pythons
 ///
 /// # Returns
@@ -105,9 +111,11 @@ lazy_static::lazy_static! {
 #[tauri::command]
 #[specta::specta]
 pub fn detect_python_installations(
+    app: AppHandle,
     jupyter_state: State<'_, Arc<JupyterState>>,
 ) -> Result<Vec<PythonInstallation>, String> {
     let mut installations = Vec::new();
+    let pattern = Regex::new(PYTHON_VERSION_REGEX).unwrap();
 
     // Detect all Python executables using python_launcher
     for (_, path) in all_executables().into_iter() {
@@ -117,10 +125,7 @@ pub fn detect_python_installations(
         if let Ok(output) = Command::new(&path).arg("--version").output() {
             if output.status.success() {
                 let version_output = String::from_utf8_lossy(&output.stdout);
-                if let Some(caps) = Regex::new(PYTHON_VERSION_REGEX)
-                    .unwrap()
-                    .captures(&version_output)
-                {
+                if let Some(caps) = pattern.captures(&version_output) {
                     let version = caps[1].to_string();
                     let (source, priority) = determine_python_source(&path_str);
 
@@ -129,11 +134,15 @@ pub fn detect_python_installations(
                         version,
                         source,
                         priority,
+                        is_custom: false,
                     });
                 }
             }
         }
     }
+
+    // Load and merge custom Python environments from the config store
+    load_custom_python_envs(&app, &mut installations);
 
     // Sort by priority (lower is better)
     installations.sort_by_key(|p| p.priority);
@@ -141,7 +150,7 @@ pub fn detect_python_installations(
     // Store detected installations
     *jupyter_state.detected_pythons.lock().unwrap() = installations.clone();
 
-    // Auto-select the best one if nothing is selected yet
+    // Auto-select the best one if none is selected yet
     let mut selected = jupyter_state.selected_python_path.lock().unwrap();
     if selected.is_none() && !installations.is_empty() {
         *selected = Some(installations[0].path.clone());
@@ -210,7 +219,225 @@ pub fn set_selected_python(
     }
     drop(detected);
 
+    // Update the in-memory state
     *jupyter_state.selected_python_path.lock().unwrap() = Some(path);
+
+    Ok(())
+}
+
+/// Adds a custom Python environment to the config store
+///
+/// This function validates a Python executable path, extracts its version information,
+/// and persists it to the config store's `custom_python_envs` array. The custom
+/// environment will be merged with auto-detected installations on subsequent detections.
+/// The newly added Python environment is automatically selected as the active Python.
+///
+/// # Arguments
+/// * `app` - The Tauri application handle for executing shell commands and accessing the store
+/// * `jupyter_state` - The shared Jupyter state for managing Python installations
+/// * `path` - The path to the Python executable to add
+///
+/// # Returns
+/// A `Result` containing:
+/// - `Ok(())` if the Python environment is added and persisted successfully
+/// - `Err(String)` if the operation fails, containing the error message
+///
+/// # Errors
+/// Returns an error if:
+/// - The provided path is a directory instead of an executable file
+/// - The Python executable cannot be verified (invalid Python installation)
+/// - The version cannot be parsed from the Python output
+/// - The config store cannot be accessed or saved
+#[tauri::command]
+#[specta::specta]
+pub async fn add_python_env(
+    app: AppHandle,
+    jupyter_state: State<'_, Arc<JupyterState>>,
+) -> Result<(), String> {
+    // Let the user point to the python env
+    let file_path = app
+        .dialog()
+        .file()
+        .set_title("Pick a Python installation")
+        .blocking_pick_file()
+        .ok_or_else(|| "No file has been selected.".to_string())?;
+
+    let path = file_path
+        .as_path()
+        .ok_or_else(|| "Could not convert 'FilePath' into path.".to_string())?;
+
+    // Check if the given path is in fact a valid Python installation
+    if path.is_dir() {
+        return Err("The provided path is a directory, but a Python executable file is required. Please specify the full path to the Python executable (e.g., /path/to/python or /path/to/python.exe)".to_string());
+    }
+
+    let check = app.shell().command(path).arg("--version").output().await;
+
+    match check {
+        Ok(output) => {
+            if !output.status.success() {
+                return Err("No valid Python version detected. Are you sure the binary provided is a Python installation?".to_string());
+            }
+
+            // Parse version from output
+            let version_output = String::from_utf8_lossy(&output.stdout);
+            let version = if let Some(caps) = Regex::new(PYTHON_VERSION_REGEX)
+                .unwrap()
+                .captures(&version_output)
+            {
+                caps[1].to_string()
+            } else {
+                return Err(format!(
+                    "Failed to parse Python version from output: {}",
+                    version_output
+                ));
+            };
+
+            let path_str = path.to_string_lossy().to_string();
+            let (source, priority) = determine_python_source(&path_str);
+
+            let new_installation = PythonInstallation {
+                path: path_str.clone(),
+                version,
+                source,
+                priority,
+                is_custom: true,
+            };
+
+            // Add the path to detected pythons if it's not already there
+            let mut detected = jupyter_state.detected_pythons.lock().unwrap();
+            if !detected.iter().any(|p| p.path == path_str) {
+                detected.push(new_installation.clone());
+            }
+            drop(detected);
+
+            // Persist to the config store's custom_python_envs array
+            save_custom_python_env(&app, &new_installation)?;
+
+            // Select this Python as the active one
+            *jupyter_state.selected_python_path.lock().unwrap() = Some(path_str);
+        }
+        Err(e) => {
+            return Err(format!("Failed to verify Python installation: {}", e));
+        }
+    }
+
+    Ok(())
+}
+
+/// Retrieves all custom Python environments from the configuration store
+///
+/// This function accesses the application's configuration store to retrieve the list
+/// of custom Python environments that have been manually added by the user. These
+/// custom environments are stored separately from auto-detected Python installations
+/// and persist across application restarts. If no custom environments have been
+/// configured yet, the function initializes an empty array in the store for future use.
+///
+/// # Arguments
+/// * `app` - The Tauri application handle used for accessing the configuration store
+///
+/// # Returns
+/// A `Result` containing:
+/// - `Ok(Vec<PythonInstallation>)` with all custom Python environments from the store
+/// - `Err(String)` if the operation fails, containing a descriptive error message
+///
+/// # Errors
+/// Returns an error if:
+/// - The configuration store cannot be accessed or opened
+/// - The stored custom Python environments data is corrupted or cannot be parsed
+/// - The store cannot be saved when initializing an empty array
+#[tauri::command]
+#[specta::specta]
+pub async fn list_custom_python_envs(app: AppHandle) -> Result<Vec<PythonInstallation>, String> {
+    let store = app
+        .store(get_config_store_path()?)
+        .map_err(|e| format!("Could not open store: {}", e))?;
+
+    match store.get(PYTHON_ENVS_KEY) {
+        Some(custom_pythons) => {
+            // Parse the stored custom Python environments
+            serde_json::from_value::<Vec<PythonInstallation>>(custom_pythons.clone())
+                .map_err(|e| format!("Failed to parse custom Python environments: {}", e))
+        }
+        None => {
+            // Key doesn't exist, initialize it with an empty array
+            let empty_vec: Vec<PythonInstallation> = Vec::new();
+            store.set(PYTHON_ENVS_KEY, serde_json::to_value(&empty_vec).unwrap());
+            store
+                .save()
+                .map_err(|e| format!("Failed to save store: {}", e))?;
+            Ok(empty_vec)
+        }
+    }
+}
+
+/// Loads custom Python environments from the config store and merges them with detected installations
+///
+/// # Arguments
+/// * `app` - The Tauri application handle for accessing the store
+/// * `installations` - Mutable reference to the installations vector to merge into
+fn load_custom_python_envs(app: &AppHandle, installations: &mut Vec<PythonInstallation>) {
+    let Ok(store_path) = get_config_store_path() else {
+        return;
+    };
+    let Ok(store) = app.store(store_path) else {
+        return;
+    };
+    let Some(custom_pythons) = store.get(PYTHON_ENVS_KEY) else {
+        return;
+    };
+
+    let Ok(custom_envs): Result<Vec<PythonInstallation>, _> =
+        serde_json::from_value(custom_pythons.clone())
+    else {
+        return;
+    };
+
+    for env in custom_envs {
+        // Skip if already detected
+        if installations.iter().any(|p| p.path == env.path) {
+            continue;
+        }
+
+        installations.push(env);
+    }
+}
+
+/// Saves a custom Python environment to the config store
+///
+/// # Arguments
+/// * `app` - The Tauri application handle for accessing the store
+/// * `installation` - The Python installation to save
+///
+/// # Returns
+/// A `Result` indicating success or failure
+fn save_custom_python_env(
+    app: &AppHandle,
+    installation: &PythonInstallation,
+) -> Result<(), String> {
+    let store_path = get_config_store_path()?;
+    let store = app
+        .store(store_path)
+        .map_err(|e| format!("Failed to access store: {}", e))?;
+
+    // Get existing custom Python environments or create new vec
+    let mut custom_envs: Vec<PythonInstallation> = store
+        .get(PYTHON_ENVS_KEY)
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_default();
+
+    // Check if this path is already in custom_envs
+    let already_exists = custom_envs.iter().any(|env| env.path == installation.path);
+
+    // Add to custom_envs if not already present
+    if !already_exists {
+        custom_envs.push(installation.clone());
+        store.set(PYTHON_ENVS_KEY, serde_json::to_value(&custom_envs).unwrap());
+        store
+            .save()
+            .map_err(|e| format!("Failed to save store: {}", e))?;
+    }
+
     Ok(())
 }
 

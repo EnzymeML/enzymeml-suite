@@ -7,6 +7,7 @@ use tauri::async_runtime::spawn;
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
+use crate::actions::utils::get_config_store_path;
 use crate::actions::{
     enzmldoc, equations, jupyter, measurements, parameters, proteins, reactions, simulation,
     smallmols, units, vessels, windows,
@@ -100,6 +101,8 @@ async fn main() {
                 jupyter::list_detected_pythons,
                 jupyter::get_selected_python,
                 jupyter::set_selected_python,
+                jupyter::add_python_env,
+                jupyter::list_custom_python_envs,
                 jupyter::install_jupyter_lab,
                 jupyter::is_jupyter_lab_installed,
                 jupyter::get_jupyter_template_metadata,
@@ -112,6 +115,7 @@ async fn main() {
     }
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
@@ -119,12 +123,14 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_cors_fetch::init())
         .setup(|app| {
-            #[cfg(debug_assertions)] // only include this code on debug builds
-            {
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
-                window.close_devtools();
+            if let Some(window) = app.get_webview_window("main") {
+                #[cfg(debug_assertions)] // only include this code on debug builds
+                {
+                    window.open_devtools();
+                    window.close_devtools();
+                }
             }
+
             // Initialize the database.
             db::init();
 
@@ -139,7 +145,8 @@ async fn main() {
             });
 
             // Initialize the JSON store.
-            app.store("config.json")?;
+            let store_path = get_config_store_path().expect("Failed to get config store path");
+            app.store(store_path)?;
 
             Ok(())
         })
@@ -244,6 +251,8 @@ async fn main() {
             jupyter::list_detected_pythons,
             jupyter::get_selected_python,
             jupyter::set_selected_python,
+            jupyter::add_python_env,
+            jupyter::list_custom_python_envs,
             jupyter::install_jupyter_lab,
             jupyter::is_jupyter_lab_installed,
             jupyter::get_jupyter_template_metadata,

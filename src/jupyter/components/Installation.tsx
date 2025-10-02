@@ -2,7 +2,7 @@ import { commands, events } from '@suite/commands/jupyter';
 import { Typography, theme, Steps, Divider, Button, Tag, Space } from 'antd';
 import { PythonOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import { isPythonInstalled, isJupyterLabInstalled, getSelectedPython, listDetectedPythons } from '../utils';
+import { isPythonInstalled, isJupyterLabInstalled, getSelectedPython, listDetectedPythons, addPythonEnv } from '../utils';
 import { CHECK_INTERVAL } from '@jupyter/Jupyter';
 import useAppStore from '@stores/appstore';
 import { NotificationType } from '@components/NotificationProvider';
@@ -30,15 +30,18 @@ enum InstallationStep {
  * 
  * @param currentStep - The current installation step
  * @param selectedPython - The selected Python installation (if any)
+ * @param onSelectCustom - Callback function to handle custom Python selection
  * @returns JSX element with Python download instructions and button
  */
 function DownloadAndInstallPython(
     {
         currentStep,
         selectedPython,
+        onSelectCustom,
     }: {
         currentStep: InstallationStep;
         selectedPython: PythonInstallation | null;
+        onSelectCustom: () => void;
     }
 ) {
     return (
@@ -47,15 +50,26 @@ function DownloadAndInstallPython(
                 We recommend installing Anaconda, which includes Python and JupyterLab out of the box. You can download it from the official website. Please make sure to check "Add Python to PATH" during installation.
             </span>
             {currentStep === InstallationStep.DOWNLOAD_PYTHON && (
-                <Button
-                    className='scale-95 font-xs'
-                    variant="solid"
-                    size="small"
-                    color='primary'
-                    onClick={() => window.open(PYTHON_DOWNLOAD_URL, '_blank')}
-                    type="link">
-                    Download Python
-                </Button>
+                <Space.Compact>
+                    <Button
+                        className='scale-95 font-xs'
+                        variant="solid"
+                        size="small"
+                        color='primary'
+                        type="link">
+                        <a href={PYTHON_DOWNLOAD_URL}>
+                            Donwload Anaconda
+                        </a>
+                    </Button>
+                    <Button
+                        className='scale-95 font-xs'
+                        variant="outlined"
+                        size="small"
+                        color='primary'
+                        onClick={onSelectCustom}>
+                        Select Custom
+                    </Button>
+                </Space.Compact>
             )}
             {selectedPython && (
                 <Space>
@@ -275,6 +289,21 @@ export default function Installation() {
         }
     };
 
+    /**
+     * Handles custom Python environment selection
+     * Opens a file dialog for the user to select a custom Python installation
+     */
+    const handleSelectCustomPython = async () => {
+        try {
+            await addPythonEnv();
+            // Re-check installation status to verify the newly added Python
+            await checkInstallationStatus();
+            openNotification('Success', NotificationType.SUCCESS, 'Python environment added successfully');
+        } catch (error) {
+            openNotification('Error', NotificationType.ERROR, 'Failed to add Python environment: ' + error);
+        }
+    };
+
     // Styling
     const { token } = theme.useToken();
 
@@ -295,7 +324,7 @@ export default function Installation() {
     const stepItems = [
         {
             title: <span className="font-bold">Download & Install Python</span>,
-            description: <DownloadAndInstallPython currentStep={currentStep} selectedPython={selectedPython} />,
+            description: <DownloadAndInstallPython currentStep={currentStep} selectedPython={selectedPython} onSelectCustom={handleSelectCustomPython} />,
             status: getStepStatus(InstallationStep.DOWNLOAD_PYTHON)
         },
         {
@@ -305,27 +334,6 @@ export default function Installation() {
         }
     ];
 
-    // Add completion step if both are installed
-    if (currentStep === InstallationStep.COMPLETED) {
-        stepItems.push({
-            title: <span className="font-bold text-green-600">Setup Complete!</span>,
-            description: (
-                <div className="flex flex-col gap-2 items-start">
-                    <span className="text-xs font-light text-green-600">
-                        Python and JupyterLab are both installed and ready to use.
-                    </span>
-                    {selectedPython && (
-                        <Space>
-                            <Tag icon={<PythonOutlined />} color="success">
-                                Python {selectedPython.version} ({selectedPython.source})
-                            </Tag>
-                        </Space>
-                    )}
-                </div>
-            ),
-            status: 'finish' as const
-        });
-    }
 
     return (
         <>

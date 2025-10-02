@@ -57,6 +57,8 @@ pub struct PythonInstallation {
     pub source: String,
     /// Priority rank (lower is better: anaconda=1, homebrew=2, others=3)
     pub priority: u8,
+    /// Is a custom python installation
+    pub is_custom: bool,
 }
 
 /// State management for Jupyter Lab sessions

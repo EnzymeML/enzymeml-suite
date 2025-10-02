@@ -3,9 +3,9 @@ import { Dropdown, Space, Flex } from "antd";
 import { DownOutlined, OpenAIOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Icon from "@ant-design/icons";
-import { GiMolecule } from "react-icons/gi";
 
 import ProteinIcon from "@icons/protein.svg";
+import SmallMoleculeIcon from "@icons/smallmolecule.svg";
 import ReactionsIcon from "@icons/reactions1.svg";
 import VesselsIcon from "@icons/vessels.svg";
 import MeasurementIcon from "@icons/measurements.svg";
@@ -73,12 +73,7 @@ export default function CreateDropdown() {
         {
             key: "small_molecule",
             label: "Small Molecule",
-            icon: (
-                <Icon
-                    style={{ fontSize: 16 }}
-                    component={GiMolecule as unknown as React.ComponentType}
-                />
-            ),
+            icon: <Icon style={{ fontSize: 16 }} component={SmallMoleculeIcon as unknown as React.ComponentType} />,
             route: "/small-molecules",
             action: createSmallMolecule,
         },
