@@ -15,8 +15,6 @@ use crate::schema;
 use crate::states::{EnzymeMLState, ExposedEnzymeMLState};
 use crate::{models, update_event};
 
-/// Functions for managing application state and document I/O operations
-
 /// Gets the current application state
 ///
 /// Retrieves the current state of the EnzymeML document for frontend consumption.
