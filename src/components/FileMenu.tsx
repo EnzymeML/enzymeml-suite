@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { CloseOutlined, DownOutlined, EditOutlined, ExportOutlined, FileOutlined, FolderOpenOutlined, SaveOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { Dropdown, Input, theme } from 'antd';
+import { Button, Dropdown, Input, theme } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
 import { useWindowTauriListener } from '@hooks/useTauriListener';
@@ -15,9 +15,11 @@ import EnzymeMLLogoCol from '@icons/enzymeml_logo_coloured.svg';
 import useAppStore from '@stores/appstore';
 import { formatKeyboardShortcut } from '@utilities/osutils';
 import { NotificationType } from '@components/NotificationProvider';
+import { commands } from '@commands/validation';
+import ValidationIndicator from '@validation/components/ValidationIndicator';
+import ValidationModal from '@validation/ValidationModal';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const MAX_RECENT_ENTRIES = 10;
+const MAX_RECENT_ENTRIES = 5;
 
 const appWindow = getCurrentWebviewWindow()
 
@@ -129,6 +131,10 @@ export default function FileMenu() {
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     /** Control dropdown open state */
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    /** State used to re-render the component when the validation report changes */
+    const [, setIsValidationReportValid] = useState(false);
+    /** Control validation modal open state */
+    const [validationModalOpen, setValidationModalOpen] = useState(false);
 
     // Router
     const navigate = useNavigate();
@@ -160,6 +166,15 @@ export default function FileMenu() {
         });
     }, []);
 
+    useWindowTauriListener("update_report", () => {
+        commands.getValidationReport().then((data) => {
+            if (data.status === "ok") {
+                console.log(data.data);
+                setIsValidationReportValid(true);
+            }
+        });
+    }, []);
+
     // Effects
     /** 
      * Sync local title with backend state on component mount
@@ -172,6 +187,12 @@ export default function FileMenu() {
 
         listEntries().then((data) => {
             setAllEntries(data);
+        });
+
+        commands.getValidationReport().then((data) => {
+            if (data.status === "ok") {
+                setIsValidationReportValid(true);
+            }
         });
     }, []);
 
@@ -206,19 +227,16 @@ export default function FileMenu() {
             extra: formatKeyboardShortcut('S'),
         },
         {
-            key: 'open',
+            key: 'open-from-file',
             label: 'Open Document',
             icon: <FolderOpenOutlined />,
+            extra: formatKeyboardShortcut('O'),
+        },
+        {
+            key: 'recent',
+            label: 'Recent',
+            icon: <FileOutlined />,
             children: [
-                {
-                    key: 'open-from-file',
-                    label: 'From File',
-                    icon: <FileOutlined />,
-                    extra: formatKeyboardShortcut('O'),
-                },
-                {
-                    type: 'divider',
-                },
                 {
                     key: 'search-from-file',
                     label: <FileSearchInput
@@ -227,6 +245,9 @@ export default function FileMenu() {
                         setIsSearchInputFocused={setIsSearchInputFocused}
                     />,
                 },
+                {
+                    type: 'divider',
+                },
             ],
         },
         {
@@ -234,6 +255,16 @@ export default function FileMenu() {
             label: 'Export Document',
             icon: <ExportOutlined />,
             extra: formatKeyboardShortcut('R'),
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: 'validation',
+            label: 'Validation',
+            icon: <div className="mr-2">
+                <ValidationIndicator />
+            </div>,
         },
         {
             type: 'divider',
@@ -248,16 +279,21 @@ export default function FileMenu() {
 
     // Add all entries to the items array
     /**
-     * Dynamically adds recent document entries to the "Open Document" submenu
+     * Dynamically adds recent document entries to the "Recent" submenu
      * Each entry displays with an EnzymeML logo (colored or mono based on theme)
+     * Limited to a maximum of 10 entries for better usability
      */
-    allEntries.forEach((entry) => {
+    const filteredEntries = allEntries.filter((entry) => {
         if (searchInput.length !== 0 && !entry[0].toLowerCase().startsWith(searchInput.toLowerCase())) {
-            return;
+            return false;
         }
-        const openMenuItem = items[4];
-        if (openMenuItem && 'children' in openMenuItem && openMenuItem.children) {
-            openMenuItem.children.push({
+        return true;
+    }).slice(0, MAX_RECENT_ENTRIES);
+
+    filteredEntries.forEach((entry) => {
+        const recentMenuItem = items[5];
+        if (recentMenuItem && 'children' in recentMenuItem && recentMenuItem.children) {
+            recentMenuItem.children.push({
                 key: `entry-${entry[1].toString()}`,
                 label: entry[0],
                 icon: (
@@ -308,6 +344,9 @@ export default function FileMenu() {
                     openNotification('Error exporting entry', NotificationType.ERROR, error.toString());
                 });
                 break;
+            case 'validation':
+                setValidationModalOpen(true);
+                break;
             case 'close':
                 appWindow.close();
                 break;
@@ -333,16 +372,26 @@ export default function FileMenu() {
     };
 
     return (
-        <Dropdown
-            menu={{ items, onClick }}
-            trigger={['click']}
-            open={dropdownOpen || isTitleInputFocused || isSearchInputFocused}
-            onOpenChange={handleOpenChange}
-        >
-            <div className="flex gap-1 items-center opacity-75 cursor-pointer">
-                <span className="text-sm font-semibold">{title || "File"}</span>
-                <DownOutlined style={{ fontSize: 12 }} />
-            </div>
-        </Dropdown>
+        <div className="flex flex-row gap-1 items-center">
+            <Dropdown
+                menu={{ items, onClick }}
+                trigger={['click']}
+                open={dropdownOpen || isTitleInputFocused || isSearchInputFocused}
+                onOpenChange={handleOpenChange}
+            >
+                <Button variant="text" size="small">
+                    <div className="flex gap-2 items-center opacity-75 cursor-pointer">
+                        <ValidationIndicator verbose={false} />
+                        <span className="text-xs font-semibold">{title || "File"}</span>
+                        <DownOutlined style={{ fontSize: 12 }} />
+                    </div>
+                </Button>
+            </Dropdown>
+
+            <ValidationModal
+                open={validationModalOpen}
+                onClose={() => setValidationModalOpen(false)}
+            />
+        </div>
     );
 }

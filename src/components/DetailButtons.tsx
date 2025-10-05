@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Popconfirm, Tooltip } from 'antd';
-import { DeleteOutlined, LockOutlined, SaveOutlined, UnlockOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SaveOutlined } from '@ant-design/icons';
+import ValidationIndicator from '@suite/validation/components/ValidationIndicator';
+import { ValidationResult } from '@suite/commands/validation';
+import { useRouterTauriListener } from '@suite/hooks/useTauriListener';
+import { getValidationReportById } from '@suite/validation/utils';
+import ValidationModal from '@suite/validation/ValidationModal';
 
 interface DetailButtonsProps {
+    id: string,
     onLock: () => void,
     onDelete?: () => void,
     saveObject: () => void,
@@ -10,14 +16,28 @@ interface DetailButtonsProps {
 
 export default function DetailButtons(
     {
-        onLock,
+        id,
         onDelete,
         saveObject,
     }: DetailButtonsProps
 ) {
-
     // States
-    const [isLocked, setIsLocked] = useState(false);
+    const [, setErrors] = useState<ValidationResult[]>([]);
+    const [open, setOpen] = useState(false);
+
+    // Effects
+    useEffect(() => {
+        getValidationReportById(id).then((report: ValidationResult[]) => {
+            setErrors(report);
+        });
+    }, []);
+
+    // Hooks
+    useRouterTauriListener("update_report", () => {
+        getValidationReportById(id).then((report: ValidationResult[]) => {
+            setErrors(report);
+        });
+    }, [id]);
 
     // Handlers
     const confirm = () => {
@@ -26,20 +46,17 @@ export default function DetailButtons(
         }
     };
 
-    const toggleLock = () => {
-        setIsLocked(!isLocked);
-    };
-
     return (
         <Button.Group>
             <Tooltip placement="left"
-                title={"Lock Form"}
+                title={"Validation Report"}
             >
                 <Button
-                    icon={isLocked ? <LockOutlined style={{ color: "orangered" }} /> : <UnlockOutlined />}
+                    className='flex gap-1 justify-center items-center'
+                    style={{ minWidth: '65px' }}
+                    icon={<ValidationIndicator verbose={true} id={id} />}
                     onClick={() => {
-                        onLock();
-                        toggleLock();
+                        setOpen(true);
                     }}
                 />
             </Tooltip>
@@ -75,6 +92,11 @@ export default function DetailButtons(
                     />
                 </Tooltip>
             </Popconfirm>
+            <ValidationModal
+                open={open}
+                onClose={() => setOpen(false)}
+                id={id}
+            />
         </Button.Group>
     );
 }

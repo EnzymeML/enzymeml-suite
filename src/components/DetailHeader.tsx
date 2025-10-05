@@ -21,6 +21,7 @@ export default React.memo(function DetailHeader({
   setLocked,
   saveObject,
 }: DetailHeaderProps) {
+
   // Combine selectors into one to reduce potential re-renders
   const { selectedId, setSelectedId } = useAppStore(
     useMemo(
@@ -59,7 +60,12 @@ export default React.memo(function DetailHeader({
       <div className={"w-full h-full"} onClick={handleClick}>
         <CardHeader id={id} name={speciesName} placeholder={placeholder} />
       </div>
-      <DetailButtons onLock={handleLock} onDelete={handleDelete} saveObject={handleSave} />
+      <DetailButtons
+        id={id}
+        onLock={handleLock}
+        onDelete={handleDelete}
+        saveObject={handleSave}
+      />
     </div>
   );
 });

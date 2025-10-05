@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Card, Tag, Typography, Button, Space, theme } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
+import { Table, Card, Tag, Typography, Button, theme } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 import CardTitle from "@components/CardTitle";
@@ -13,6 +12,9 @@ import { listMeasurements } from "@commands/measurements";
 import { useRouterTauriListener } from "@hooks/useTauriListener";
 import CreateDropdown from "./CreateDropdown";
 import { useNavigate } from "react-router-dom";
+import ValidationIndicator from "@validation/components/ValidationIndicator";
+import ValidationModal from "@validation/ValidationModal";
+import { getValidationStatusById, ValidationStatus } from "@validation/utils";
 
 const { Text } = Typography;
 
@@ -25,6 +27,7 @@ interface OverviewItem {
     name: string;
     type: "Small Molecule" | "Protein" | "Vessel" | "Reaction" | "Measurement";
     route: string;
+    validationStatus: ValidationStatus;
 }
 
 /**
@@ -56,6 +59,7 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
     // States
     const [items, setItems] = useState<OverviewItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [validationModalId, setValidationModalId] = useState<string | null>(null);
     const setSelectedId = useAppStore((state) => state.setSelectedId);
 
     // Navigation
@@ -80,43 +84,54 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
                 listMeasurements()
             ]);
 
-            const allItems: OverviewItem[] = [
-                ...vessels.map(([id, name]): OverviewItem => ({
+            const allItemsWithoutValidation: Omit<OverviewItem, 'validationStatus'>[] = [
+                ...vessels.map(([id, name]) => ({
                     key: `vessel_${id}`,
                     id,
                     name,
-                    type: "Vessel",
+                    type: "Vessel" as const,
                     route: "/vessels"
                 })),
-                ...smallMolecules.map(([id, name]): OverviewItem => ({
+                ...smallMolecules.map(([id, name]) => ({
                     key: `smallmol_${id}`,
                     id,
                     name,
-                    type: "Small Molecule",
+                    type: "Small Molecule" as const,
                     route: "/small-molecules"
                 })),
-                ...proteins.map(([id, name]): OverviewItem => ({
+                ...proteins.map(([id, name]) => ({
                     key: `protein_${id}`,
                     id,
                     name,
-                    type: "Protein",
+                    type: "Protein" as const,
                     route: "/proteins"
                 })),
-                ...reactions.map(([id, name]): OverviewItem => ({
+                ...reactions.map(([id, name]) => ({
                     key: `reaction_${id}`,
                     id,
                     name,
-                    type: "Reaction",
+                    type: "Reaction" as const,
                     route: "/reactions"
                 })),
-                ...measurements.map(([id, name]): OverviewItem => ({
+                ...measurements.map(([id, name]) => ({
                     key: `measurement_${id}`,
                     id,
                     name,
-                    type: "Measurement",
+                    type: "Measurement" as const,
                     route: "/measurements"
                 }))
             ];
+
+            // Fetch validation statuses for all items
+            const allItems: OverviewItem[] = await Promise.all(
+                allItemsWithoutValidation.map(async (item) => {
+                    const validationStatus = await getValidationStatusById(item.id);
+                    return {
+                        ...item,
+                        validationStatus
+                    };
+                })
+            );
 
             setItems(allItems);
         } catch (error) {
@@ -139,6 +154,7 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
     useRouterTauriListener("update_proteins", fetchData);
     useRouterTauriListener("update_reactions", fetchData);
     useRouterTauriListener("update_measurements", fetchData);
+    useRouterTauriListener("update_report", fetchData);
 
     /**
      * Handles item selection/viewing.
@@ -155,19 +171,11 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
     // Table column definitions
     const columns: ColumnsType<OverviewItem> = [
         {
-            title: "Name",
-            dataIndex: "name",
-            key: "name",
-            width: "40%",
-            render: (text: string) => (
-                <Text strong>{text}</Text>
-            ),
-        },
-        {
             title: "Type",
             dataIndex: "type",
             key: "type",
-            width: "25%",
+            width: "15%",
+            align: "center",
             filters: [
                 { text: "Vessel", value: "Vessel" },
                 { text: "Small Molecule", value: "Small Molecule" },
@@ -199,25 +207,55 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             title: "ID",
             dataIndex: "id",
             key: "id",
-            width: "20%",
+            width: "12%",
+            align: "center",
             render: (text: string) => (
                 <Text code>{text}</Text>
             ),
         },
         {
-            title: "Actions",
-            key: "actions",
-            width: "15%",
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
+            width: "30%",
+            render: (text: string) => (
+                <Text strong>{text}</Text>
+            ),
+        },
+        {
+            title: "Validation",
+            key: "validation",
+            dataIndex: "validationStatus",
+            width: "20%",
+            align: "center",
+            filters: [
+                { text: "Valid", value: ValidationStatus.OK },
+                { text: "Warnings", value: ValidationStatus.HasWarnings },
+                { text: "Invalid", value: ValidationStatus.HasErrors },
+            ],
+            onFilter: (value, record) => record.validationStatus === value,
+            sorter: (a, b) => {
+                const statusOrder = {
+                    [ValidationStatus.HasErrors]: 0,
+                    [ValidationStatus.HasWarnings]: 1,
+                    [ValidationStatus.OK]: 2,
+                };
+                return statusOrder[a.validationStatus] - statusOrder[b.validationStatus];
+            },
             render: (_, record) => (
-                <Space>
+                <div className="flex justify-center items-center">
                     <Button
-                        type="text"
+                        className='flex gap-1 justify-center items-center'
                         size="small"
-                        icon={<EyeOutlined />}
-                        onClick={() => handleView(record)}
-                        title="View details"
+                        style={{ minWidth: '65px' }}
+                        icon={<ValidationIndicator verbose={true} id={record.id} />}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setValidationModalId(record.id);
+                        }}
+                        title="View validation status"
                     />
-                </Space>
+                </div>
             ),
         },
     ];
@@ -270,6 +308,13 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
                     onClick: () => handleView(record),
                 })}
             />
+            {validationModalId && (
+                <ValidationModal
+                    open={validationModalId !== null}
+                    onClose={() => setValidationModalId(null)}
+                    id={validationModalId}
+                />
+            )}
         </Card>
     );
 }
