@@ -46,7 +46,7 @@ impl From<EnzymeMLValidationResult> for ValidationResult {
         Self {
             location: result.location().to_string(),
             message: result.message().to_string(),
-            severity: result.severity().clone().into(),
+            severity: (*result.severity()).into(),
             identifier: result.identifier().as_ref().map(|id| id.to_string()),
         }
     }
