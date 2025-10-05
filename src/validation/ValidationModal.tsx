@@ -246,6 +246,9 @@ export default function ValidationModal({ open, onClose, id }: ValidationModalPr
                     backgroundColor: token.colorBgContainer,
                     maxHeight: '80vh',
                     overflow: 'auto'
+                },
+                mask: {
+                    borderRadius: token.borderRadiusLG
                 }
             }}
         >
