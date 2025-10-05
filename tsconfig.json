@@ -91,6 +91,9 @@
       ],
       "@visualisation/*": [
         "src/visualisation/*"
+      ],
+      "@validation/*": [
+        "src/validation/*"
       ]
     },
     /* Linting */
@@ -103,7 +106,8 @@
     "src"
   ],
   "exclude": [
-    "src/commands/jupyter.ts"
+    "src/commands/jupyter.ts",
+    "src/commands/validation.ts"
   ],
   "references": [
     {
