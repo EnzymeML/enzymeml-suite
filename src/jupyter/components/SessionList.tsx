@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Empty, Typography, theme } from 'antd';
 
 import { JupyterSessionInfo } from '@commands/jupyter';
 import SessionItem from '@jupyter/components/SessionItem';
@@ -8,7 +7,6 @@ import useJupyterStore from '@stores/jupyterstore';
 import { fetchJupyterSessions, terminateJupyterSession } from '@jupyter/utils';
 import useAppStore from '@stores/appstore';
 
-const { Text } = Typography;
 /**
  * JupyterSessionList - Displays the list of Jupyter sessions or empty state
  */
@@ -21,8 +19,6 @@ export default function SessionList() {
     const removeSession = useJupyterStore(state => state.removeSession);
     const setNumberOfSessions = useJupyterStore(state => state.setNumberOfSessions);
     const openNotification = useAppStore(state => state.openNotification);
-
-    const { token } = theme.useToken();
 
     // Fetch sessions on mount
     useEffect(() => {
@@ -58,21 +54,7 @@ export default function SessionList() {
 
     return (
         <div className="flex flex-col space-y-2"> {/* <-- fix here */}
-            {sessions.length === 0 ? (
-                <div
-                    className="flex justify-center items-center w-full"
-                    style={{ minHeight: '120px', maxHeight: '120px' }}
-                >
-                    <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={
-                            <Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
-                                No active sessions
-                            </Text>
-                        }
-                    />
-                </div>
-            ) : (
+            {sessions.length > 0 && (
                 sessions.map(session => (
                     <SessionItem
                         key={session.id}

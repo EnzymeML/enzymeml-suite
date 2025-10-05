@@ -13,45 +13,11 @@ import {
     setSelectedPython,
     openProjectFolder,
     addPythonEnv,
+    getSourceColor,
 } from '@jupyter/utils';
+import PythonMenuItem from '@jupyter/components/PythonMenuItem';
 
 const { Text } = Typography;
-
-/**
- * Gets a color for the tag based on the Python source
- */
-const getSourceColor = (source: string): string => {
-    switch (source.toLowerCase()) {
-        case 'anaconda':
-            return 'green';
-        case 'homebrew':
-            return 'blue';
-        case 'python.org':
-            return 'cyan';
-        case 'system':
-            return 'orange';
-        default:
-            return 'default';
-    }
-};
-
-/**
- * Gets a display name for the Python source
- */
-const getSourceDisplayName = (source: string): string => {
-    switch (source.toLowerCase()) {
-        case 'anaconda':
-            return 'Anaconda';
-        case 'homebrew':
-            return 'Homebrew';
-        case 'python.org':
-            return 'Python.org';
-        case 'system':
-            return 'System';
-        default:
-            return 'Other';
-    }
-};
 
 export default function Sessions() {
     // States
@@ -119,19 +85,7 @@ export default function Sessions() {
     // Create dropdown menu items
     const menuItems: MenuProps['items'] = pythons.map((python) => ({
         key: python.path,
-        label: (
-            <div className="flex flex-col gap-1 py-1">
-                <div className="flex gap-2 items-center">
-                    <Text strong>{python.version}</Text>
-                    <Tag color={getSourceColor(python.source)} style={{ margin: 0 }}>
-                        {getSourceDisplayName(python.source)}
-                    </Tag>
-                </div>
-                <Text type="secondary" style={{ fontSize: '9px' }} ellipsis>
-                    {python.path}
-                </Text>
-            </div>
-        ),
+        label: <PythonMenuItem python={python} />,
         onClick: () => handlePythonSelect(python.path),
     }));
 
