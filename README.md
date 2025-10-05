@@ -2,6 +2,8 @@
 
 A modern desktop application for creating, editing, and visualizing [EnzymeML](https://enzymeml.org/) documents. Built with Tauri, React, and TypeScript, the EnzymeML Suite provides a comprehensive graphical interface for managing enzyme kinetics data and computational modeling workflows through its Jupyter integration.
 
+![](./assets/example.png)
+
 ## 🧬 About EnzymeML
 
 EnzymeML is a data exchange format that supports the comprehensive documentation of enzymatic data by describing reaction conditions, time courses of substrate and product concentrations, the kinetic model, and the estimated kinetic parameters. This desktop application serves as the primary GUI for the EnzymeML ecosystem.
