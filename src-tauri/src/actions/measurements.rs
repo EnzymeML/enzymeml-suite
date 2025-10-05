@@ -8,7 +8,10 @@ use crate::actions::enzmldoc::get_species_name;
 use crate::actions::identifiers::MEASUREMENT_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+use crate::{
+    add_objects, create_object, delete_object, get_object, update_event, update_object,
+    update_report,
+};
 
 /// Data structure for visualization containing an ID and data points
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -72,6 +75,7 @@ pub fn create_measurement(
         .collect();
 
     update_event!(app_handle, "update_measurements");
+    update_report!(state, app_handle);
 
     Ok(id)
 }
@@ -103,6 +107,8 @@ pub fn add_measurement(
     state_guard.measurements.push(object.clone());
     drop(state_guard);
     update_event!(app_handle, "update_measurements");
+    update_report!(state, app_handle);
+
     id
 }
 
@@ -143,6 +149,7 @@ pub fn add_measurements(
 
     add_objects!(state.doc, measurements, objects);
     update_event!(app_handle, "update_measurements");
+    update_report!(state, app_handle);
     ids
 }
 
@@ -166,6 +173,7 @@ pub fn update_measurement(
 
     update_event!(app_handle, "update_measurements");
     update_event!(app_handle, &id);
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -301,6 +309,7 @@ pub fn delete_measurement(
 
     update_event!(app_handle, "update_measurements");
     update_event!(app_handle, "update_vis");
+    update_report!(state, app_handle);
 
     Ok(())
 }

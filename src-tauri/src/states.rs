@@ -1,4 +1,7 @@
-use enzymeml::prelude::{EnzymeMLDocument, EnzymeMLDocumentBuilder, Parameter};
+use enzymeml::{
+    prelude::{EnzymeMLDocument, EnzymeMLDocumentBuilder, Parameter},
+    validation::consistency::{check_consistency, Report},
+};
 use regex::Regex;
 use std::sync::{Arc, Mutex};
 
@@ -8,21 +11,65 @@ pub struct EnzymeMLState {
     pub doc: Mutex<EnzymeMLDocument>,
     pub id: Mutex<Option<i32>>,
     pub param_buffer: Mutex<Vec<Parameter>>,
+    pub validation_report: Mutex<Report>,
 }
 
 impl Default for EnzymeMLState {
     fn default() -> Self {
+        let enzmldoc = EnzymeMLDocumentBuilder::default()
+            .name("Document Title")
+            .build()
+            .unwrap();
+
+        let report = check_consistency(&enzmldoc);
+
         EnzymeMLState {
             title: Mutex::new("Document Title".to_string()),
-            doc: Mutex::new(
-                EnzymeMLDocumentBuilder::default()
-                    .name("Document Title")
-                    .build()
-                    .unwrap(),
-            ),
+            doc: Mutex::new(enzmldoc),
             id: Mutex::new(None),
             param_buffer: Mutex::new(Vec::new()),
+            validation_report: Mutex::new(report),
         }
+    }
+}
+
+impl EnzymeMLState {
+    /// Updates the validation report by checking consistency of the current document
+    ///
+    /// This method locks the document mutex, performs a consistency check on the
+    /// EnzymeML document, and updates the validation report with the results.
+    ///
+    /// # Thread Safety
+    /// This method is thread-safe as it properly locks both the document and
+    /// validation_report mutexes sequentially to avoid deadlocks.
+    pub fn update_report(&self) {
+        // Acquire the EnzymeML document through a lock guard
+        let doc = self.doc.lock().unwrap();
+        let report = check_consistency(&doc);
+        drop(doc);
+
+        // Acquire the validation report through a lock guard
+        // and update the report
+        let mut validation_report = self.validation_report.lock().unwrap();
+        *validation_report = report;
+    }
+
+    /// Updates the validation report with a provided document reference
+    ///
+    /// This method is used when the caller already holds a lock on the document,
+    /// avoiding deadlock situations. It performs a consistency check on the
+    /// provided document and updates the validation report.
+    ///
+    /// # Arguments
+    /// * `doc` - A reference to the EnzymeML document to check
+    ///
+    /// # Thread Safety
+    /// This method only locks the validation_report mutex, assuming the caller
+    /// already holds a lock on the document.
+    pub fn update_report_with_doc(&self, doc: &EnzymeMLDocument) {
+        let report = check_consistency(doc);
+        let mut validation_report = self.validation_report.lock().unwrap();
+        *validation_report = report;
     }
 }
 

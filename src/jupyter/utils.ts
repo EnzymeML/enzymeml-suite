@@ -244,3 +244,39 @@ export const openProjectFolder = async (
         return false;
     }
 };
+
+/**
+ * Gets a color for the tag based on the Python source
+ */
+export const getSourceColor = (source: string): string => {
+    switch (source.toLowerCase()) {
+        case 'anaconda':
+            return 'green';
+        case 'homebrew':
+            return 'blue';
+        case 'python.org':
+            return 'cyan';
+        case 'system':
+            return 'orange';
+        default:
+            return 'default';
+    }
+};
+
+/**
+ * Gets a display name for the Python source
+ */
+export const getSourceDisplayName = (source: string): string => {
+    switch (source.toLowerCase()) {
+        case 'anaconda':
+            return 'Anaconda';
+        case 'homebrew':
+            return 'Homebrew';
+        case 'python.org':
+            return 'Python.org';
+        case 'system':
+            return 'System';
+        default:
+            return 'Other';
+    }
+};

@@ -111,7 +111,7 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
         setReactionSMILES(createReactionSMILES(reactantIds, productIds, smallMolecules));
       }
     });
-  }, [data.reactants, data.products]);
+  }, [data.reactants, data.products, handleUpdateObject]);
 
 
   // Parse participants and set them in the form
@@ -136,7 +136,7 @@ export default function ReactionForm({ context }: FormViewProps<Reaction>) {
           className="mb-10"
           smilesStr={reactionSMILES}
           width={700}
-          height={170}
+          height={150}
           participants={participants}
         />
       )}

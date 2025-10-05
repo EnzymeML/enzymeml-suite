@@ -9,7 +9,7 @@ import { useRouterTauriListener } from "@suite/hooks/useTauriListener.ts";
 import { getBadgeColor } from "@suite/components/CardHeader.tsx";
 
 export const WIDTH = 1200;
-const HEIGHT = 100;
+const HEIGHT = 150;
 
 /**
  * PopoverLabel component that displays an ID badge and name text for use in popovers
@@ -86,9 +86,19 @@ export default function ReactionDrawerContainer({
   });
 
   // Determine the scale based on the length of the smiles string
-  // Scale should go down if the smiles string is too long
+  // Smaller reactions should have larger scale to fill space better
+  // Larger reactions should have smaller scale to fit within bounds
   const scale = useMemo(() => {
-    return Math.min(0.8, 160 / smilesStr.length);
+    // Base calculation: longer SMILES = smaller scale
+    // For short SMILES (e.g., 20 chars): scale ~1.2-1.5
+    // For medium SMILES (e.g., 80 chars): scale ~1.0
+    // For long SMILES (e.g., 200 chars): scale ~0.6
+
+    if (smilesStr.length < 20) {
+      return 1.5;
+    } else if (smilesStr.length < 80) {
+      return Math.max(0.5, Math.min(1.0, 100 / smilesStr.length));
+    }
   }, [smilesStr]);
 
 
@@ -111,8 +121,8 @@ export default function ReactionDrawerContainer({
     const moleculeOptions = {
       width,
       height,
-      padding: 5,
-      bondLength: 20,
+      padding: 10,
+      bondLength: 25,
       debug: false,
       atomVisualization: "default",
     };
@@ -195,13 +205,11 @@ export default function ReactionDrawerContainer({
           }, 100); // Small delay to ensure SVG is fully rendered
 
         } catch (e) {
-          // eslint-disable-next-line no-console
           console.error("Error drawing reaction:", e);
         }
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (err: any) => {
-        // eslint-disable-next-line no-console
         console.error("Error parsing reaction SMILES:", err);
       }
     );
@@ -213,7 +221,7 @@ export default function ReactionDrawerContainer({
     <div
       ref={containerRef}
       className={`flex overflow-hidden relative justify-center items-center w-full ${className}`}
-      style={{ height: `${height - 30}px` }}
+      style={{ height: `${height}px` }}
     >
       <svg
         ref={svgRef}

@@ -61,6 +61,7 @@ export default function ReactionElementField(
                 <CloseOutlined
                     onClick={() => {
                         subOpt.remove(field.name);
+                        setTimeout(() => handleUpdateObject(), 0);
                     }}
                     style={{ cursor: 'pointer' }}
                 />

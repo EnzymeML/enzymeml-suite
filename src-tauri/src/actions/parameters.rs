@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{create_object, delete_object, get_object, update_event, update_object};
+use crate::{create_object, delete_object, get_object, update_event, update_object, update_report};
 
 /// Retrieves all parameters from the EnzymeML document
 ///
@@ -47,6 +47,7 @@ pub fn create_parameter(
 
     // Notify the frontend
     update_event!(app_handle, "update_parameters");
+    update_report!(state, app_handle);
 
     Ok(id)
 }
@@ -84,6 +85,7 @@ pub fn update_parameter(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, &id);
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -97,8 +99,8 @@ pub fn partial_update_parameter(
     app_handle: AppHandle,
 ) -> Result<(), String> {
     println!("Partial update parameter: {} {}", pid, key);
-    let mut state = state.doc.lock().unwrap();
-    let parameter = state.parameters.iter_mut().find(|p| p.id == pid).unwrap();
+    let mut doc = state.doc.lock().unwrap();
+    let parameter = doc.parameters.iter_mut().find(|p| p.id == pid).unwrap();
     match key {
         "value" => parameter.value = Some(value),
         "initial_value" => parameter.initial_value = Some(value),
@@ -109,6 +111,8 @@ pub fn partial_update_parameter(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, &pid);
+    update_report!(state, app_handle, &doc);
+
     Ok(())
 }
 
@@ -123,4 +127,5 @@ pub fn delete_parameter(state: State<Arc<EnzymeMLState>>, id: &str, app_handle: 
     delete_object!(state.doc, parameters, id, id);
 
     update_event!(app_handle, "update_parameters");
+    update_report!(state, app_handle);
 }

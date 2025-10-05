@@ -48,6 +48,7 @@ export default defineConfig(async () => ({
             "@utilities": resolve(__dirname, "./src/utilities"),
             "@vessels": resolve(__dirname, "./src/vessels"),
             "@visualisation": resolve(__dirname, "./src/visualisation"),
+            "@validation": resolve(__dirname, "./src/validation"),
             // shims for node polyfills
             fs: resolve(__dirname, "./src/shims/fs.ts"),
             path: resolve(__dirname, "./src/shims/path.ts"),

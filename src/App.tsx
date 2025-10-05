@@ -149,6 +149,7 @@ function App() {
    * - Cmd/Ctrl+R: Export to JSON
    * - Cmd/Ctrl+N: New entry
    * - Cmd/Ctrl+W: Close window
+   * - Cmd/Ctrl+"+": Add new item
    */
   useFileMenuShortcuts({
     openNotification,

@@ -6,7 +6,10 @@ use tauri::{AppHandle, Emitter, State};
 use crate::actions::identifiers::SMALL_MOLECULE_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+use crate::{
+    add_objects, create_object, delete_object, get_object, update_event, update_object,
+    update_report,
+};
 
 /// Creates a new small molecule in the EnzymeML document and adds a corresponding ODE equation
 ///
@@ -37,6 +40,7 @@ pub fn create_small_mol(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle)
     );
 
     update_event!(app_handle, "update_small_mols");
+    update_report!(state, app_handle);
 
     id
 }
@@ -67,7 +71,10 @@ pub fn add_small_mol(
     object.id = id.clone();
     state_guard.small_molecules.push(object.clone());
     drop(state_guard);
+
     update_event!(app_handle, "update_small_mols");
+    update_report!(state, app_handle);
+
     id
 }
 
@@ -134,6 +141,7 @@ pub fn update_small_mol(
     let id = update_object!(state.doc, small_molecules, data, id);
 
     update_event!(app_handle, &id);
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -236,6 +244,7 @@ pub fn delete_small_mol(
     delete_object!(state.doc, equations, species_id.clone(), species_id);
 
     update_event!(app_handle, "update_small_mols");
+    update_report!(state, app_handle);
 
     Ok(())
 }

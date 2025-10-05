@@ -6,7 +6,10 @@ use crate::actions::equations::process_equation;
 use crate::actions::identifiers::REACTION_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+use crate::{
+    add_objects, create_object, delete_object, get_object, update_event, update_object,
+    update_report,
+};
 
 /// Adds a small molecule to the EnzymeML document
 ///
@@ -28,13 +31,14 @@ pub fn add_reaction(
         REACTION_PREFIX,
     );
 
-    // Process the kinetic law
     process_kinetic_law(&state, &object.kinetic_law, &app_handle)?;
 
     object.id = id.clone();
     state_guard.reactions.push(object.clone());
     drop(state_guard);
+
     update_event!(app_handle, "update_reactions");
+    update_report!(state, app_handle);
 
     Ok(id)
 }
@@ -81,6 +85,7 @@ pub fn add_reactions(
 
     add_objects!(state.doc, reactions, objects);
     update_event!(app_handle, "update_reactions");
+    update_report!(state, app_handle);
 
     Ok(ids)
 }
@@ -102,6 +107,7 @@ pub fn create_reaction(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) 
     let id = create_object!(state.doc, reactions, builder, REACTION_PREFIX, id);
 
     update_event!(app_handle, "update_reactions");
+    update_report!(state, app_handle);
 
     id
 }
@@ -127,6 +133,7 @@ pub fn update_reaction(
     let id = update_object!(state.doc, reactions, data, id);
 
     update_event!(app_handle, &id);
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -182,6 +189,7 @@ pub fn delete_reaction(
     delete_object!(state.doc, reactions, id, id);
 
     update_event!(app_handle, "update_reactions");
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -201,7 +209,10 @@ fn process_kinetic_law(
 ) -> Result<(), String> {
     kinetic_law.as_ref().map_or(Ok(()), |law| {
         process_equation(state, law).map_err(|e| e.to_string())?;
+
         update_event!(app_handle, "update_parameters");
+        update_report!(state, app_handle);
+
         Ok(())
     })
 }
