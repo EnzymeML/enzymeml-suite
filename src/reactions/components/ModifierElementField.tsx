@@ -60,6 +60,7 @@ export default function ModifierElementField(
                 <CloseOutlined
                     onClick={() => {
                         subOpt.remove(field.name);
+                        setTimeout(() => handleUpdateObject(), 0);
                     }}
                     style={{ cursor: 'pointer' }}
                 />
