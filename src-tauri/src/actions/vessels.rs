@@ -6,7 +6,10 @@ use crate::actions::identifiers::VESSEL_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
 use crate::unit::UnitDefinitions;
-use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+use crate::{
+    add_objects, create_object, delete_object, get_object, update_event, update_object,
+    update_report,
+};
 
 /// Adds a small molecule to the EnzymeML document
 ///
@@ -30,7 +33,10 @@ pub fn add_vessel(
     object.id = id.clone();
     state_guard.vessels.push(object.clone());
     drop(state_guard);
+
     update_event!(app_handle, "update_vessels");
+    update_report!(state, app_handle);
+
     id
 }
 
@@ -70,7 +76,9 @@ pub fn add_vessels(
         .collect();
 
     add_objects!(state.doc, vessels, objects);
+
     update_event!(app_handle, "update_vessels");
+    update_report!(state, app_handle);
 
     ids
 }
@@ -97,6 +105,7 @@ pub fn create_vessel(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) ->
     let id = create_object!(state.doc, vessels, builder, VESSEL_PREFIX, id);
 
     update_event!(app_handle, "update_vessels");
+    update_report!(state, app_handle);
 
     id
 }
@@ -189,6 +198,7 @@ pub fn delete_vessel(
     delete_object!(state.doc, vessels, id, id);
 
     update_event!(app_handle, "update_vessels");
+    update_report!(state, app_handle);
 
     Ok(())
 }

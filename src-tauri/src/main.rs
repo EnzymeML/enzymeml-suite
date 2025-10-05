@@ -10,7 +10,7 @@ use tauri_plugin_store::StoreExt;
 use crate::actions::utils::get_config_store_path;
 use crate::actions::{
     enzmldoc, equations, jupyter, measurements, parameters, proteins, reactions, simulation,
-    smallmols, units, vessels, windows,
+    smallmols, units, validation, vessels, windows,
 };
 use crate::api::create_rocket;
 use crate::states::{EnzymeMLState, JupyterState};
@@ -72,6 +72,8 @@ pub mod actions {
     pub mod units;
     /// Utility functions for action implementations
     pub mod utils;
+    /// Validation commands
+    pub mod validation;
     /// Vessel entity management commands
     pub mod vessels;
     /// Window management commands
@@ -94,6 +96,7 @@ async fn main() {
     if cfg!(debug_assertions) {
         generate_bindings(
             collect_commands![
+                // Jupyter commands
                 jupyter::get_jupyter_sessions,
                 jupyter::kill_jupyter,
                 jupyter::start_jupyter,
@@ -111,6 +114,16 @@ async fn main() {
             ],
             collect_events![jupyter::JupyterInstallOutput, jupyter::JupyterInstallStatus,],
             "../src/commands/jupyter.ts",
+        );
+
+        generate_bindings(
+            collect_commands![
+                // Validation commands
+                validation::get_validation_report,
+                validation::get_validation_report_by_identifier,
+            ],
+            collect_events![],
+            "../src/commands/validation.ts",
         );
     }
 
@@ -258,6 +271,9 @@ async fn main() {
             jupyter::get_jupyter_template_metadata,
             jupyter::add_template_to_project,
             jupyter::open_project_folder,
+            // Validation
+            validation::get_validation_report,
+            validation::get_validation_report_by_identifier,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -8,7 +8,7 @@ use crate::db::establish_db_connection;
 use crate::models::NewDocument;
 use crate::schema::documents;
 use crate::states::EnzymeMLState;
-use crate::update_event;
+use crate::{update_event, update_report};
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Stats {
@@ -43,6 +43,8 @@ pub fn set_title(
     app_handle
         .emit("update_document", ())
         .map_err(|e| e.to_string())?;
+
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -95,6 +97,7 @@ pub fn create_document(
     *state_doc = enzmldoc;
 
     update_event!(app_handle, "update_document");
+    update_report!(state, app_handle);
 
     Ok(())
 }

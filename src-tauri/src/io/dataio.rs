@@ -11,9 +11,9 @@ use tauri_plugin_dialog::DialogExt;
 use crate::db::establish_connection;
 use crate::docutils::{deserialize_doc, serialize_doc};
 use crate::models::Document;
-use crate::schema;
 use crate::states::{EnzymeMLState, ExposedEnzymeMLState};
 use crate::{models, update_event};
+use crate::{schema, update_report};
 
 /// Gets the current application state
 ///
@@ -105,6 +105,7 @@ pub async fn import_excel_meas(
                 .map_err(|err| err.to_string())?;
 
             update_event!(app_handle, "update_measurements");
+            update_report!(state, app_handle, &state_doc);
 
             Ok(state_doc.measurements.len() - prev_amnt_meas)
         }
@@ -187,6 +188,7 @@ pub async fn load_json(
             *state_doc = doc;
 
             update_event!(app_handle, "update_document");
+            update_report!(state, app_handle, &state_doc);
 
             Ok(())
         }
@@ -238,6 +240,7 @@ pub async fn load_json_from_path(
 
     // Notify the frontend
     update_event!(app_handle, "update_document");
+    update_report!(state, app_handle, &state_doc);
 
     Ok(())
 }
@@ -282,6 +285,7 @@ pub async fn import_excel_from_path(
         .map_err(|err| format!("Failed to import Excel file: {}", err))?;
 
     update_event!(app_handle, "update_measurements");
+    update_report!(state, app_handle, &state_doc);
 
     Ok(state_doc.measurements.len() - prev_amnt_meas)
 }
@@ -397,9 +401,8 @@ pub fn new_document(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) {
     *state_id = None;
 
     // Notify the frontend
-    app_handle
-        .emit("update_document", ())
-        .expect("Failed to emit event");
+    update_event!(app_handle, "update_document");
+    update_report!(state, app_handle, &state_doc);
 }
 
 /// Saves the current EnzymeML document to the database
@@ -423,16 +426,16 @@ pub fn save(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -> Result<i
     let mut state_id = state.id.lock().unwrap();
 
     if let Some(id) = *state_id {
-        app_handle
-            .emit("update_document", ())
-            .expect("Failed to emit event");
+        update_event!(app_handle, "update_document");
+        update_report!(state, app_handle, &state_doc);
         update_document(id, &state_doc).map_err(|err| err.to_string())
     } else {
         let id = insert_document(&state_title, &state_doc).map_err(|err| err.to_string())?;
         *state_id = Some(id);
-        app_handle
-            .emit("update_document", ())
-            .expect("Failed to emit event");
+
+        update_event!(app_handle, "update_document");
+        update_report!(state, app_handle, &state_doc);
+
         Ok(id)
     }
 }
@@ -469,9 +472,8 @@ pub fn load(
     *state_title = entry.title;
     *state_doc = doc;
 
-    app_handle
-        .emit("update_document", ())
-        .expect("Failed to emit event");
+    update_event!(app_handle, "update_document");
+    update_report!(state, app_handle, &state_doc);
 
     Ok(())
 }

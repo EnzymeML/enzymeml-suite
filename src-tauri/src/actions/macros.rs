@@ -197,3 +197,45 @@ macro_rules! update_event {
     };
     () => {};
 }
+
+/// Macro to update the validation report and emit an update event.
+///
+/// This macro takes a state and an app handle, updates the validation report
+/// in the state, and then emits an "update_report" event to notify the frontend
+/// about the report changes.
+///
+/// # Usage Patterns
+///
+/// 1. Without document reference (locks internally):
+///    `update_report!(state, app_handle)`
+///
+/// 2. With document reference (avoids deadlock when already locked):
+///    `update_report!(state, app_handle, &doc)`
+///
+/// # Arguments
+///
+/// * `$state` - The state containing the validation report, wrapped in a `Mutex`.
+/// * `$app_handle` - The Tauri app handle used to emit events.
+/// * `$doc` - (Optional) A reference to the EnzymeML document when already locked.
+///
+/// # Panics
+///
+/// This macro will panic if it fails to acquire the mutex lock on the state
+/// or if it fails to emit the event.
+#[macro_export]
+macro_rules! update_report {
+    // Pattern with document reference (avoids deadlock)
+    ($state:expr, $app_handle:expr, $doc:expr) => {
+        $state.update_report_with_doc($doc);
+        $app_handle
+            .emit("update_report", ())
+            .expect("Failed to emit event");
+    };
+    // Pattern without document reference (locks internally)
+    ($state:expr, $app_handle:expr) => {
+        $state.update_report();
+        $app_handle
+            .emit("update_report", ())
+            .expect("Failed to emit event");
+    };
+}

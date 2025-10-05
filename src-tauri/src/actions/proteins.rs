@@ -5,7 +5,10 @@ use tauri::{AppHandle, Emitter, State};
 use crate::actions::identifiers::PROTEIN_PREFIX;
 use crate::actions::utils::generate_id;
 use crate::states::EnzymeMLState;
-use crate::{add_objects, create_object, delete_object, get_object, update_event, update_object};
+use crate::{
+    add_objects, create_object, delete_object, get_object, update_event, update_object,
+    update_report,
+};
 
 /// Adds a small molecule to the EnzymeML document
 ///
@@ -29,7 +32,10 @@ pub fn add_protein(
     object.id = id.clone();
     state_guard.proteins.push(object.clone());
     drop(state_guard);
+
     update_event!(app_handle, "update_proteins");
+    update_report!(state, app_handle);
+
     id
 }
 
@@ -70,6 +76,7 @@ pub fn add_proteins(
 
     add_objects!(state.doc, proteins, objects);
     update_event!(app_handle, "update_proteins");
+    update_report!(state, app_handle);
 
     ids
 }
@@ -91,6 +98,7 @@ pub fn create_protein(state: State<Arc<EnzymeMLState>>, app_handle: AppHandle) -
     let id = create_object!(state.doc, proteins, builder, PROTEIN_PREFIX, id);
 
     update_event!(app_handle, "update_proteins");
+    update_report!(state, app_handle);
 
     id
 }
@@ -168,6 +176,7 @@ pub fn delete_protein(
     delete_object!(state.doc, proteins, id, id);
 
     update_event!(app_handle, "update_proteins");
+    update_report!(state, app_handle);
 
     Ok(())
 }

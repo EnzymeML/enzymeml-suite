@@ -7,7 +7,7 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::actions::enzmldoc::extract_species_ids;
 use crate::states::EnzymeMLState;
-use crate::{delete_object, get_object, update_event, update_object};
+use crate::{delete_object, get_object, update_event, update_object, update_report};
 
 /// Represents a part of an equation derived from a reaction
 #[derive(Debug, Clone)]
@@ -61,6 +61,7 @@ pub fn update_equation(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, &id);
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -91,6 +92,7 @@ pub fn create_equation(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, "update_equations");
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -129,6 +131,7 @@ pub fn delete_equation(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, "update_equations");
+    update_report!(state, app_handle);
 
     Ok(())
 }
@@ -210,6 +213,8 @@ pub fn derive_from_reactions(
     app_handle
         .emit("update_equations", ())
         .map_err(|e| e.to_string())?;
+
+    update_report!(state, app_handle);
 
     Ok(())
 }
