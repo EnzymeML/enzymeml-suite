@@ -2,6 +2,9 @@
 
 A modern desktop application for creating, editing, and visualizing [EnzymeML](https://enzymeml.org/) documents. Built with Tauri, React, and TypeScript, the EnzymeML Suite provides a comprehensive graphical interface for managing enzyme kinetics data and computational modeling workflows through its Jupyter integration.
 
+> [!IMPORTANT]  
+> The EnzymeML Suite has undergone significant changes, and the latest release has known issues with Windows. Therefore, we advise you to use the up-to-date build within this [GitHub Workflow](https://github.com/EnzymeML/enzymeml-suite/actions/workflows/build.yaml).
+
 ![](./assets/example.png)
 
 ## 🧬 About EnzymeML
