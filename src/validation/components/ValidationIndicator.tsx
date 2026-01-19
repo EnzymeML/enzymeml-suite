@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { theme } from "antd";
+import { theme, Tooltip } from "antd";
 
 import { useRouterTauriListener } from "@hooks/useTauriListener";
 import getValidationStatus, { getValidationStatusById, ValidationStatus } from "@validation/utils";
@@ -18,9 +18,11 @@ export default function ValidationIndicator(
     {
         id,
         verbose = false,
+        tooltip = true,
     }: {
         id?: string,
         verbose?: boolean,
+        tooltip?: boolean,
     }
 ) {
     // State to track the current validation status
@@ -57,26 +59,32 @@ export default function ValidationIndicator(
 
     // Render appropriate icon based on validation status
     switch (validationStatus) {
-        case ValidationStatus.OK:
-            return (
+        case ValidationStatus.OK: {
+            const content = (
                 <span className="flex gap-1 items-center">
-                    <CheckCircleOutlined style={{ fontSize: 12, color: token.colorSuccess }} />
-                    {verbose && <span style={{ color: token.colorSuccess, fontSize: 12 }}>Valid</span>}
+                    <CheckCircleOutlined style={{ fontSize: 14, color: token.colorSuccess }} />
+                    {verbose && <span style={{ color: token.colorSuccess, fontSize: 10 }}>Valid</span>}
                 </span>
             );
-        case ValidationStatus.HasWarnings:
-            return (
+            return tooltip ? <Tooltip title="Is valid">{content}</Tooltip> : content;
+        }
+        case ValidationStatus.HasWarnings: {
+            const content = (
                 <span className="flex gap-1 items-center">
-                    <WarningOutlined style={{ fontSize: 12, color: token.colorWarning }} />
-                    {verbose && <span style={{ color: token.colorWarning, fontSize: 12 }}>Warning</span>}
+                    <WarningOutlined style={{ fontSize: 14, color: token.colorWarning }} />
+                    {verbose && <span style={{ color: token.colorWarning, fontSize: 10 }}>Warning</span>}
                 </span>
             );
-        case ValidationStatus.HasErrors:
-            return (
+            return tooltip ? <Tooltip title="Has Warnings">{content}</Tooltip> : content;
+        }
+        case ValidationStatus.HasErrors: {
+            const content = (
                 <span className="flex gap-1 items-center">
-                    <CloseCircleOutlined style={{ fontSize: 12, color: token.colorError }} />
-                    {verbose && <span style={{ color: token.colorError, fontSize: 12 }}>Invalid</span>}
+                    <CloseCircleOutlined style={{ fontSize: 14, color: token.colorError }} />
+                    {verbose && <span style={{ color: token.colorError, fontSize: 10 }}>Invalid</span>}
                 </span>
             );
+            return tooltip ? <Tooltip title="Has Errors">{content}</Tooltip> : content;
+        }
     }
 }
