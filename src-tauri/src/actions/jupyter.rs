@@ -55,9 +55,10 @@ pub enum JupyterInstallStatus {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type, Clone)]
 pub struct JupyterTemplate {
-    name: String,
+    pub id: String,
+    pub name: String,
     description: String,
-    template_path: String,
+    pub template_path: String,
     repository: String,
     category: String,
 }
@@ -69,7 +70,7 @@ pub struct JupyterTemplate {
 // and values are the notebook content as strings.
 lazy_static::lazy_static! {
     // Static HashMap containing all raw Jupyter templates (with .ipynb extension) embedded at compile time
-    static ref JUPYTER_TEMPLATES: HashMap<&'static str, &'static str> = {
+    pub static ref JUPYTER_TEMPLATES: HashMap<&'static str, &'static str> = {
         let mut templates = HashMap::new();
 
         jupyter_template!("Basic", templates);
@@ -85,7 +86,7 @@ lazy_static::lazy_static! {
     };
 
     // Static vector containing all Jupyter template metadata embedded at compile time
-    static ref JUPYTER_TEMPLATE_METADATA: Vec<JupyterTemplate> = {
+    pub static ref JUPYTER_TEMPLATE_METADATA: Vec<JupyterTemplate> = {
         let raw_templates = include_str!("../../../jupyter-templates/_templates.json");
         serde_json::from_str(raw_templates).expect("Failed to parse jupyter templates JSON")
     };
