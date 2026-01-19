@@ -75,7 +75,7 @@ pub fn create_measurement(
         .collect();
 
     update_event!(app_handle, "update_measurements");
-    update_report!(state, app_handle);
+    update_report!(state, app_handle, &state_doc);
 
     Ok(id)
 }

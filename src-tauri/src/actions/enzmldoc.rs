@@ -44,7 +44,7 @@ pub fn set_title(
         .emit("update_document", ())
         .map_err(|e| e.to_string())?;
 
-    update_report!(state, app_handle);
+    update_report!(state, app_handle, &state_doc);
 
     Ok(())
 }
@@ -97,7 +97,7 @@ pub fn create_document(
     *state_doc = enzmldoc;
 
     update_event!(app_handle, "update_document");
-    update_report!(state, app_handle);
+    update_report!(state, app_handle, &state_doc);
 
     Ok(())
 }
