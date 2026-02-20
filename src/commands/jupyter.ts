@@ -401,7 +401,7 @@ export type JupyterInstallStatus = "Success" | "Error" | "Output"
  * Lightweight, serializable view of a session (omits the live child handle).
  */
 export type JupyterSessionInfo = { id: string; url: string; port: number }
-export type JupyterTemplate = { name: string; description: string; template_path: string; repository: string; category: string }
+export type JupyterTemplate = { id: string; name: string; description: string; template_path: string; repository: string; category: string }
 /**
  * Represents a detected Python installation
  */

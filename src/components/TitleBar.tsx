@@ -1,6 +1,6 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Badge, theme } from "antd";
-import Icon, { OpenAIOutlined, PythonOutlined, SaveOutlined } from "@ant-design/icons";
+import Icon, { PythonOutlined, SaveOutlined } from "@ant-design/icons";
 
 import EnzymeMLLogoMono from "@icons/enzymeml_logo.svg";
 import EnzymeMLLogoCol from "@icons/enzymeml_logo_coloured.svg";
@@ -12,7 +12,7 @@ import JupyterSessionManager from "@jupyter/Jupyter.tsx";
 import useJupyterStore from "@stores/jupyterstore";
 import { getBadgeColor } from "@components/CardHeader";
 import FileMenu from "@components/FileMenu";
-import useLLMStore from "@suite/stores/llmstore";
+import AIClientSelector from "@components/AIClientSelector";
 
 /** Current webview window instance for window management operations */
 const appWindow = getCurrentWebviewWindow()
@@ -90,10 +90,6 @@ function TitleButtons() {
     const numberOfSessions = useJupyterStore(state => state.numberOfSessions);
     /** Current dark mode state for theming */
     const darkMode = useAppStore(state => state.darkMode);
-    /** Whether the extraction modal is visible */
-    const extractionModalVisible = useLLMStore(state => state.extractionModalVisible);
-    /** Function to set the extraction modal visible state */
-    const setExtractionModalVisible = useLLMStore(state => state.setExtractionModalVisible);
 
     /**
      * Saves the current entry and displays a notification
@@ -114,17 +110,8 @@ function TitleButtons() {
 
     return (
         <div className={"flex flex-row items-center space-x-2"}>
-            {/* Extraction Modal Button */}
-            <Badge
-                dot={extractionModalVisible}
-                color={getBadgeColor(darkMode)}
-            >
-                <OpenAIOutlined
-                    className="cursor-pointer"
-                    style={{ fontSize: 16 }}
-                    onClick={() => setExtractionModalVisible(!extractionModalVisible)}
-                />
-            </Badge>
+            {/* AI Client Selector */}
+            <AIClientSelector />
             {/* Jupyter Session Manager with active session indicator */}
             <JupyterSessionManager>
                 <Badge dot={numberOfSessions > 0} color={getBadgeColor(darkMode)}>

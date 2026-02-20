@@ -9,6 +9,7 @@ import useLLMStore from "@stores/llmstore";
 import extractionPrompt from "@llm/prompts/extraction";
 import { researchQuery } from "@llm/utils/queries";
 import { ExtractionContext, ExtractionContextMap, ExtractionEnabledPaths } from "@suite-types/context";
+import { getOpenAIToken } from "@commands/settings.ts";
 
 import ProcessingView from "@llm/components/ProcessingView";
 import ExtractionResults from "@llm/components/ExtractionResults";
@@ -99,8 +100,33 @@ export default function ExtractionFlow<T extends ZodObject<ZodRawShape>, U = z.i
         setIsStreaming(true);
 
         try {
+            // Get API token from store, fallback to env variable for backwards compatibility
+            let apiKey: string;
+            try {
+                const storedToken = await getOpenAIToken();
+                apiKey = storedToken.trim();
+                if (!apiKey) {
+                    // Fallback to environment variable if no token is stored
+                    apiKey = import.meta.env.VITE_OPENAI_API_KEY?.trim() || "";
+                }
+            } catch {
+                // If getting token fails, fallback to environment variable
+                apiKey = import.meta.env.VITE_OPENAI_API_KEY?.trim() || "";
+            }
+
+            if (!apiKey) {
+                openNotification(
+                    "API Token Required",
+                    NotificationType.ERROR,
+                    "Please set your OpenAI API token in Settings > API Tokens before using this feature."
+                );
+                setStep('input');
+                setIsStreaming(false);
+                return;
+            }
+
             const client = new OpenAI({
-                apiKey: import.meta.env.VITE_OPENAI_API_KEY.trim(),
+                apiKey: apiKey,
                 dangerouslyAllowBrowser: true,
                 fetch: window.fetch,
             });

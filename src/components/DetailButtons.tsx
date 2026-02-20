@@ -53,8 +53,8 @@ export default function DetailButtons(
             >
                 <Button
                     className='flex gap-1 justify-center items-center'
-                    style={{ minWidth: '65px' }}
-                    icon={<ValidationIndicator verbose={true} id={id} />}
+                    style={{ minWidth: '25px' }}
+                    icon={<ValidationIndicator verbose={false} tooltip={false} id={id} />}
                     onClick={() => {
                         setOpen(true);
                     }}

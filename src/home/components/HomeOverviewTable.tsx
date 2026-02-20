@@ -185,20 +185,21 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             ],
             onFilter: (value, record) => record.type === value,
             render: (type: string) => {
+                const tagStyle = { width: '90px', display: 'inline-block', textAlign: 'center' as const };
                 if (type === "Vessel") {
-                    return <Tag color="orange">Vessel</Tag>;
+                    return <Tag color="orange" style={tagStyle}>Vessel</Tag>;
                 }
                 if (type === "Small Molecule") {
-                    return <Tag color="blue">Molecule</Tag>;
+                    return <Tag color="blue" style={tagStyle}>Molecule</Tag>;
                 }
                 if (type === "Protein") {
-                    return <Tag color="green">Protein</Tag>;
+                    return <Tag color="green" style={tagStyle}>Protein</Tag>;
                 }
                 if (type === "Reaction") {
-                    return <Tag color="purple">Reaction</Tag>;
+                    return <Tag color="purple" style={tagStyle}>Reaction</Tag>;
                 }
                 if (type === "Measurement") {
-                    return <Tag color="cyan">Measurement</Tag>;
+                    return <Tag color="cyan" style={tagStyle}>Measurement</Tag>;
                 }
                 return <Text type="secondary">{type}</Text>;
             },
@@ -217,7 +218,7 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             title: "Name",
             dataIndex: "name",
             key: "name",
-            width: "30%",
+            width: "25%",
             render: (text: string) => (
                 <Text strong>{text}</Text>
             ),
@@ -226,7 +227,7 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             title: "Validation",
             key: "validation",
             dataIndex: "validationStatus",
-            width: "20%",
+            width: "10%",
             align: "center",
             filters: [
                 { text: "Valid", value: ValidationStatus.OK },
@@ -247,8 +248,9 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
                     <Button
                         className='flex gap-1 justify-center items-center'
                         size="small"
-                        style={{ minWidth: '65px' }}
-                        icon={<ValidationIndicator verbose={true} id={record.id} />}
+                        style={{ width: '60px' }}
+                        icon={<ValidationIndicator id={record.id} />}
+                        type="text"
                         onClick={(e) => {
                             e.stopPropagation();
                             setValidationModalId(record.id);

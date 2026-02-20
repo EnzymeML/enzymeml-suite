@@ -4,12 +4,13 @@
 use std::sync::Arc;
 
 use tauri::async_runtime::spawn;
+use tauri::path::BaseDirectory;
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
 use crate::actions::utils::get_config_store_path;
 use crate::actions::{
-    enzmldoc, equations, jupyter, measurements, parameters, proteins, reactions, simulation,
+    enzmldoc, equations, jupyter, measurements, parameters, proteins, reactions, settings,
     smallmols, units, validation, vessels, windows,
 };
 use crate::api::create_rocket;
@@ -23,6 +24,8 @@ pub(crate) mod api;
 mod db;
 /// Document utilities for EnzymeML document operations
 mod docutils;
+/// MCP module to install the MCP server
+pub mod mcp;
 /// Data models and structures used throughout the application
 mod models;
 /// Database schema definitions
@@ -56,6 +59,8 @@ pub mod actions {
     pub mod jupyter;
     /// Utility macros for action implementations
     pub mod macros;
+    /// MCP commands
+    pub mod mcp;
     /// Measurement data handling commands
     pub mod measurements;
     /// Parameter management commands
@@ -64,8 +69,8 @@ pub mod actions {
     pub mod proteins;
     /// Reaction entity management commands
     pub mod reactions;
-    /// Simulation execution and management
-    pub mod simulation;
+    /// Settings and configuration commands
+    pub mod settings;
     /// Small molecule entity management commands
     pub mod smallmols;
     /// Unit definition and conversion commands
@@ -125,6 +130,22 @@ async fn main() {
             collect_events![],
             "../src/commands/validation.ts",
         );
+
+        generate_bindings(
+            collect_commands![
+                // MCP commands
+                actions::mcp::register_mcp,
+                actions::mcp::is_mcp_registered,
+                actions::mcp::is_mcp_binary_installed,
+            ],
+            collect_events![
+                actions::mcp::McpInstallOutput,
+                actions::mcp::McpInstallStatus,
+                actions::mcp::McpRegisterOutput,
+                actions::mcp::McpRegisterStatus,
+            ],
+            "../src/commands/mcp.ts",
+        );
     }
 
     tauri::Builder::default()
@@ -136,8 +157,8 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_cors_fetch::init())
         .setup(|app| {
+            #[cfg(debug_assertions)] // only include this code on debug builds
             if let Some(window) = app.get_webview_window("main") {
-                #[cfg(debug_assertions)] // only include this code on debug builds
                 {
                     window.open_devtools();
                     window.close_devtools();
@@ -243,8 +264,6 @@ async fn main() {
             parameters::update_parameter,
             parameters::partial_update_parameter,
             parameters::delete_parameter,
-            // Simulation
-            simulation::simulate_enzymeml,
             // Measurements
             measurements::create_measurement,
             measurements::get_measurement,
@@ -274,6 +293,14 @@ async fn main() {
             // Validation
             validation::get_validation_report,
             validation::get_validation_report_by_identifier,
+            // Settings
+            settings::install_mcp_server,
+            settings::get_openai_token,
+            settings::set_openai_token,
+            // MCP
+            actions::mcp::register_mcp,
+            actions::mcp::is_mcp_registered,
+            actions::mcp::is_mcp_binary_installed,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

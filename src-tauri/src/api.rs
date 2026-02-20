@@ -1,4 +1,5 @@
 use enzymeml::prelude::EnzymeMLDocument;
+use notebookx::NotebookFormat;
 use rocket::http::{ContentType, Status};
 use rocket::serde::json::Json;
 use rocket::{get, put, routes, Build, Rocket, State};
@@ -8,6 +9,7 @@ use serde_json::Value;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::actions::jupyter::{JupyterTemplate, JUPYTER_TEMPLATES, JUPYTER_TEMPLATE_METADATA};
 use crate::docutils::deserialize_doc;
 use crate::io::dataio::{retrieve_all_documents, retrieve_document_by_id};
 use crate::states::EnzymeMLState;
@@ -42,7 +44,14 @@ pub fn create_rocket(state: Arc<EnzymeMLState>, app_handle: Arc<AppHandle>) -> R
         .manage(app_handle)
         .mount(
             "/",
-            routes![get_docs, get_current_doc, get_doc_by_id, update_document],
+            routes![
+                get_docs,
+                get_current_doc,
+                get_doc_by_id,
+                update_document,
+                get_jupyter_templates,
+                get_jupyter_template
+            ],
         )
 }
 
@@ -290,4 +299,57 @@ fn signal_change_to_frontend(app_handle: &AppHandle) -> Option<(Status, (Content
         }
     }
     None
+}
+
+/// Retrieves all available Jupyter notebook templates
+///
+/// Returns a JSON array containing metadata for all available Jupyter notebook
+/// templates. Each template includes information such as name, description,
+/// and other relevant metadata for client-side display.
+///
+/// # Returns
+/// JSON response containing a vector of JupyterTemplate metadata
+#[get("/jupyter/templates")]
+fn get_jupyter_templates() -> Json<Vec<JupyterTemplate>> {
+    let metadata = JUPYTER_TEMPLATE_METADATA.to_vec();
+    Json(metadata)
+}
+
+/// Retrieves a specific Jupyter notebook template by name
+///
+/// Fetches the specified template from the template registry, parses it as
+/// an IPython notebook, and converts it to percent script format for easier
+/// integration with external tools and editors.
+///
+/// # Arguments
+/// * `template_name` - The name identifier of the template to retrieve
+///
+/// # Returns
+/// * `Ok((Status, (ContentType, String)))` - Success response with the template
+///   content as a percent-formatted script
+/// * `Err(String)` - Error message if template not found or parsing fails
+///
+/// # Errors
+/// * Template not found in the registry
+/// * Failed to parse the notebook format
+/// * Failed to serialize to percent format
+#[get("/jupyter/templates/<template_id>")]
+fn get_jupyter_template(template_id: &str) -> Result<(Status, (ContentType, String)), String> {
+    let metadata = JUPYTER_TEMPLATE_METADATA
+        .iter()
+        .find(|t| t.id == template_id)
+        .ok_or(format!("Template {template_id} not found"))?;
+    let template = JUPYTER_TEMPLATES
+        .get(metadata.template_path.as_str())
+        .ok_or(format!("Template {} not found", metadata.name))?;
+
+    let notebook = NotebookFormat::Ipynb
+        .parse(template)
+        .map_err(|e| format!("Failed to parse notebook: {e}"))?;
+
+    let script = NotebookFormat::Percent
+        .serialize(&notebook)
+        .map_err(|e| format!("Failed to serialize notebook: {e}"))?;
+
+    Ok((Status::Ok, (ContentType::Text, script)))
 }

@@ -92,7 +92,7 @@ pub fn create_equation(
 
     update_event!(app_handle, "update_parameters");
     update_event!(app_handle, "update_equations");
-    update_report!(state, app_handle);
+    update_report!(state, app_handle, &doc);
 
     Ok(())
 }

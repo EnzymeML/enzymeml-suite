@@ -1,6 +1,7 @@
 [
     {
         "name": "PyEnzyme",
+        "id": "pyenzyme",
         "description": "Start from scratch and use PyEnzyme to read your EnzymeML document from the EnzymeML Suite. Perfect for beginners to explore enzyme kinetics data analysis and modeling.",
         "template_path": "Basic",
         "repository": "https://www.github.com/EnzymeML/PyEnzyme",
@@ -8,6 +9,7 @@
     },
     {
         "name": "Visualisation",
+        "id": "visualisation",
         "description": "A template for Visualisation using PyEnzyme to render publication-ready figures.",
         "template_path": "Visualisation",
         "repository": "https://www.github.com/EnzymeML/PyEnzyme",
@@ -15,6 +17,7 @@
     },
     {
         "name": "Bayesian Inference",
+        "id": "bayesian-inference",
         "description": "A template for Bayesian Inference using the Catalax JAX library. Perform probabilistic parameter estimation with uncertainty quantification for enzyme kinetic models.",
         "template_path": "BayesianInference",
         "repository": "https://www.github.com/JR-1991/Catalax",
@@ -22,6 +25,7 @@
     },
     {
         "name": "Surrogate Bayesian Inference",
+        "id": "surrogate-bayesian-inference",
         "description": "A template for Surrogate Bayesian Inference using the Catalax JAX library. Perform probabilistic parameter estimation with uncertainty quantification for enzyme kinetic models, which is accelerated through a Neural ODE surrogate model.",
         "template_path": "SurrogateBayesianInference",
         "repository": "https://www.github.com/JR-1991/Catalax",
@@ -29,6 +33,7 @@
     },
     {
         "name": "Parameter Estimation",
+        "id": "parameter-estimation",
         "description": "A template for Parameter Estimation using the Catalax JAX library. Fit kinetic parameters to experimental data using advanced optimization algorithms and gradient-based methods.",
         "template_path": "ParameterEstimation",
         "repository": "https://www.github.com/JR-1991/Catalax",
@@ -36,6 +41,7 @@
     },
     {
         "name": "Neural ODE",
+        "id": "neural-ode",
         "description": "A template for Neural Ordinary Differential Equations using the Catalax JAX library. Combine neural networks with differential equations to model complex enzymatic systems and dynamics.",
         "template_path": "NeuralODE",
         "repository": "https://www.github.com/JR-1991/Catalax",
@@ -43,6 +49,7 @@
     },
     {
         "name": "Universal ODE",
+        "id": "universal-ode",
         "description": "A template for Universal Ordinary Differential Equations using the Catalax JAX library. Combine neural networks with differential equations to model model residual unknown behavior.",
         "template_path": "UniversalODE",
         "repository": "https://www.github.com/JR-1991/Catalax",
@@ -50,6 +57,7 @@
     },
     {
         "name": "COPASI (Basico)",
+        "id": "copasi-basico",
         "description": "Model your data using COPASI through the basico PyEnzyme thin layer. Access powerful biochemical modeling capabilities with steady-state and time-course analysis.",
         "template_path": "COPASI",
         "repository": "https://github.com/copasi/basico",
@@ -57,6 +65,7 @@
     },
     {
         "name": "PySCeS",
+        "id": "pysces",
         "description": "Model your data using PySCeS through the pysces thin layer. Perform metabolic control analysis and steady-state modeling of biochemical networks.",
         "template_path": "PySCeS",
         "repository": "https://github.com/PySCeS/pysces",
