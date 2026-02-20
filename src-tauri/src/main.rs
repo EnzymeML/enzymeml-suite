@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use tauri::async_runtime::spawn;
-use tauri::path::BaseDirectory;
+#[cfg(debug_assertions)]
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
