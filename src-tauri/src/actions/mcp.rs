@@ -116,7 +116,26 @@ pub fn register_mcp(app: AppHandle, client_type: ClientType) -> Result<(), Strin
     let path = client_type.get_path();
     let mcp_path = get_mcp_path();
 
-    // Create parent directory if it doesn't exist
+    // For Claude Desktop, require its config directory to already exist
+    // (i.e., Claude has been launched at least once).
+    if matches!(&client_type, ClientType::ClaudeDesktop) {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                let error_msg = "Claude Desktop config directory not found. Please ensure Claude Desktop is installed and has been run at least once to initialize its config.".to_string();
+                app.emit(
+                    "mcp-register-output",
+                    McpRegisterOutput {
+                        status: McpRegisterStatus::Error,
+                        output: error_msg.clone(),
+                    },
+                )
+                .ok();
+                return Err(error_msg);
+            }
+        }
+    }
+
+    // Create parent directory if it doesn't exist (for non-Claude clients)
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).map_err(|e| {
@@ -300,10 +319,10 @@ impl ClientType {
         {
             match self {
                 ClientType::ClaudeDesktop => {
-                    // %APPDATA%\Claude\claude_desktop_config.json
-                    dirs::config_dir()
+                    // %USERPROFILE%\AppData\Roaming\Claude\claude_desktop_config.json
+                    dirs::home_dir()
                         .unwrap()
-                        .join("Claude/claude_desktop_config.json")
+                        .join("AppData/Roaming/Claude/claude_desktop_config.json")
                 }
                 ClientType::Cursor => {
                     // %USERPROFILE%\.cursor\mcp.json
@@ -316,10 +335,11 @@ impl ClientType {
         {
             match self {
                 ClientType::ClaudeDesktop => {
-                    // Claude Desktop doesn't officially support Linux,
-                    // but if it did, it would likely follow XDG
-                    dirs::config_dir()
-                        .unwrap()
+                    // $XDG_CONFIG_HOME/Claude/claude_desktop_config.json
+                    // fallback: ~/.config/Claude/claude_desktop_config.json
+                    std::env::var_os("XDG_CONFIG_HOME")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|| dirs::home_dir().unwrap().join(".config"))
                         .join("Claude/claude_desktop_config.json")
                 }
                 ClientType::Cursor => dirs::home_dir().unwrap().join(".cursor/mcp.json"),
