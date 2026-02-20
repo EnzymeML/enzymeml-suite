@@ -2025,7 +2025,7 @@ dependencies = [
 
 [[package]]
 name = "enzymeml-dashboard"
-version = "0.0.0"
+version = "0.2.0"
 dependencies = [
  "derive_builder",
  "diesel",
