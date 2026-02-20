@@ -5,8 +5,6 @@
 //! the Model Context Protocol, allowing them to interact with EnzymeML documents and data.
 
 use sha2::{Digest, Sha256};
-use std::fs::Permissions;
-use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 const APPLE_SILICON_MCP: &str = "enzymeml-mcp-aarch64-apple-darwin/enzymeml-mcp";
@@ -68,11 +66,27 @@ pub fn install(resource_path: PathBuf) -> Result<(), String> {
         }
     }
 
+    if let Some(parent) = mcp_path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+
     // Copy the MCP binary to the MCP path and make it executable
     std::fs::copy(&resource_path, &mcp_path).map_err(|e| e.to_string())?;
-    std::fs::set_permissions(&mcp_path, Permissions::from_mode(0o755))
-        .map_err(|e| e.to_string())?;
+    set_executable_if_needed(&mcp_path)?;
 
+    Ok(())
+}
+
+#[cfg(unix)]
+fn set_executable_if_needed(path: &PathBuf) -> Result<(), String> {
+    use std::fs::Permissions;
+    use std::os::unix::fs::PermissionsExt;
+
+    std::fs::set_permissions(path, Permissions::from_mode(0o755)).map_err(|e| e.to_string())
+}
+
+#[cfg(not(unix))]
+fn set_executable_if_needed(_path: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
@@ -114,9 +128,27 @@ fn resource_mcp_name() -> String {
 /// # Panics
 /// * If the home directory cannot be determined
 pub(crate) fn get_mcp_path() -> PathBuf {
-    let home_dir = dirs::home_dir().unwrap();
-    home_dir
-        .join(".config")
-        .join("enzymeml")
-        .join("enzymeml-mcp")
+    let config_dir = dirs::config_dir().unwrap_or_else(|| {
+        let home_dir = dirs::home_dir().expect("Failed to determine home directory");
+        #[cfg(target_os = "windows")]
+        {
+            home_dir.join("AppData").join("Roaming")
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            home_dir.join(".config")
+        }
+    });
+
+    config_dir.join("enzymeml").join(installed_mcp_name())
+}
+
+#[cfg(target_os = "windows")]
+fn installed_mcp_name() -> &'static str {
+    "enzymeml-mcp.exe"
+}
+
+#[cfg(not(target_os = "windows"))]
+fn installed_mcp_name() -> &'static str {
+    "enzymeml-mcp"
 }
