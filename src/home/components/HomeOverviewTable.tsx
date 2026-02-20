@@ -218,7 +218,7 @@ export default function HomeOverviewTable({ onItemSelect }: HomeOverviewTablePro
             title: "Name",
             dataIndex: "name",
             key: "name",
-            width: "30%",
+            width: "25%",
             render: (text: string) => (
                 <Text strong>{text}</Text>
             ),
