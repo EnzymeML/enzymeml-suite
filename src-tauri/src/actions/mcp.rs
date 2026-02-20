@@ -319,10 +319,19 @@ impl ClientType {
         {
             match self {
                 ClientType::ClaudeDesktop => {
-                    // %USERPROFILE%\AppData\Roaming\Claude\claude_desktop_config.json
-                    dirs::home_dir()
+                    // Try %USERPROFILE%\AppData\Claude\claude_desktop_config.json first
+                    let primary_path = dirs::home_dir()
                         .unwrap()
-                        .join("AppData/Roaming/Claude/claude_desktop_config.json")
+                        .join("AppData/Claude/claude_desktop_config.json");
+
+                    if primary_path.exists() {
+                        primary_path
+                    } else {
+                        // Fallback to %USERPROFILE%\AppData\Roaming\Claude\claude_desktop_config.json
+                        dirs::home_dir()
+                            .unwrap()
+                            .join("AppData/Roaming/Claude/claude_desktop_config.json")
+                    }
                 }
                 ClientType::Cursor => {
                     // %USERPROFILE%\.cursor\mcp.json
